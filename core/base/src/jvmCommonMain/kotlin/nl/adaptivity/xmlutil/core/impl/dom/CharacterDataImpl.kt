@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -23,6 +23,9 @@
 package nl.adaptivity.xmlutil.core.impl.dom
 
 import nl.adaptivity.xmlutil.core.impl.idom.ICharacterData
+import nl.adaptivity.xmlutil.core.impl.idom.INode
+import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.CharacterData
 
 internal abstract class CharacterDataImpl<N : CharacterData>(delegate: N) : NodeImpl<N>(delegate), ICharacterData {
@@ -56,4 +59,40 @@ internal abstract class CharacterDataImpl<N : CharacterData>(delegate: N) : Node
     override fun getFirstChild(): Nothing? = null
 
     override fun getLastChild(): Nothing? = null
+
+    @IgnorableReturnValue
+    override fun appendChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun appendChild(node: INode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun appendChild(newChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun replaceChild(newChild: INode, oldChild: INode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun removeChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun removeChild(node: INode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
+
+    @IgnorableReturnValue
+    override fun removeChild(oldChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in character data")
 }

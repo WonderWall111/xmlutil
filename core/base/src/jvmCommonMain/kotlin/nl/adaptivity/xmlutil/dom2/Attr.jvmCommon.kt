@@ -23,6 +23,7 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformNode
 
 public actual interface Attr : Node, PlatformAttr {
     public actual override fun getNamespaceURI(): String?
@@ -38,10 +39,19 @@ public actual interface Attr : Node, PlatformAttr {
     override fun getParentElement(): Element?
 
     @IgnorableReturnValue
+    override fun appendChild(newChild: PlatformNode): Nothing
+
+    @IgnorableReturnValue
     public actual override fun appendChild(node: Node): Nothing
 
     @IgnorableReturnValue
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
+
+    @IgnorableReturnValue
     public actual override fun replaceChild(newChild: Node, oldChild: Node): Nothing
+
+    @IgnorableReturnValue
+    override fun removeChild(oldChild: PlatformNode): Nothing
 
     @IgnorableReturnValue
     public actual override fun removeChild(node: Node): Nothing

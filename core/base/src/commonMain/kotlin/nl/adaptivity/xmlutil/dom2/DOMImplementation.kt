@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -17,6 +17,8 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
+@file:MustUseReturnValues
 
 package nl.adaptivity.xmlutil.dom2
 

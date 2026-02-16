@@ -22,7 +22,7 @@ package nl.adaptivity.xmlutil.core.impl.dom
 
 import nl.adaptivity.xmlutil.core.impl.idom.IAttr
 import nl.adaptivity.xmlutil.core.impl.idom.IElement
-import org.w3c.dom.Node
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import org.w3c.dom.TypeInfo
 import org.w3c.dom.Attr as DomAttr
 
@@ -49,8 +49,21 @@ internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), IAttr 
     override fun getSchemaTypeInfo(): TypeInfo = delegate.schemaTypeInfo
 
     override fun isId(): Boolean = delegate.isId
+
+    @IgnorableReturnValue
+    override fun appendChild(newChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
+    @IgnorableReturnValue
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
+    @IgnorableReturnValue
+    override fun removeChild(oldChild: PlatformNode): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
 }
 
-internal fun Node.wrapAttr(): IAttr {
+internal fun PlatformNode.wrapAttr(): IAttr {
     return (this as DomAttr).wrap()
 }

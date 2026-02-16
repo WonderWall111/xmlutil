@@ -44,23 +44,31 @@ public actual interface Node: PlatformNode {
     public actual override fun lookupPrefix(namespace: String): String?
     public actual override fun lookupNamespaceURI(prefix: String): String?
 
+    override fun appendChild(newChild: PlatformNode): Node
+
     @IgnorableReturnValue
     public actual fun appendChild(node: Node): Node
 
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
+
     @IgnorableReturnValue
     public actual fun replaceChild(newChild: Node, oldChild: Node): Node
+
+    override fun removeChild(oldChild: PlatformNode): Node
 
     @IgnorableReturnValue
     public actual fun removeChild(node: Node): Node
 }
 
 @IgnorableReturnValue
+@Deprecated("Use member", level = DeprecationLevel.HIDDEN)
 public actual fun Node.appendChild(node: PlatformNode): Node {
     val n = node as? Node ?: getOwnerDocument().adoptNode(node = node)
-    return appendChild(n as Node)
+    return appendChild(n)
 }
 
 @IgnorableReturnValue
+@Deprecated("Use member", level = DeprecationLevel.HIDDEN)
 public actual fun Node.replaceChild(
     newChild: PlatformNode,
     oldChild: Node
@@ -70,6 +78,7 @@ public actual fun Node.replaceChild(
 }
 
 @IgnorableReturnValue
+@Deprecated("Use member", level = DeprecationLevel.HIDDEN)
 public actual fun Node.removeChild(node: PlatformNode): Node {
     val n = node as? Node ?: node.wrap()
     return removeChild(n)
