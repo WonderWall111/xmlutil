@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,14 +22,16 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface CharacterData : Node {
-    public actual fun getData(): String
-    public actual fun setData(data: String)
-    public actual fun substringData(offset: Int, count: Int): String
-    public actual fun appendData(data: String)
-    public actual fun insertData(offset: Int, data: String)
-    public actual fun deleteData(offset: Int, count: Int)
-    public actual fun replaceData(offset: Int, count: Int, data: String)
+import nl.adaptivity.xmlutil.dom.PlatformCharacterData
+
+public actual interface CharacterData : Node, PlatformCharacterData {
+    public actual override fun getData(): String
+    public actual override fun setData(data: String)
+    public actual override fun substringData(offset: Int, count: Int): String
+    public actual override fun appendData(data: String)
+    public actual override fun insertData(offset: Int, data: String)
+    public actual override fun deleteData(offset: Int, count: Int)
+    public actual override fun replaceData(offset: Int, count: Int, data: String)
 
     @IgnorableReturnValue
     public actual override fun appendChild(node: Node): Nothing

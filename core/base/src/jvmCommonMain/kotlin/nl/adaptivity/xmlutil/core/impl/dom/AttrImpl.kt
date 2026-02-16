@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -33,6 +33,8 @@ internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), IAttr 
     override fun getLastChild(): Nothing? = null
 
     override fun getOwnerElement(): IElement? = delegate.ownerElement?.wrap()
+
+    override fun getParentElement(): IElement? = delegate.parentNode as? IElement
 
     override fun getName(): String = delegate.name
 

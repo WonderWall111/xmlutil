@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,8 +22,10 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface ProcessingInstruction : Node {
-    public actual fun getTarget(): String
-    public actual fun getData(): String
-    public actual fun setData(data: String)
+import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
+
+public actual interface ProcessingInstruction : Node, PlatformProcessingInstruction {
+    public actual override fun getTarget(): String
+    public actual override fun getData(): String
+    public actual override fun setData(data: String)
 }

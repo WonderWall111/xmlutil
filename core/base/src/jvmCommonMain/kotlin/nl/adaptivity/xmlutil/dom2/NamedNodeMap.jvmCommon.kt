@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,7 +20,9 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface NamedNodeMap : Iterable<Attr> {
+import nl.adaptivity.xmlutil.dom.PlatformNamedNodeMap
+
+public actual interface NamedNodeMap : Iterable<Attr>, PlatformNamedNodeMap {
     public actual val size: Int
 
     @Deprecated(
@@ -28,14 +30,14 @@ public actual interface NamedNodeMap : Iterable<Attr> {
         replaceWith = ReplaceWith(expression = "size"),
         level = DeprecationLevel.WARNING
     )
-    public actual fun getLength(): Int
-    public actual fun item(index: Int): Attr?
+    public actual override fun getLength(): Int
+    public actual override fun item(index: Int): Attr?
     public actual operator fun get(index: Int): Attr?
-    public actual fun getNamedItem(qualifiedName: String): Attr?
-    public actual fun getNamedItemNS(namespace: String?, localName: String): Attr?
+    public actual override fun getNamedItem(qualifiedName: String): Attr?
+    public actual override fun getNamedItemNS(namespace: String?, localName: String): Attr?
     public actual fun setNamedItem(attr: Attr): Attr?
     public actual fun setNamedItemNS(attr: Attr): Attr?
-    public actual fun removeNamedItem(qualifiedName: String): Attr?
-    public actual fun removeNamedItemNS(namespace: String?, localName: String): Attr?
+    public actual override fun removeNamedItem(qualifiedName: String): Attr?
+    public actual override fun removeNamedItemNS(namespace: String?, localName: String): Attr?
     public actual override operator fun iterator(): Iterator<Attr>
 }

@@ -875,7 +875,7 @@ public final class nl/adaptivity/xmlutil/dom/NodeConsts {
 	public static final field TEXT_NODE S
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Attr {
 	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun getFirstChild ()Ljava/lang/Void;
 	public abstract fun getLastChild ()Ljava/lang/Void;
@@ -883,6 +883,8 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getNamespaceURI ()Ljava/lang/String;
 	public abstract fun getOwnerElement ()Lnl/adaptivity/xmlutil/dom2/Element;
+	public abstract fun getParentElement ()Lnl/adaptivity/xmlutil/dom2/Element;
+	public abstract fun getParentNode ()Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun getPrefix ()Ljava/lang/String;
 	public abstract fun getValue ()Ljava/lang/String;
 	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
@@ -900,10 +902,10 @@ public final class nl/adaptivity/xmlutil/dom2/AttrKt {
 	public static final fun setValue (Lnl/adaptivity/xmlutil/dom2/Attr;Ljava/lang/String;)V
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/CDATASection : nl/adaptivity/xmlutil/dom2/Text {
+public abstract interface class nl/adaptivity/xmlutil/dom2/CDATASection : nl/adaptivity/xmlutil/dom2/Text, org/w3c/dom/CDATASection {
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/CharacterData : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/CharacterData : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/CharacterData {
 	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun appendData (Ljava/lang/String;)V
 	public abstract fun deleteData (II)V
@@ -923,10 +925,10 @@ public final class nl/adaptivity/xmlutil/dom2/CharacterDataKt {
 	public static final fun setData (Lnl/adaptivity/xmlutil/dom2/CharacterData;Ljava/lang/String;)V
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Comment : nl/adaptivity/xmlutil/dom2/CharacterData {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Comment : nl/adaptivity/xmlutil/dom2/CharacterData, org/w3c/dom/Comment {
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/DOMImplementation {
+public abstract interface class nl/adaptivity/xmlutil/dom2/DOMImplementation : org/w3c/dom/DOMImplementation {
 	public abstract fun createDocument (Ljava/lang/String;Ljava/lang/String;Lnl/adaptivity/xmlutil/dom2/DocumentType;)Lnl/adaptivity/xmlutil/dom2/Document;
 	public abstract fun createDocumentType (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/DocumentType;
 	public abstract fun getFeature (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;
@@ -950,7 +952,7 @@ public final class nl/adaptivity/xmlutil/dom2/DOMVersion : java/lang/Enum {
 	public static fun values ()[Lnl/adaptivity/xmlutil/dom2/DOMVersion;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Document : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Document : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Document {
 	public abstract fun adoptNode (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun createAttribute (Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun createAttributeNS (Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
@@ -968,7 +970,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Document : nl/adaptiv
 	public abstract fun importNode (Lnl/adaptivity/xmlutil/dom2/Node;Z)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentFragment : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentFragment : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/DocumentFragment {
 }
 
 public final class nl/adaptivity/xmlutil/dom2/DocumentKt {
@@ -981,11 +983,12 @@ public final class nl/adaptivity/xmlutil/dom2/DocumentKt {
 	public static final fun importNode (Lnl/adaptivity/xmlutil/dom2/Document;Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentType : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentType : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/DocumentType {
 	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun getFirstChild ()Ljava/lang/Void;
 	public abstract fun getLastChild ()Ljava/lang/Void;
 	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getOwnerDocument ()Lnl/adaptivity/xmlutil/dom2/Document;
 	public abstract fun getPublicId ()Ljava/lang/String;
 	public abstract fun getSystemId ()Ljava/lang/String;
 	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
@@ -1002,7 +1005,7 @@ public final class nl/adaptivity/xmlutil/dom2/Document_jvmCommonKt {
 	public static final fun importNode (Lnl/adaptivity/xmlutil/dom2/Document;Lorg/w3c/dom/Node;Z)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Element : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Element : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Element {
 	public static final field Companion Lnl/adaptivity/xmlutil/dom2/Element$Companion;
 	public abstract fun getAttribute (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun getAttributeNS (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
@@ -1038,7 +1041,7 @@ public final class nl/adaptivity/xmlutil/dom2/ElementKt {
 	public static final fun getTagName (Lnl/adaptivity/xmlutil/dom2/Element;)Ljava/lang/String;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/NamedNodeMap : java/lang/Iterable, kotlin/jvm/internal/markers/KMappedMarker {
+public abstract interface class nl/adaptivity/xmlutil/dom2/NamedNodeMap : java/lang/Iterable, kotlin/jvm/internal/markers/KMappedMarker, org/w3c/dom/NamedNodeMap {
 	public abstract fun get (I)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun getLength ()I
 	public abstract fun getNamedItem (Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
@@ -1052,7 +1055,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/NamedNodeMap : java/l
 	public abstract fun setNamedItemNS (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Node : org/w3c/dom/Node {
 	public static final field Companion Lnl/adaptivity/xmlutil/dom2/Node$Companion;
 	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun getChildNodes ()Lnl/adaptivity/xmlutil/dom2/NodeList;
@@ -1090,7 +1093,7 @@ public final class nl/adaptivity/xmlutil/dom2/NodeKt {
 	public static final fun getTextContent (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/String;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/NodeList : java/lang/Iterable, kotlin/jvm/internal/markers/KMappedMarker {
+public abstract interface class nl/adaptivity/xmlutil/dom2/NodeList : java/lang/Iterable, kotlin/jvm/internal/markers/KMappedMarker, org/w3c/dom/NodeList {
 	public abstract fun get (I)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun getLength ()I
 	public abstract fun item (I)Lnl/adaptivity/xmlutil/dom2/Node;
@@ -1131,7 +1134,7 @@ public final class nl/adaptivity/xmlutil/dom2/Node_jvmCommonKt {
 	public static final fun replaceChild (Lnl/adaptivity/xmlutil/dom2/Node;Lorg/w3c/dom/Node;Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/ProcessingInstruction : nl/adaptivity/xmlutil/dom2/Node {
+public abstract interface class nl/adaptivity/xmlutil/dom2/ProcessingInstruction : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/ProcessingInstruction {
 	public abstract fun getData ()Ljava/lang/String;
 	public abstract fun getTarget ()Ljava/lang/String;
 	public abstract fun setData (Ljava/lang/String;)V
@@ -1154,7 +1157,7 @@ public abstract class nl/adaptivity/xmlutil/dom2/SupportedFeatures : java/lang/E
 	public static fun values ()[Lnl/adaptivity/xmlutil/dom2/SupportedFeatures;
 }
 
-public abstract interface class nl/adaptivity/xmlutil/dom2/Text : nl/adaptivity/xmlutil/dom2/CharacterData {
+public abstract interface class nl/adaptivity/xmlutil/dom2/Text : nl/adaptivity/xmlutil/dom2/CharacterData, org/w3c/dom/Text {
 }
 
 public final class nl/adaptivity/xmlutil/util/CombiningReader : java/io/Reader {

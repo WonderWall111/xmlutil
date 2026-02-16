@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,4 +20,6 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface Text : CharacterData
+import nl.adaptivity.xmlutil.dom.PlatformText
+
+public actual interface Text : CharacterData, PlatformText

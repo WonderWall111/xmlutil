@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,29 +21,30 @@
 package nl.adaptivity.xmlutil.dom2
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.dom.PlatformElement
 
 @Serializable(with = ElementSerializer::class)
-public actual interface Element : Node {
-    public actual fun getNamespaceURI(): String?
-    public actual fun getPrefix(): String?
-    public actual fun getLocalName(): String
-    public actual fun getTagName(): String
-    public actual fun getAttributes(): NamedNodeMap
-    public actual fun getAttribute(qualifiedName: String): String?
-    public actual fun getAttributeNS(namespace: String?, localName: String): String?
-    public actual fun setAttribute(qualifiedName: String, value: String)
-    public actual fun setAttributeNS(namespace: String?, cName: String, value: String)
-    public actual fun removeAttribute(qualifiedName: String)
-    public actual fun removeAttributeNS(namespace: String?, localName: String)
-    public actual fun hasAttribute(qualifiedName: String): Boolean
-    public actual fun hasAttributeNS(namespace: String?, localName: String): Boolean
-    public actual fun getAttributeNode(qualifiedName: String): Attr?
-    public actual fun getAttributeNodeNS(namespace: String?, localName: String): Attr?
+public actual interface Element : Node, PlatformElement {
+    public actual override fun getNamespaceURI(): String?
+    public actual override fun getPrefix(): String?
+    public actual override fun getLocalName(): String
+    public actual override fun getTagName(): String
+    public actual override fun getAttributes(): NamedNodeMap
+    public actual override fun getAttribute(qualifiedName: String): String?
+    public actual override fun getAttributeNS(namespace: String?, localName: String): String?
+    public actual override fun setAttribute(qualifiedName: String, value: String)
+    public actual override fun setAttributeNS(namespace: String?, cName: String, value: String)
+    public actual override fun removeAttribute(qualifiedName: String)
+    public actual override fun removeAttributeNS(namespace: String?, localName: String)
+    public actual override fun hasAttribute(qualifiedName: String): Boolean
+    public actual override fun hasAttributeNS(namespace: String?, localName: String): Boolean
+    public actual override fun getAttributeNode(qualifiedName: String): Attr?
+    public actual override fun getAttributeNodeNS(namespace: String?, localName: String): Attr?
     public actual fun setAttributeNode(attr: Attr): Attr?
     public actual fun setAttributeNodeNS(attr: Attr): Attr?
     public actual fun removeAttributeNode(attr: Attr): Attr
-    public actual fun getElementsByTagName(qualifiedName: String): NodeList
-    public actual fun getElementsByTagNameNS(
+    public actual override fun getElementsByTagName(qualifiedName: String): NodeList
+    public actual override fun getElementsByTagNameNS(
         namespace: String?,
         localName: String
     ): NodeList

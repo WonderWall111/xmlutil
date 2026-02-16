@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,10 +22,13 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface DocumentType : Node {
-    public actual fun getName(): String
-    public actual fun getPublicId(): String
-    public actual fun getSystemId(): String
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+
+public actual interface DocumentType : Node, PlatformDocumentType {
+    public actual override fun getName(): String
+    public actual override fun getPublicId(): String
+    public actual override fun getSystemId(): String
+    override fun getOwnerDocument(): Document
 
     @IgnorableReturnValue
     public actual override fun appendChild(node: Node): Nothing

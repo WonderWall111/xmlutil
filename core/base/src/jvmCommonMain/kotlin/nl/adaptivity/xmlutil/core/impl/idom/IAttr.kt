@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -27,6 +27,7 @@ import nl.adaptivity.xmlutil.dom2.Node
 public interface IAttr : INode, PlatformAttr, Attr {
     override fun getOwnerElement(): IElement?
     override fun getLocalName(): String?
+    override fun getParentElement(): IElement?
 
     public override fun appendChild(node: Node): Nothing =
         throw UnsupportedOperationException("No children in attributes")
