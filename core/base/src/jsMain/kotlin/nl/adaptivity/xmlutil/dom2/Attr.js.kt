@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,7 +22,11 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface Attr : Node {
+import nl.adaptivity.xmlutil.dom.PlatformAttr
+
+public actual interface Attr : Node, PlatformAttr {
+    override val parentElement: Element?
+
     public actual fun getNamespaceURI(): String?
     public actual fun getPrefix(): String?
     public actual fun getLocalName(): String?

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,7 +22,9 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public actual interface CharacterData : Node {
+import nl.adaptivity.xmlutil.dom.PlatformCharacterData
+
+public actual interface CharacterData : Node, PlatformCharacterData {
     public actual fun getData(): String
     public actual fun setData(data: String)
     public actual fun substringData(offset: Int, count: Int): String

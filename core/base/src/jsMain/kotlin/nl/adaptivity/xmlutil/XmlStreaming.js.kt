@@ -31,10 +31,10 @@ import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
+import nl.adaptivity.xmlutil.dom2.Node
 import nl.adaptivity.xmlutil.dom2.createDocument
 import org.w3c.dom.ParentNode
 import org.w3c.dom.parsing.DOMParser
-import nl.adaptivity.xmlutil.dom2.Node as Node2
 import org.w3c.dom.Node as DomNode
 
 @Deprecated("XmlStreamingFactory makes no sense in JS", level = DeprecationLevel.ERROR)
@@ -42,7 +42,7 @@ public actual interface XmlStreamingFactory
 
 internal actual object XmlStreaming : IXmlStreaming {
     @ExperimentalXmlUtilApi
-    actual override fun newReader(source: Node2): XmlReader {
+    actual override fun newReader(source: Node): XmlReader {
         return DomReader(source, false)
     }
 
@@ -54,7 +54,7 @@ internal actual object XmlStreaming : IXmlStreaming {
         return DomWriter()
     }
 
-    actual override fun newWriter(dest: Node2): DomWriter = DomWriter(dest)
+    actual override fun newWriter(dest: Node): DomWriter = DomWriter(dest)
 
     actual override fun newReader(input: CharSequence, expandEntities: Boolean): XmlReader {
         // fall back to generic reader for contexts without DOM (Node etc.)
@@ -137,7 +137,7 @@ public fun IXmlStreaming.newWriter(): DomWriter = XmlStreaming.newWriter()
  * @return The [DomWriter]
  */
 @Suppress("UnusedReceiverParameter")
-public fun IXmlStreaming.newWriter(dest: ParentNode): DomWriter = XmlStreaming.newWriter(dest as Node2)
+public fun IXmlStreaming.newWriter(dest: ParentNode): DomWriter = XmlStreaming.newWriter(dest as Node)
 
 /**
  * Create a new XML reader with the given source node as starting point.  Depending on the
@@ -146,7 +146,7 @@ public fun IXmlStreaming.newWriter(dest: ParentNode): DomWriter = XmlStreaming.n
  * @return A (potentially platform specific) [XmlReader], generally a [DomReader]
  */
 @Suppress("UnusedReceiverParameter")
-public fun IXmlStreaming.newReader(delegate: DomNode): XmlReader = XmlStreaming.newReader(delegate as Node2)
+public fun IXmlStreaming.newReader(delegate: DomNode): XmlReader = XmlStreaming.newReader(delegate as Node)
 
 /**
  * Create a new [XmlWriter] that appends to the given [Appendable]. This writer

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -25,6 +25,9 @@ import nl.adaptivity.xmlutil.dom.PlatformAttr as Attr1
 import nl.adaptivity.xmlutil.dom2.Attr as Attr2
 
 public interface IAttr : INode, Attr1, Attr2 {
+    override val parentElement: IElement?
+        get() = ownerElement
+
     override val ownerElement: IElement?
 
     override fun getOwnerElement(): IElement? = ownerElement

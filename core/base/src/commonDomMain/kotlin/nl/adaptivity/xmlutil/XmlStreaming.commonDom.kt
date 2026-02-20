@@ -59,7 +59,7 @@ internal actual object XmlStreaming : IXmlStreaming {
 
     actual override fun newWriter(): DomWriter = DomWriter()
 
-    actual override fun newWriter(dest: Node): DomWriter = DomWriter(dest)
+    actual override fun newWriter(dest: Node): DomWriter = DomWriter(current = dest)
 
     fun newWriter(
         output: Appendable,

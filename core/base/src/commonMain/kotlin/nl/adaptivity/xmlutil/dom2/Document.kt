@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -27,6 +27,7 @@ import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.localPart
 import nl.adaptivity.xmlutil.namespaceURI
 import nl.adaptivity.xmlutil.prefix
+import nl.adaptivity.xmlutil.dom2.Element as Element2
 
 public expect interface Document : Node {
 
@@ -34,7 +35,7 @@ public expect interface Document : Node {
 
     public fun getDoctype(): DocumentType?
 
-    public fun getDocumentElement(): Element?
+    public fun getDocumentElement(): Element2?
 
     public fun getInputEncoding(): String?
 
@@ -46,9 +47,9 @@ public expect interface Document : Node {
 
     public fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
 
-    public fun createElement(localName: String): Element
+    public fun createElement(localName: String): Element2
 
-    public fun createElementNS(namespaceURI: String, qualifiedName: String): Element
+    public fun createElementNS(namespaceURI: String, qualifiedName: String): Element2
 
     public fun createDocumentFragment(): DocumentFragment
 
@@ -62,10 +63,10 @@ public expect interface Document : Node {
 
 }
 
-public inline val Document.implementation: DOMImplementation get() = getImplementation()
-public inline val Document.doctype: DocumentType? get() = getDoctype()
-public inline val Document.documentElement: Element? get() = getDocumentElement()
-public inline val Document.inputEncoding: String? get() = getInputEncoding()
+public val Document.implementation: DOMImplementation get() = getImplementation()
+public val Document.doctype: DocumentType? get() = getDoctype()
+public val Document.documentElement: Element2? get() = getDocumentElement()
+public val Document.inputEncoding: String? get() = getInputEncoding()
 
 public expect fun Document.importNode(node: PlatformNode, deep: Boolean): Node
 
@@ -78,7 +79,7 @@ public fun Document.importNode(node: Node): Node = importNode(node, false)
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Document.characterSet: String? get() = getInputEncoding()
 
-public fun Document.createElementNS(qName: QName): Element = when {
+public fun Document.createElementNS(qName: QName): Element2 = when {
     qName.prefix.isEmpty() -> createElementNS(qName.namespaceURI, qName.localPart)
     else -> createElementNS(qName.namespaceURI, "${qName.prefix}:${qName.localPart}")
 }

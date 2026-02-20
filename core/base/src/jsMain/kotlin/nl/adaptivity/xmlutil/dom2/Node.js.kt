@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -25,10 +25,18 @@ package nl.adaptivity.xmlutil.dom2
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.core.impl.dom.wrap
 import nl.adaptivity.xmlutil.dom.PlatformNode
-import nl.adaptivity.xmlutil.dom.adoptNode
 
 @Serializable(with = NodeSerializer::class)
-public actual interface Node {
+public actual interface Node : PlatformNode {
+    override val ownerDocument: Document
+    override val parentNode: Node?
+    override val parentElement: Element?
+    override val childNodes: NodeList
+    override val firstChild: Node?
+    override val lastChild: Node?
+    override val previousSibling: Node?
+    override val nextSibling: Node?
+
     public actual fun getNodetype(): NodeType
     public actual fun getNodeName(): String
     public actual fun getOwnerDocument(): Document
@@ -41,8 +49,8 @@ public actual interface Node {
     public actual fun getPreviousSibling(): Node?
     public actual fun getNextSibling(): Node?
     public actual fun getParentElement(): Element?
-    public actual fun lookupPrefix(namespace: String): String?
-    public actual fun lookupNamespaceURI(prefix: String): String?
+    public actual override fun lookupPrefix(namespace: String): String?
+    public actual override fun lookupNamespaceURI(prefix: String): String?
 
     @IgnorableReturnValue
     public actual fun appendChild(node: Node): Node

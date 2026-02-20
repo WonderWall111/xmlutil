@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -57,7 +57,7 @@ internal object ElementSerializer : XmlSerializer<Element> {
     override fun deserializeXML(decoder: Decoder, input: XmlReader, previousValue: Element?, isValueChild: Boolean): Element {
         require(input.eventType == EventType.START_ELEMENT) { "${input.eventType} can not be deserialized as XML element" }
         val document = previousValue?.ownerDocument ?: createDocument(input.name)
-        val fragment = document.createDocumentFragment()
+        val fragment: DocumentFragment = document.createDocumentFragment()
         @Suppress("DEPRECATION")
         val out = DomWriter(fragment)
         out.writeElement(null, input)

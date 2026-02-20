@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,24 +21,29 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.core.impl.dom.wrap
+import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
-public actual interface Document : Node {
+public actual interface Document : Node, PlatformDocument {
+    override val implementation: DOMImplementation
+    override val doctype: DocumentType?
+    override val documentElement: Element?
+
     public actual fun getImplementation(): DOMImplementation
     public actual fun getDoctype(): DocumentType?
     public actual fun getDocumentElement(): Element?
     public actual fun getInputEncoding(): String?
     public actual fun importNode(node: Node, deep: Boolean): Node
     public actual fun adoptNode(node: Node): Node
-    public actual fun createAttribute(localName: String): Attr
-    public actual fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
-    public actual fun createElement(localName: String): Element
-    public actual fun createElementNS(namespaceURI: String, qualifiedName: String): Element
-    public actual fun createDocumentFragment(): DocumentFragment
-    public actual fun createTextNode(data: String): Text
-    public actual fun createCDATASection(data: String): CDATASection
-    public actual fun createComment(data: String): Comment
-    public actual fun createProcessingInstruction(target: String, data: String): ProcessingInstruction
+    public actual override fun createAttribute(localName: String): Attr
+    public actual override fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
+    public actual override fun createElement(localName: String): Element
+    public actual override fun createElementNS(namespaceURI: String, qualifiedName: String): Element
+    public actual override fun createDocumentFragment(): DocumentFragment
+    public actual override fun createTextNode(data: String): Text
+    public actual override fun createCDATASection(data: String): CDATASection
+    public actual override fun createComment(data: String): Comment
+    public actual override fun createProcessingInstruction(target: String, data: String): ProcessingInstruction
 }
 
 public actual fun Document.importNode(
