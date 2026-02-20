@@ -27,15 +27,15 @@ import org.w3c.dom.Node as DomNode
 internal class WrappingNodeList(val delegate: Any) : NodeList {
     override fun getLength(): Int = delegate.asDynamic().length
 
-    override fun get(index: Int): NodeImpl<out DomNode> {
+    override fun get(index: Int): NodeImpl<DomNode> {
         return item(index)
     }
 
-    override fun iterator(): Iterator<NodeImpl<out DomNode>> {
+    override fun iterator(): Iterator<NodeImpl<DomNode>> {
         return NodeListIterator(this)
     }
 
-    override fun item(index: Int): NodeImpl<out DomNode> {
+    override fun item(index: Int): NodeImpl<DomNode> {
         val node: DomNode = delegate.asDynamic().item(index) as DomNode? ?: throw IndexOutOfBoundsException("$index")
         return node.wrap()
     }

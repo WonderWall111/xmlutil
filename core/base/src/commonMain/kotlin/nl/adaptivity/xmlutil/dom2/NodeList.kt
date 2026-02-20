@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -32,6 +32,7 @@ public expect interface NodeList : Iterable<Node> {
     }*/
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val NodeList.length: Int get() = getLength()
 
 internal class NodeListIterator<L : NodeList, N : Node>(private val nodeList: L) : Iterator<N> {

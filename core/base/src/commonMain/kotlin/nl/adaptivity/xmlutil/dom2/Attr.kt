@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -43,11 +43,22 @@ public expect interface Attr : Node {
 
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Attr.namespaceURI: String? get() = getNamespaceURI()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Attr.prefix: String? get() = getPrefix()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Attr.localName: String? get() = getLocalName()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Attr.name: String get() = getName()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public var Attr.value: String
     get() = getValue()
     set(value) { setValue(value) }
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Attr.ownerElement: Element? get() = getOwnerElement()

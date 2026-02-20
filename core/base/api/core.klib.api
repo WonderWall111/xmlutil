@@ -331,7 +331,7 @@ abstract interface nl.adaptivity.xmlutil.dom/PlatformDocument : nl.adaptivity.xm
 
     // Targets: [js]
     abstract val inputEncoding // nl.adaptivity.xmlutil.dom/PlatformDocument.inputEncoding|{}inputEncoding[0]
-        abstract fun <get-inputEncoding>(): kotlin/String // nl.adaptivity.xmlutil.dom/PlatformDocument.inputEncoding.<get-inputEncoding>|<get-inputEncoding>(){}[0]
+        abstract fun <get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom/PlatformDocument.inputEncoding.<get-inputEncoding>|<get-inputEncoding>(){}[0]
 }
 
 abstract interface nl.adaptivity.xmlutil.dom/PlatformDocumentFragment : nl.adaptivity.xmlutil.dom/PlatformNode // nl.adaptivity.xmlutil.dom/PlatformDocumentFragment|null[0]
@@ -1722,11 +1722,11 @@ final val nl.adaptivity.xmlutil.dom2/childNodes // nl.adaptivity.xmlutil.dom2/ch
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/doctype // nl.adaptivity.xmlutil.dom2/doctype|@nl.adaptivity.xmlutil.dom.PlatformDocument{}doctype[0]
-    final inline fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-doctype>(): nl.adaptivity.xmlutil.dom/PlatformDocumentType? // nl.adaptivity.xmlutil.dom2/doctype.<get-doctype>|<get-doctype>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-doctype>(): nl.adaptivity.xmlutil.dom/PlatformDocumentType? // nl.adaptivity.xmlutil.dom2/doctype.<get-doctype>|<get-doctype>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/documentElement // nl.adaptivity.xmlutil.dom2/documentElement|@nl.adaptivity.xmlutil.dom.PlatformDocument{}documentElement[0]
-    final inline fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-documentElement>(): nl.adaptivity.xmlutil.dom/PlatformElement? // nl.adaptivity.xmlutil.dom2/documentElement.<get-documentElement>|<get-documentElement>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-documentElement>(): nl.adaptivity.xmlutil.dom/PlatformElement? // nl.adaptivity.xmlutil.dom2/documentElement.<get-documentElement>|<get-documentElement>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/firstChild // nl.adaptivity.xmlutil.dom2/firstChild|@nl.adaptivity.xmlutil.dom.PlatformNode{}firstChild[0]
@@ -1734,11 +1734,11 @@ final val nl.adaptivity.xmlutil.dom2/firstChild // nl.adaptivity.xmlutil.dom2/fi
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/implementation // nl.adaptivity.xmlutil.dom2/implementation|@nl.adaptivity.xmlutil.dom.PlatformDocument{}implementation[0]
-    final inline fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-implementation>(): nl.adaptivity.xmlutil.dom/PlatformDOMImplementation // nl.adaptivity.xmlutil.dom2/implementation.<get-implementation>|<get-implementation>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-implementation>(): nl.adaptivity.xmlutil.dom/PlatformDOMImplementation // nl.adaptivity.xmlutil.dom2/implementation.<get-implementation>|<get-implementation>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/inputEncoding // nl.adaptivity.xmlutil.dom2/inputEncoding|@nl.adaptivity.xmlutil.dom.PlatformDocument{}inputEncoding[0]
-    final inline fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom2/inputEncoding.<get-inputEncoding>|<get-inputEncoding>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom/PlatformDocument).<get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom2/inputEncoding.<get-inputEncoding>|<get-inputEncoding>@nl.adaptivity.xmlutil.dom.PlatformDocument(){}[0]
 
 // Targets: [native, wasmJs, wasmWasi]
 final val nl.adaptivity.xmlutil.dom2/lastChild // nl.adaptivity.xmlutil.dom2/lastChild|@nl.adaptivity.xmlutil.dom.PlatformNode{}lastChild[0]
@@ -1893,7 +1893,10 @@ abstract interface nl.adaptivity.xmlutil.dom/PlatformNodeList { // nl.adaptivity
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Attr : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Attr|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Attr : nl.adaptivity.xmlutil.dom/PlatformAttr, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Attr|null[0]
+    abstract val parentElement // nl.adaptivity.xmlutil.dom2/Attr.parentElement|{}parentElement[0]
+        abstract fun <get-parentElement>(): nl.adaptivity.xmlutil.dom2/Element? // nl.adaptivity.xmlutil.dom2/Attr.parentElement.<get-parentElement>|<get-parentElement>(){}[0]
+
     abstract fun appendChild(nl.adaptivity.xmlutil.dom2/Node): kotlin/Nothing // nl.adaptivity.xmlutil.dom2/Attr.appendChild|appendChild(nl.adaptivity.xmlutil.dom2.Node){}[0]
     abstract fun getFirstChild(): kotlin/Nothing? // nl.adaptivity.xmlutil.dom2/Attr.getFirstChild|getFirstChild(){}[0]
     abstract fun getLastChild(): kotlin/Nothing? // nl.adaptivity.xmlutil.dom2/Attr.getLastChild|getLastChild(){}[0]
@@ -1909,10 +1912,10 @@ abstract interface nl.adaptivity.xmlutil.dom2/Attr : nl.adaptivity.xmlutil.dom2/
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/CDATASection : nl.adaptivity.xmlutil.dom2/Text // nl.adaptivity.xmlutil.dom2/CDATASection|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/CDATASection : nl.adaptivity.xmlutil.dom/PlatformCDATASection, nl.adaptivity.xmlutil.dom2/Text // nl.adaptivity.xmlutil.dom2/CDATASection|null[0]
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/CharacterData : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/CharacterData|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/CharacterData : nl.adaptivity.xmlutil.dom/PlatformCharacterData, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/CharacterData|null[0]
     abstract fun appendChild(nl.adaptivity.xmlutil.dom2/Node): kotlin/Nothing // nl.adaptivity.xmlutil.dom2/CharacterData.appendChild|appendChild(nl.adaptivity.xmlutil.dom2.Node){}[0]
     abstract fun appendData(kotlin/String) // nl.adaptivity.xmlutil.dom2/CharacterData.appendData|appendData(kotlin.String){}[0]
     abstract fun deleteData(kotlin/Int, kotlin/Int) // nl.adaptivity.xmlutil.dom2/CharacterData.deleteData|deleteData(kotlin.Int;kotlin.Int){}[0]
@@ -1928,10 +1931,10 @@ abstract interface nl.adaptivity.xmlutil.dom2/CharacterData : nl.adaptivity.xmlu
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Comment : nl.adaptivity.xmlutil.dom2/CharacterData // nl.adaptivity.xmlutil.dom2/Comment|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Comment : nl.adaptivity.xmlutil.dom/PlatformComment, nl.adaptivity.xmlutil.dom2/CharacterData // nl.adaptivity.xmlutil.dom2/Comment|null[0]
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/DOMImplementation { // nl.adaptivity.xmlutil.dom2/DOMImplementation|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/DOMImplementation : nl.adaptivity.xmlutil.dom/PlatformDOMImplementation { // nl.adaptivity.xmlutil.dom2/DOMImplementation|null[0]
     abstract val supportsWhitespaceAtToplevel // nl.adaptivity.xmlutil.dom2/DOMImplementation.supportsWhitespaceAtToplevel|{}supportsWhitespaceAtToplevel[0]
         abstract fun <get-supportsWhitespaceAtToplevel>(): kotlin/Boolean // nl.adaptivity.xmlutil.dom2/DOMImplementation.supportsWhitespaceAtToplevel.<get-supportsWhitespaceAtToplevel>|<get-supportsWhitespaceAtToplevel>(){}[0]
 
@@ -1940,10 +1943,20 @@ abstract interface nl.adaptivity.xmlutil.dom2/DOMImplementation { // nl.adaptivi
     abstract fun getFeature(kotlin/String, kotlin/String): kotlin/Any? // nl.adaptivity.xmlutil.dom2/DOMImplementation.getFeature|getFeature(kotlin.String;kotlin.String){}[0]
     abstract fun hasFeature(kotlin/String, kotlin/String?): kotlin/Boolean // nl.adaptivity.xmlutil.dom2/DOMImplementation.hasFeature|hasFeature(kotlin.String;kotlin.String?){}[0]
     abstract fun hasFeature(nl.adaptivity.xmlutil.dom2/SupportedFeatures, nl.adaptivity.xmlutil.dom2/DOMVersion?): kotlin/Boolean // nl.adaptivity.xmlutil.dom2/DOMImplementation.hasFeature|hasFeature(nl.adaptivity.xmlutil.dom2.SupportedFeatures;nl.adaptivity.xmlutil.dom2.DOMVersion?){}[0]
+    open fun createDocument(kotlin/String?, kotlin/String?, nl.adaptivity.xmlutil.dom/PlatformDocumentType?): nl.adaptivity.xmlutil.dom2/Document // nl.adaptivity.xmlutil.dom2/DOMImplementation.createDocument|createDocument(kotlin.String?;kotlin.String?;nl.adaptivity.xmlutil.dom.PlatformDocumentType?){}[0]
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Document : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Document|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Document : nl.adaptivity.xmlutil.dom/PlatformDocument, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Document|null[0]
+    open val doctype // nl.adaptivity.xmlutil.dom2/Document.doctype|{}doctype[0]
+        open fun <get-doctype>(): nl.adaptivity.xmlutil.dom2/DocumentType? // nl.adaptivity.xmlutil.dom2/Document.doctype.<get-doctype>|<get-doctype>(){}[0]
+    open val documentElement // nl.adaptivity.xmlutil.dom2/Document.documentElement|{}documentElement[0]
+        open fun <get-documentElement>(): nl.adaptivity.xmlutil.dom2/Element? // nl.adaptivity.xmlutil.dom2/Document.documentElement.<get-documentElement>|<get-documentElement>(){}[0]
+    open val implementation // nl.adaptivity.xmlutil.dom2/Document.implementation|{}implementation[0]
+        open fun <get-implementation>(): nl.adaptivity.xmlutil.dom2/DOMImplementation // nl.adaptivity.xmlutil.dom2/Document.implementation.<get-implementation>|<get-implementation>(){}[0]
+    open val inputEncoding // nl.adaptivity.xmlutil.dom2/Document.inputEncoding|{}inputEncoding[0]
+        open fun <get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom2/Document.inputEncoding.<get-inputEncoding>|<get-inputEncoding>(){}[0]
+
     abstract fun adoptNode(nl.adaptivity.xmlutil.dom2/Node): nl.adaptivity.xmlutil.dom2/Node // nl.adaptivity.xmlutil.dom2/Document.adoptNode|adoptNode(nl.adaptivity.xmlutil.dom2.Node){}[0]
     abstract fun createAttribute(kotlin/String): nl.adaptivity.xmlutil.dom2/Attr // nl.adaptivity.xmlutil.dom2/Document.createAttribute|createAttribute(kotlin.String){}[0]
     abstract fun createAttributeNS(kotlin/String?, kotlin/String): nl.adaptivity.xmlutil.dom2/Attr // nl.adaptivity.xmlutil.dom2/Document.createAttributeNS|createAttributeNS(kotlin.String?;kotlin.String){}[0]
@@ -1962,10 +1975,17 @@ abstract interface nl.adaptivity.xmlutil.dom2/Document : nl.adaptivity.xmlutil.d
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/DocumentFragment : nl.adaptivity.xmlutil.dom2/Node // nl.adaptivity.xmlutil.dom2/DocumentFragment|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/DocumentFragment : nl.adaptivity.xmlutil.dom/PlatformDocumentFragment, nl.adaptivity.xmlutil.dom2/Node // nl.adaptivity.xmlutil.dom2/DocumentFragment|null[0]
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/DocumentType : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/DocumentType|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/DocumentType : nl.adaptivity.xmlutil.dom/PlatformDocumentType, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/DocumentType|null[0]
+    open val name // nl.adaptivity.xmlutil.dom2/DocumentType.name|{}name[0]
+        open fun <get-name>(): kotlin/String // nl.adaptivity.xmlutil.dom2/DocumentType.name.<get-name>|<get-name>(){}[0]
+    open val publicId // nl.adaptivity.xmlutil.dom2/DocumentType.publicId|{}publicId[0]
+        open fun <get-publicId>(): kotlin/String // nl.adaptivity.xmlutil.dom2/DocumentType.publicId.<get-publicId>|<get-publicId>(){}[0]
+    open val systemId // nl.adaptivity.xmlutil.dom2/DocumentType.systemId|{}systemId[0]
+        open fun <get-systemId>(): kotlin/String // nl.adaptivity.xmlutil.dom2/DocumentType.systemId.<get-systemId>|<get-systemId>(){}[0]
+
     abstract fun appendChild(nl.adaptivity.xmlutil.dom2/Node): kotlin/Nothing // nl.adaptivity.xmlutil.dom2/DocumentType.appendChild|appendChild(nl.adaptivity.xmlutil.dom2.Node){}[0]
     abstract fun getFirstChild(): kotlin/Nothing? // nl.adaptivity.xmlutil.dom2/DocumentType.getFirstChild|getFirstChild(){}[0]
     abstract fun getLastChild(): kotlin/Nothing? // nl.adaptivity.xmlutil.dom2/DocumentType.getLastChild|getLastChild(){}[0]
@@ -1977,7 +1997,7 @@ abstract interface nl.adaptivity.xmlutil.dom2/DocumentType : nl.adaptivity.xmlut
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Element : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Element|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Element : nl.adaptivity.xmlutil.dom/PlatformElement, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Element|null[0]
     abstract fun getAttribute(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.dom2/Element.getAttribute|getAttribute(kotlin.String){}[0]
     abstract fun getAttributeNS(kotlin/String?, kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.dom2/Element.getAttributeNS|getAttributeNS(kotlin.String?;kotlin.String){}[0]
     abstract fun getAttributeNode(kotlin/String): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/Element.getAttributeNode|getAttributeNode(kotlin.String){}[0]
@@ -2006,7 +2026,7 @@ abstract interface nl.adaptivity.xmlutil.dom2/Element : nl.adaptivity.xmlutil.do
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/NamedNodeMap : kotlin.collections/Iterable<nl.adaptivity.xmlutil.dom2/Attr> { // nl.adaptivity.xmlutil.dom2/NamedNodeMap|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/NamedNodeMap : kotlin.collections/Iterable<nl.adaptivity.xmlutil.dom2/Attr>, nl.adaptivity.xmlutil.dom/PlatformNamedNodeMap { // nl.adaptivity.xmlutil.dom2/NamedNodeMap|null[0]
     abstract val size // nl.adaptivity.xmlutil.dom2/NamedNodeMap.size|{}size[0]
         abstract fun <get-size>(): kotlin/Int // nl.adaptivity.xmlutil.dom2/NamedNodeMap.size.<get-size>|<get-size>(){}[0]
 
@@ -2020,10 +2040,29 @@ abstract interface nl.adaptivity.xmlutil.dom2/NamedNodeMap : kotlin.collections/
     abstract fun removeNamedItemNS(kotlin/String?, kotlin/String): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/NamedNodeMap.removeNamedItemNS|removeNamedItemNS(kotlin.String?;kotlin.String){}[0]
     abstract fun setNamedItem(nl.adaptivity.xmlutil.dom2/Attr): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/NamedNodeMap.setNamedItem|setNamedItem(nl.adaptivity.xmlutil.dom2.Attr){}[0]
     abstract fun setNamedItemNS(nl.adaptivity.xmlutil.dom2/Attr): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/NamedNodeMap.setNamedItemNS|setNamedItemNS(nl.adaptivity.xmlutil.dom2.Attr){}[0]
+    open fun setNamedItem(nl.adaptivity.xmlutil.dom/PlatformNode): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/NamedNodeMap.setNamedItem|setNamedItem(nl.adaptivity.xmlutil.dom.PlatformNode){}[0]
+    open fun setNamedItemNS(nl.adaptivity.xmlutil.dom/PlatformNode): nl.adaptivity.xmlutil.dom2/Attr? // nl.adaptivity.xmlutil.dom2/NamedNodeMap.setNamedItemNS|setNamedItemNS(nl.adaptivity.xmlutil.dom.PlatformNode){}[0]
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/Node|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Node : nl.adaptivity.xmlutil.dom/PlatformNode { // nl.adaptivity.xmlutil.dom2/Node|null[0]
+    abstract val childNodes // nl.adaptivity.xmlutil.dom2/Node.childNodes|{}childNodes[0]
+        abstract fun <get-childNodes>(): nl.adaptivity.xmlutil.dom2/NodeList // nl.adaptivity.xmlutil.dom2/Node.childNodes.<get-childNodes>|<get-childNodes>(){}[0]
+    abstract val firstChild // nl.adaptivity.xmlutil.dom2/Node.firstChild|{}firstChild[0]
+        abstract fun <get-firstChild>(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.firstChild.<get-firstChild>|<get-firstChild>(){}[0]
+    abstract val lastChild // nl.adaptivity.xmlutil.dom2/Node.lastChild|{}lastChild[0]
+        abstract fun <get-lastChild>(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.lastChild.<get-lastChild>|<get-lastChild>(){}[0]
+    abstract val nextSibling // nl.adaptivity.xmlutil.dom2/Node.nextSibling|{}nextSibling[0]
+        abstract fun <get-nextSibling>(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.nextSibling.<get-nextSibling>|<get-nextSibling>(){}[0]
+    abstract val ownerDocument // nl.adaptivity.xmlutil.dom2/Node.ownerDocument|{}ownerDocument[0]
+        abstract fun <get-ownerDocument>(): nl.adaptivity.xmlutil.dom2/Document // nl.adaptivity.xmlutil.dom2/Node.ownerDocument.<get-ownerDocument>|<get-ownerDocument>(){}[0]
+    abstract val parentElement // nl.adaptivity.xmlutil.dom2/Node.parentElement|{}parentElement[0]
+        abstract fun <get-parentElement>(): nl.adaptivity.xmlutil.dom2/Element? // nl.adaptivity.xmlutil.dom2/Node.parentElement.<get-parentElement>|<get-parentElement>(){}[0]
+    abstract val parentNode // nl.adaptivity.xmlutil.dom2/Node.parentNode|{}parentNode[0]
+        abstract fun <get-parentNode>(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.parentNode.<get-parentNode>|<get-parentNode>(){}[0]
+    abstract val previousSibling // nl.adaptivity.xmlutil.dom2/Node.previousSibling|{}previousSibling[0]
+        abstract fun <get-previousSibling>(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.previousSibling.<get-previousSibling>|<get-previousSibling>(){}[0]
+
     abstract fun appendChild(nl.adaptivity.xmlutil.dom2/Node): nl.adaptivity.xmlutil.dom2/Node // nl.adaptivity.xmlutil.dom2/Node.appendChild|appendChild(nl.adaptivity.xmlutil.dom2.Node){}[0]
     abstract fun getChildNodes(): nl.adaptivity.xmlutil.dom2/NodeList // nl.adaptivity.xmlutil.dom2/Node.getChildNodes|getChildNodes(){}[0]
     abstract fun getFirstChild(): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/Node.getFirstChild|getFirstChild(){}[0]
@@ -2049,7 +2088,12 @@ abstract interface nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.do
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/NodeList : kotlin.collections/Iterable<nl.adaptivity.xmlutil.dom2/Node> { // nl.adaptivity.xmlutil.dom2/NodeList|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/NodeList : kotlin.collections/Iterable<nl.adaptivity.xmlutil.dom2/Node>, nl.adaptivity.xmlutil.dom/PlatformNodeList { // nl.adaptivity.xmlutil.dom2/NodeList|null[0]
+    open val length // nl.adaptivity.xmlutil.dom2/NodeList.length|{}length[0]
+        open fun <get-length>(): kotlin/Int // nl.adaptivity.xmlutil.dom2/NodeList.length.<get-length>|<get-length>(){}[0]
+    open val size // nl.adaptivity.xmlutil.dom2/NodeList.size|{}size[0]
+        open fun <get-size>(): kotlin/Int // nl.adaptivity.xmlutil.dom2/NodeList.size.<get-size>|<get-size>(){}[0]
+
     abstract fun get(kotlin/Int): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/NodeList.get|get(kotlin.Int){}[0]
     abstract fun getLength(): kotlin/Int // nl.adaptivity.xmlutil.dom2/NodeList.getLength|getLength(){}[0]
     abstract fun item(kotlin/Int): nl.adaptivity.xmlutil.dom2/Node? // nl.adaptivity.xmlutil.dom2/NodeList.item|item(kotlin.Int){}[0]
@@ -2057,14 +2101,21 @@ abstract interface nl.adaptivity.xmlutil.dom2/NodeList : kotlin.collections/Iter
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/ProcessingInstruction : nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/ProcessingInstruction|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/ProcessingInstruction : nl.adaptivity.xmlutil.dom/PlatformProcessingInstruction, nl.adaptivity.xmlutil.dom2/Node { // nl.adaptivity.xmlutil.dom2/ProcessingInstruction|null[0]
+    open val target // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.target|{}target[0]
+        open fun <get-target>(): kotlin/String // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.target.<get-target>|<get-target>(){}[0]
+
+    open var data // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.data|{}data[0]
+        open fun <get-data>(): kotlin/String // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.data.<get-data>|<get-data>(){}[0]
+        open fun <set-data>(kotlin/String) // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.data.<set-data>|<set-data>(kotlin.String){}[0]
+
     abstract fun getData(): kotlin/String // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.getData|getData(){}[0]
     abstract fun getTarget(): kotlin/String // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.getTarget|getTarget(){}[0]
     abstract fun setData(kotlin/String) // nl.adaptivity.xmlutil.dom2/ProcessingInstruction.setData|setData(kotlin.String){}[0]
 }
 
 // Targets: [js]
-abstract interface nl.adaptivity.xmlutil.dom2/Text : nl.adaptivity.xmlutil.dom2/CharacterData // nl.adaptivity.xmlutil.dom2/Text|null[0]
+abstract interface nl.adaptivity.xmlutil.dom2/Text : nl.adaptivity.xmlutil.dom/PlatformText, nl.adaptivity.xmlutil.dom2/CharacterData // nl.adaptivity.xmlutil.dom2/Text|null[0]
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/attributes // nl.adaptivity.xmlutil.dom2/attributes|@nl.adaptivity.xmlutil.dom2.Element{}attributes[0]
@@ -2080,11 +2131,11 @@ final val nl.adaptivity.xmlutil.dom2/childNodes // nl.adaptivity.xmlutil.dom2/ch
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/doctype // nl.adaptivity.xmlutil.dom2/doctype|@nl.adaptivity.xmlutil.dom2.Document{}doctype[0]
-    final inline fun (nl.adaptivity.xmlutil.dom2/Document).<get-doctype>(): nl.adaptivity.xmlutil.dom2/DocumentType? // nl.adaptivity.xmlutil.dom2/doctype.<get-doctype>|<get-doctype>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom2/Document).<get-doctype>(): nl.adaptivity.xmlutil.dom2/DocumentType? // nl.adaptivity.xmlutil.dom2/doctype.<get-doctype>|<get-doctype>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/documentElement // nl.adaptivity.xmlutil.dom2/documentElement|@nl.adaptivity.xmlutil.dom2.Document{}documentElement[0]
-    final inline fun (nl.adaptivity.xmlutil.dom2/Document).<get-documentElement>(): nl.adaptivity.xmlutil.dom2/Element? // nl.adaptivity.xmlutil.dom2/documentElement.<get-documentElement>|<get-documentElement>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom2/Document).<get-documentElement>(): nl.adaptivity.xmlutil.dom2/Element? // nl.adaptivity.xmlutil.dom2/documentElement.<get-documentElement>|<get-documentElement>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/firstChild // nl.adaptivity.xmlutil.dom2/firstChild|@nl.adaptivity.xmlutil.dom2.Node{}firstChild[0]
@@ -2092,11 +2143,11 @@ final val nl.adaptivity.xmlutil.dom2/firstChild // nl.adaptivity.xmlutil.dom2/fi
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/implementation // nl.adaptivity.xmlutil.dom2/implementation|@nl.adaptivity.xmlutil.dom2.Document{}implementation[0]
-    final inline fun (nl.adaptivity.xmlutil.dom2/Document).<get-implementation>(): nl.adaptivity.xmlutil.dom2/DOMImplementation // nl.adaptivity.xmlutil.dom2/implementation.<get-implementation>|<get-implementation>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom2/Document).<get-implementation>(): nl.adaptivity.xmlutil.dom2/DOMImplementation // nl.adaptivity.xmlutil.dom2/implementation.<get-implementation>|<get-implementation>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/inputEncoding // nl.adaptivity.xmlutil.dom2/inputEncoding|@nl.adaptivity.xmlutil.dom2.Document{}inputEncoding[0]
-    final inline fun (nl.adaptivity.xmlutil.dom2/Document).<get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom2/inputEncoding.<get-inputEncoding>|<get-inputEncoding>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
+    final fun (nl.adaptivity.xmlutil.dom2/Document).<get-inputEncoding>(): kotlin/String? // nl.adaptivity.xmlutil.dom2/inputEncoding.<get-inputEncoding>|<get-inputEncoding>@nl.adaptivity.xmlutil.dom2.Document(){}[0]
 
 // Targets: [js]
 final val nl.adaptivity.xmlutil.dom2/lastChild // nl.adaptivity.xmlutil.dom2/lastChild|@nl.adaptivity.xmlutil.dom2.Node{}lastChild[0]

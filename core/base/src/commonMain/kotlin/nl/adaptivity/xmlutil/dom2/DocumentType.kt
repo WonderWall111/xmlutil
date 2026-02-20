@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -32,6 +32,11 @@ public expect interface DocumentType : Node {
     override fun getLastChild(): Nothing?
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val DocumentType.name: String get() = getName()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val DocumentType.publicId: String get() = getPublicId()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val DocumentType.systemId: String get() = getSystemId()

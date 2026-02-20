@@ -63,9 +63,16 @@ public expect interface Document : Node {
 
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Document.implementation: DOMImplementation get() = getImplementation()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Document.doctype: DocumentType? get() = getDoctype()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Document.documentElement: Element2? get() = getDocumentElement()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Document.inputEncoding: String? get() = getInputEncoding()
 
 public expect fun Document.importNode(node: PlatformNode, deep: Boolean): Node

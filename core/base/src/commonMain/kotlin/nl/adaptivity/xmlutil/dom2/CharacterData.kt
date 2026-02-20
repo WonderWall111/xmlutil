@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -49,6 +49,7 @@ public expect interface CharacterData : Node {
     override fun getLastChild(): Nothing?
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline var CharacterData.data: String
     get() = getData()
     set(value) { setData(value) }

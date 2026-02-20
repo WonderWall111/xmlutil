@@ -157,8 +157,7 @@ internal abstract class NodeImpl<out N : DomNode>(delegate: N) : Node {
 }
 
 
-internal fun DocumentTypeImpl.unWrap(): DomDocumentType = delegate
-
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomNode.unWrap(): DomNode = when (this) {
     is Node -> (this as NodeImpl<*>).delegate
     else -> this
@@ -169,6 +168,7 @@ internal fun Node1.unWrap(): DomNode = when (this) {
     else -> this as DomNode // works in JavaScript
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomAttr.unWrap(): DomAttr = when (this) {
     is Attr2 -> (this as AttrImpl).delegate
     else -> this
@@ -190,7 +190,7 @@ internal fun Node.unWrap(): DomNode = when (this) {
     else -> throw IllegalArgumentException("Can not be unwrapped") // has to be actually wrapped to "work"
 }
 
-internal fun DomNode.wrap(): NodeImpl<out DomNode> = when (nodeType) {
+internal fun DomNode.wrap(): NodeImpl<DomNode> = when (nodeType) {
     NodeConsts.ATTRIBUTE_NODE -> AttrImpl(this as DomAttr)
     NodeConsts.CDATA_SECTION_NODE -> CDATASectionImpl(this as DomCDATASection)
     NodeConsts.COMMENT_NODE -> CommentImpl(this as DomComment)
@@ -213,26 +213,31 @@ internal fun Node.wrap(): NodeImpl<*> = when (this) {
     else -> error("Node type ${getNodetype()} not supported")
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomDocument.wrap(): DocumentImpl = when (this) {
     is Document -> this as DocumentImpl
     else -> DocumentImpl(this)
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomElement.wrap(): ElementImpl = when (this) {
     is Element -> this as ElementImpl
     else -> ElementImpl(this)
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomText.wrap(): TextImpl = when (this) {
     is Text -> this as TextImpl
     else -> TextImpl(this)
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomDocumentType.wrap(): DocumentTypeImpl = when (this) {
     is DocumentType -> this as DocumentTypeImpl
     else -> DocumentTypeImpl(this)
 }
 
+@Suppress("CAST_NEVER_SUCCEEDS")
 internal fun DomAttr.wrap(): AttrImpl = when (this) {
     is Attr2 -> this as AttrImpl
     else -> AttrImpl(this)

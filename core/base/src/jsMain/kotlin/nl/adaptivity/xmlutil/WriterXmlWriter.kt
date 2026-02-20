@@ -24,8 +24,6 @@ import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.core.impl.dom.unWrap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
 import nl.adaptivity.xmlutil.dom2.Node
-import nl.adaptivity.xmlutil.dom2.firstChild
-import nl.adaptivity.xmlutil.dom2.nextSibling
 import org.w3c.dom.parsing.XMLSerializer
 
 internal class WriterXmlWriter(private val target: Writer, private val delegate: DomWriter) : XmlWriter by delegate {

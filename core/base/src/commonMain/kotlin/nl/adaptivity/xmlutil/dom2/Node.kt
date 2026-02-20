@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -61,13 +61,32 @@ public expect fun Node.replaceChild(newChild: PlatformNode, oldChild: Node): Nod
 @IgnorableReturnValue
 public expect fun Node.removeChild(node: PlatformNode): Node
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.nodeType: Short get() = getNodetype().value
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.nodeName: String get() = getNodeName()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.ownerDocument: Document get() = getOwnerDocument()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.parentNode: Node? get() = getParentNode()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.textContent: String? get() = getTextContent()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.childNodes: NodeList get() = getChildNodes()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.firstChild: Node? get() = getFirstChild()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.lastChild: Node? get() = getLastChild()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.previousSibling: Node? get() = getPreviousSibling()
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Node.nextSibling: Node? get() = getNextSibling()
