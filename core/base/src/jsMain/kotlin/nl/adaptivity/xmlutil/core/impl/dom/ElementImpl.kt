@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,15 +20,12 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IAttr
-import nl.adaptivity.xmlutil.core.impl.idom.IElement
-import nl.adaptivity.xmlutil.core.impl.idom.INamedNodeMap
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
 import nl.adaptivity.xmlutil.dom.PlatformAttr as DomAttr
 import nl.adaptivity.xmlutil.dom2.Attr as Attr2
+import nl.adaptivity.xmlutil.dom2.Element as Element2
 import org.w3c.dom.Element as DomElement
 
-internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate), IElement {
+internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate), Element2 {
     override fun getNamespaceURI(): String? = delegate.namespaceURI
 
     override fun getPrefix(): String? = delegate.prefix
@@ -37,43 +34,43 @@ internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate
 
     override fun getTagName(): String = delegate.tagName
 
-    override fun getElementsByTagName(qualifiedName: String): INodeList {
+    override fun getElementsByTagName(qualifiedName: String): WrappingNodeList {
         return WrappingNodeList(delegate.getElementsByTagName(qualifiedName))
     }
 
-    override fun getElementsByTagNameNS(namespace: String?, localName: String): INodeList {
+    override fun getElementsByTagNameNS(namespace: String?, localName: String): WrappingNodeList {
         return WrappingNodeList(delegate.getElementsByTagNameNS(namespace, localName))
     }
 
-    override fun getAttributes(): INamedNodeMap = WrappingNamedNodeMap(delegate.attributes)
+    override fun getAttributes(): WrappingNamedNodeMap = WrappingNamedNodeMap(delegate.attributes)
 
-    override fun getAttributeNode(qualifiedName: String): IAttr? {
+    override fun getAttributeNode(qualifiedName: String): Attr2? {
         return delegate.getAttributeNode(qualifiedName)?.wrapAttr()
     }
 
-    override fun getAttributeNodeNS(namespace: String?, localName: String): IAttr? {
+    override fun getAttributeNodeNS(namespace: String?, localName: String): Attr2? {
         return delegate.getAttributeNodeNS(namespace, localName)?.wrapAttr()
     }
 
-    override fun setAttributeNode(attr: DomAttr): IAttr? {
+    override fun setAttributeNode(attr: DomAttr): Attr2? {
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNode(attr: Attr2): IAttr? {
+    override fun setAttributeNode(attr: Attr2): Attr2? {
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNodeNS(attr: DomAttr): IAttr? {
+    override fun setAttributeNodeNS(attr: DomAttr): Attr2? {
         return delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNodeNS(attr: Attr2): IAttr? =
+    override fun setAttributeNodeNS(attr: Attr2): Attr2? =
         delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
 
-    override fun removeAttributeNode(attr: DomAttr): IAttr =
+    override fun removeAttributeNode(attr: DomAttr): Attr2 =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
-    override fun removeAttributeNode(attr: Attr2): IAttr =
+    override fun removeAttributeNode(attr: Attr2): Attr2 =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
     override fun getAttribute(qualifiedName: String): String? =

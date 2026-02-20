@@ -25,9 +25,10 @@ import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
 public actual interface Document : Node, PlatformDocument {
-    override val implementation: DOMImplementation
-    override val doctype: DocumentType?
-    override val documentElement: Element?
+    override val implementation: DOMImplementation get() = getImplementation()
+    override val doctype: DocumentType? get() = getDoctype()
+    override val documentElement: Element? get() = getDocumentElement()
+    override val inputEncoding: String? get() = getInputEncoding()
 
     public actual fun getImplementation(): DOMImplementation
     public actual fun getDoctype(): DocumentType?

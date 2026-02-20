@@ -1,68 +1,83 @@
 /*
- * Copyright (c) 2024.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
- * This file is licenced to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You should have received a copy of the license with the source distribution.
- * Alternatively, you may obtain a copy of the License at
+ * This file is licenced to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance
+ * with the License.  You should have  received a copy of the license
+ * with the source distribution. Alternatively, you may obtain a copy
+ * of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.  See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IAttr
-import nl.adaptivity.xmlutil.core.impl.idom.INamedNodeMap
-import org.w3c.dom.NamedNodeMap
+import nl.adaptivity.xmlutil.dom2.Attr as Attr2
+import nl.adaptivity.xmlutil.dom2.NamedNodeMap as NamedNodeMap2
 import org.w3c.dom.Attr as DomAttr
+import org.w3c.dom.NamedNodeMap as DomNamedNodeMap
 
-internal class WrappingNamedNodeMap(val delegate: NamedNodeMap) : INamedNodeMap {
+internal class WrappingNamedNodeMap(val delegate: DomNamedNodeMap) : NamedNodeMap2 {
     override val size: Int get() = delegate.length
 
-    override fun item(index: Int): IAttr? {
+    @Deprecated("Use size instead", replaceWith = ReplaceWith("size"), level = DeprecationLevel.WARNING)
+    override fun getLength(): Int = delegate.length
+
+    override fun item(index: Int): AttrImpl? {
         return delegate.item(index)?.wrapAttr()
     }
 
-    override fun getNamedItem(qualifiedName: String): IAttr? {
+    override fun get(index: Int): AttrImpl? {
+        return item(index)
+    }
+
+    override fun getNamedItem(qualifiedName: String): AttrImpl? {
         return delegate.getNamedItem(qualifiedName)?.wrapAttr()
     }
 
-    override fun getNamedItemNS(namespace: String?, localName: String): IAttr? {
+    override fun getNamedItemNS(namespace: String?, localName: String): AttrImpl? {
         return delegate.getNamedItemNS(namespace, localName)?.wrapAttr()
     }
 
-    override fun setNamedItem(attr: DomAttr): IAttr? {
+    fun setNamedItem(attr: DomAttr): AttrImpl? {
         return delegate.setNamedItem(attr.unWrap())?.wrapAttr()
     }
 
-    override fun setNamedItemNS(attr: DomAttr): IAttr? {
+    override fun setNamedItem(attr: Attr2): AttrImpl? {
+        return delegate.setNamedItem(attr.unWrap())?.wrapAttr()
+    }
+
+    fun setNamedItemNS(attr: DomAttr): AttrImpl? {
         return delegate.setNamedItemNS(attr.unWrap())?.wrapAttr()
     }
 
-    override fun removeNamedItem(qualifiedName: String): IAttr {
+    override fun setNamedItemNS(attr: Attr2): AttrImpl? {
+        return delegate.setNamedItemNS(attr.unWrap())?.wrapAttr()
+    }
+
+    override fun removeNamedItem(qualifiedName: String): AttrImpl {
         return delegate.removeNamedItem(qualifiedName).wrapAttr()
     }
 
-    override fun removeNamedItemNS(namespace: String?, localName: String): IAttr {
+    override fun removeNamedItemNS(namespace: String?, localName: String): AttrImpl {
         return delegate.removeNamedItemNS(namespace, localName).wrapAttr()
     }
 
-    override fun iterator(): Iterator<IAttr> {
+    override fun iterator(): Iterator<AttrImpl> {
         return IteratorImpl(delegate)
     }
 
-    private class IteratorImpl(private val delegate: NamedNodeMap) : Iterator<IAttr> {
+    private class IteratorImpl(private val delegate: DomNamedNodeMap) : Iterator<AttrImpl> {
         private var next: Int = 0
-        override fun next(): IAttr {
+        override fun next(): AttrImpl {
             return delegate.item(next++)!!.wrapAttr()
         }
 

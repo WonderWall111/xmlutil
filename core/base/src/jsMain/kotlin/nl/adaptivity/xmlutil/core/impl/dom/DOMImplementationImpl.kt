@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,18 +21,18 @@
 package nl.adaptivity.xmlutil.core.impl.dom
 
 import kotlinx.browser.document
-import nl.adaptivity.xmlutil.core.impl.idom.IDOMImplementation
-import nl.adaptivity.xmlutil.core.impl.idom.IDocument
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentType
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 import nl.adaptivity.xmlutil.dom2.DOMVersion
+import nl.adaptivity.xmlutil.dom2.Document
+import nl.adaptivity.xmlutil.dom2.DocumentType
 import nl.adaptivity.xmlutil.dom2.SupportedFeatures
-import org.w3c.dom.DOMImplementation
 import org.w3c.dom.parsing.DOMParser
+import nl.adaptivity.xmlutil.dom2.DOMImplementation as DOMImplementation2
+import org.w3c.dom.DOMImplementation as DomDomImplementation
 
-internal object DOMImplementationImpl : IDOMImplementation {
-    val delegate: DOMImplementation by lazy {
+internal object DOMImplementationImpl : DOMImplementation2 {
+    val delegate: DomDomImplementation by lazy {
         runCatching { document.implementation }
             .recoverCatching { DOMParser().parseFromString("<root></root>", "text/xml").implementation }
             .getOrThrow()
@@ -40,15 +40,15 @@ internal object DOMImplementationImpl : IDOMImplementation {
 
     override val supportsWhitespaceAtToplevel: Boolean get() = true
 
-    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): IDocumentType {
+    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentType {
         return delegate.createDocumentType(qualifiedName, publicId, systemId).wrap()
     }
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: IDocumentType?): IDocument {
+    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): Document {
         val documentType1 = documentType?.unWrap() as? PlatformDocumentType
         return (delegate as PlatformDOMImplementation).createDocument(namespace, qualifiedName, documentType1)
-            .wrap() as IDocument
+            .wrap() as Document
     }
 
     override fun hasFeature(feature: String, version: String?): Boolean {

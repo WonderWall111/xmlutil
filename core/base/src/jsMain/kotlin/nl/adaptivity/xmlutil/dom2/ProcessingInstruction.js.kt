@@ -25,6 +25,12 @@ package nl.adaptivity.xmlutil.dom2
 import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
 
 public actual interface ProcessingInstruction : Node, PlatformProcessingInstruction {
+    override val target: String get() = getTarget()
+
+    override var data: String
+        get() = getData()
+        set(value) { setData(value) }
+
     public actual fun getTarget(): String
     public actual fun getData(): String
     public actual fun setData(data: String)

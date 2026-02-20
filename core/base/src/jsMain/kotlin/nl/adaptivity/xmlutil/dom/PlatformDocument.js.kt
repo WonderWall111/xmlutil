@@ -35,7 +35,7 @@ public actual external interface PlatformDocument : PlatformNode {
     public val implementation: PlatformDOMImplementation
     public val doctype: PlatformDocumentType?
     public val documentElement: PlatformElement?
-    public val inputEncoding: String
+    public val inputEncoding: String?
 
     public fun createElement(localName: String): PlatformElement
 

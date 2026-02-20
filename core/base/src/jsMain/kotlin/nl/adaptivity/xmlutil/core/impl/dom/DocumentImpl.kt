@@ -1,67 +1,79 @@
 /*
- * Copyright (c) 2024.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
- * This file is licenced to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You should have received a copy of the license with the source distribution.
- * Alternatively, you may obtain a copy of the License at
+ * This file is licenced to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance
+ * with the License.  You should have  received a copy of the license
+ * with the source distribution. Alternatively, you may obtain a copy
+ * of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.  See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.*
+import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.DOMImplementation
+import nl.adaptivity.xmlutil.dom2.Node
+import nl.adaptivity.xmlutil.dom2.Document as Document2
 import org.w3c.dom.Document as DomDocument
 import org.w3c.dom.Node as DomNode
 
-internal class DocumentImpl(delegate: DomDocument) : NodeImpl<DomDocument>(delegate), IDocument {
-    override val inputEncoding: String get() = delegate.inputEncoding
+internal class DocumentImpl(delegate: DomDocument) : NodeImpl<DomDocument>(delegate), Document2 {
+    override fun getInputEncoding(): String = delegate.inputEncoding
 
-    override val implementation: IDOMImplementation get() = DOMImplementationImpl
+    override fun getImplementation(): DOMImplementation = DOMImplementationImpl
 
-    override val documentURI: String = delegate.documentURI
+    // TODO might need to be added to Document2
+    val documentURI: String = delegate.documentURI
 
-    override val doctype: IDocumentType? get() = delegate.doctype?.let(::DocumentTypeImpl)
+    override fun getDoctype(): DocumentTypeImpl? = delegate.doctype?.let(::DocumentTypeImpl)
 
-    override val documentElement: IElement? get() = delegate.documentElement?.wrap()
+    override fun getDocumentElement(): ElementImpl? = delegate.documentElement?.wrap()
 
-    override fun createElement(localName: String): IElement =
+    override fun createElement(localName: String): ElementImpl =
         ElementImpl(delegate.createElement(localName))
 
-    override fun createDocumentFragment(): IDocumentFragment =
+    override fun createDocumentFragment(): DocumentFragmentImpl =
         DocumentFragmentImpl(delegate.createDocumentFragment())
 
-    override fun createTextNode(data: String): IText = TextImpl(delegate.createTextNode(data))
+    override fun createTextNode(data: String): TextImpl = TextImpl(delegate.createTextNode(data))
 
-    override fun createCDATASection(data: String): ICDATASection {
+    override fun createCDATASection(data: String): CDATASectionImpl {
         return CDATASectionImpl(delegate.createCDATASection(data))
     }
 
-    override fun createComment(data: String): IComment = CommentImpl(delegate.createComment(data))
+    override fun createComment(data: String): CommentImpl = CommentImpl(delegate.createComment(data))
 
-    override fun createProcessingInstruction(target: String, data: String): IProcessingInstruction =
+    override fun createProcessingInstruction(target: String, data: String): ProcessingInstructionImpl =
         ProcessingInstructionImpl(delegate.createProcessingInstruction(target, data))
 
-    override fun createAttribute(localName: String): IAttr = AttrImpl(delegate.createAttribute(localName))
+    override fun createAttribute(localName: String): AttrImpl =
+        AttrImpl(delegate.createAttribute(localName))
 
-    override fun createAttributeNS(namespace: String?, qualifiedName: String): IAttr =
+    override fun createAttributeNS(namespace: String?, qualifiedName: String): AttrImpl =
         AttrImpl(delegate.createAttributeNS(namespace, qualifiedName))
 
-    override fun createElementNS(namespaceURI: String, qualifiedName: String): IElement =
+    override fun createElementNS(namespaceURI: String, qualifiedName: String): ElementImpl =
         ElementImpl(delegate.createElementNS(namespaceURI, qualifiedName))
 
-    override fun adoptNode(node: DomNode): INode = delegate.adoptNode(node.unWrap()).wrap()
+    override fun adoptNode(node: PlatformNode): NodeImpl<DomNode> =
+        delegate.adoptNode(node.unWrap()).wrap()
 
-    override fun importNode(node: DomNode, deep: Boolean): INode =
+    override fun adoptNode(node: Node): NodeImpl<DomNode> =
+        delegate.adoptNode(node.unWrap()).wrap()
+
+    override fun importNode(node: Node, deep: Boolean): NodeImpl<DomNode> =
+        delegate.importNode(node.unWrap(), deep).wrap()
+
+    override fun importNode(node: PlatformNode, deep: Boolean): NodeImpl<DomNode> =
         delegate.importNode(node.unWrap(), deep).wrap()
 }

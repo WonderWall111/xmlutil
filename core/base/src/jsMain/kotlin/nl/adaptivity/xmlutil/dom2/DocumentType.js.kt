@@ -25,6 +25,10 @@ package nl.adaptivity.xmlutil.dom2
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 
 public actual interface DocumentType : Node, PlatformDocumentType {
+    override val name: String get() = getName()
+    override val publicId: String get() = getPublicId()
+    override val systemId: String get() = getSystemId()
+
     public actual fun getName(): String
     public actual fun getPublicId(): String
     public actual fun getSystemId(): String

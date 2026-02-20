@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,14 +20,12 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.*
 import nl.adaptivity.xmlutil.dom.NodeConsts
-import nl.adaptivity.xmlutil.dom2.NodeType
+import nl.adaptivity.xmlutil.dom2.*
 import org.w3c.dom.DocumentFragment
 import nl.adaptivity.xmlutil.dom.PlatformAttr as Attr1
 import nl.adaptivity.xmlutil.dom.PlatformNode as Node1
 import nl.adaptivity.xmlutil.dom2.Attr as Attr2
-import nl.adaptivity.xmlutil.dom2.Node as Node2
 import org.w3c.dom.Attr as DomAttr
 import org.w3c.dom.CDATASection as DomCDATASection
 import org.w3c.dom.Comment as DomComment
@@ -38,21 +36,22 @@ import org.w3c.dom.Node as DomNode
 import org.w3c.dom.ProcessingInstruction as DomProcessingInstruction
 import org.w3c.dom.Text as DomText
 
-internal abstract class NodeImpl<N : DomNode>(delegate: N) : INode {
+internal abstract class NodeImpl<out N : DomNode>(delegate: N) : Node {
     @Suppress("UNCHECKED_CAST")
-    override val delegate: N = delegate.unWrap() as N
+    val delegate: N = delegate.unWrap() as N
 
-    override val ownerDocument: IDocument get() = delegate.ownerDocument!!.wrap()
+    override val ownerDocument: Document get() = delegate.ownerDocument!!.wrap()
 
-    override val parentNode: INode? get() = delegate.parentNode?.wrap()
+    override val parentNode: Node? get() = delegate.parentNode?.wrap()
+    override val parentElement: Element? get() = parentNode as? Element
 
-    override val firstChild: INode? get() = delegate.firstChild?.wrap()
+    override val firstChild: Node? get() = delegate.firstChild?.wrap()
 
-    override val lastChild: INode? get() = delegate.lastChild?.wrap()
+    override val lastChild: Node? get() = delegate.lastChild?.wrap()
 
-    override val previousSibling: INode? get() = delegate.previousSibling?.wrap()
+    override val previousSibling: Node? get() = delegate.previousSibling?.wrap()
 
-    override val nextSibling: INode? get() = delegate.nextSibling?.wrap()
+    override val nextSibling: Node? get() = delegate.nextSibling?.wrap()
 
     override val nodeName: String get() = delegate.nodeName
 
@@ -72,46 +71,60 @@ internal abstract class NodeImpl<N : DomNode>(delegate: N) : INode {
             delegate.textContent = value
         }
 
-    override val childNodes: INodeList
+    override fun getTextContent(): String? = textContent
+    override fun setTextContent(value: String) {
+        textContent = value
+    }
+
+    override val childNodes: WrappingNodeList
         get() = WrappingNodeList(delegate.childNodes)
 
-    final override fun insertBefore(newChild: DomNode?, refChild: DomNode?): INode {
+    fun insertBefore(newChild: DomNode?, refChild: DomNode?): Node {
         return delegate.insertBefore(newChild!!, refChild?.unWrap()).wrap()
     }
 
-    final override fun hasChildNodes(): Boolean = delegate.hasChildNodes()
+    fun hasChildNodes(): Boolean = delegate.hasChildNodes()
 
-    final override fun cloneNode(deep: Boolean): INode {
+    fun cloneNode(deep: Boolean): Node {
         return delegate.cloneNode(deep).wrap()
     }
 
-    final override fun normalize() {
+    fun normalize() {
         delegate.normalize()
     }
 
-    final override fun compareDocumentPosition(other: DomNode): Short {
+    fun compareDocumentPosition(other: DomNode): Short {
         return delegate.compareDocumentPosition(other.unWrap())
     }
 
-    final override fun isSameNode(other: DomNode?): Boolean = delegate.isSameNode(other?.unWrap())
+    fun isSameNode(other: DomNode?): Boolean = delegate.isSameNode(other?.unWrap())
 
     final override fun lookupPrefix(namespace: String): String? = delegate.lookupPrefix(namespace)
 
-    final override fun isDefaultNamespace(namespaceURI: String): Boolean = delegate.isDefaultNamespace(namespaceURI)
+    fun isDefaultNamespace(namespaceURI: String): Boolean = delegate.isDefaultNamespace(namespaceURI)
 
     final override fun lookupNamespaceURI(prefix: String): String? = delegate.lookupNamespaceURI(prefix)
 
-    final override fun isEqualNode(arg: DomNode): Boolean {
+    fun isEqualNode(arg: DomNode): Boolean {
         return delegate.isEqualNode(arg.unWrap())
     }
 
-    final override fun appendChild(newChild: DomNode): INode {
+    override fun appendChild(node: Node): Node = appendChild(node.unWrap())
+
+
+    fun appendChild(newChild: DomNode): Node {
         return delegate.appendChild(newChild.unWrap()).wrap()
     }
 
-    final override fun replaceChild(newChild: DomNode, oldChild: DomNode): INode {
+    override fun replaceChild(newChild: Node, oldChild: Node): Node {
         return delegate.replaceChild(oldChild.unWrap(), newChild.unWrap()).wrap()
     }
+
+    fun replaceChild(newChild: DomNode, oldChild: DomNode): Node {
+        return delegate.replaceChild(oldChild.unWrap(), newChild.unWrap()).wrap()
+    }
+
+    override fun removeChild(node: Node): Node = removeChild(node.unWrap())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -122,96 +135,105 @@ internal abstract class NodeImpl<N : DomNode>(delegate: N) : INode {
         return delegate == other.delegate
     }
 
-    final override fun removeChild(oldChild: DomNode): INode =
+    fun removeChild(oldChild: DomNode): Node =
         delegate.removeChild(oldChild).wrap()
 
     override fun hashCode(): Int {
         return delegate.hashCode()
     }
 
+    override fun getNodeName(): String = nodeName
+    override fun getOwnerDocument(): Document = ownerDocument
+    override fun getParentNode(): Node? = parentNode
+    override fun getParentElement(): Element? = parentElement
+    override fun getFirstChild(): Node? = firstChild
+    override fun getLastChild(): Node? = lastChild
+    override fun getPreviousSibling(): Node? = previousSibling
+    override fun getNextSibling(): Node? = nextSibling
+    override fun getChildNodes(): NodeList = childNodes
+
+    override fun getNodetype(): NodeType = NodeType(nodeType)
 
 }
 
-internal fun INode.unWrap(): DomNode = delegate
 
-internal fun IDocumentType.unWrap(): DomDocumentType = delegate
+internal fun DocumentTypeImpl.unWrap(): DomDocumentType = delegate
 
 internal fun DomNode.unWrap(): DomNode = when (this) {
-    is INode -> delegate
+    is Node -> (this as NodeImpl<*>).delegate
     else -> this
 }
 
 internal fun Node1.unWrap(): DomNode = when (this) {
-    is INode -> delegate
+    is NodeImpl<*> -> delegate
     else -> this as DomNode // works in JavaScript
 }
 
 internal fun DomAttr.unWrap(): DomAttr = when (this) {
-    is IAttr -> delegate as DomAttr
+    is Attr2 -> (this as AttrImpl).delegate
     else -> this
 }
 
 internal fun Attr1.unWrap(): DomAttr = when (this) {
-    is IAttr -> delegate as DomAttr
+    is AttrImpl -> delegate
     else -> this as DomAttr
 }
 
 internal fun Attr2.unWrap(): DomAttr = when (this) {
-    is IAttr -> delegate as DomAttr
+    is AttrImpl -> delegate
     is DomAttr -> this
     else -> throw IllegalArgumentException("Attribute can not be resolved")
 }
 
-internal fun Node2.unWrap(): DomNode = when (this) {
-    is INode -> delegate
+internal fun Node.unWrap(): DomNode = when (this) {
+    is NodeImpl<*> -> delegate
     else -> throw IllegalArgumentException("Can not be unwrapped") // has to be actually wrapped to "work"
 }
 
-internal fun DomNode.wrap(): INode = when (this) {
-    is INode -> this
-    else -> when (nodeType) {
-        NodeConsts.ATTRIBUTE_NODE -> AttrImpl(this as DomAttr)
-        NodeConsts.CDATA_SECTION_NODE -> CDATASectionImpl(this as DomCDATASection)
-        NodeConsts.COMMENT_NODE -> CommentImpl(this as DomComment)
-        NodeConsts.DOCUMENT_NODE -> DocumentImpl(this as DomDocument)
-        NodeConsts.DOCUMENT_FRAGMENT_NODE -> DocumentFragmentImpl(this as DocumentFragment)
-        NodeConsts.DOCUMENT_TYPE_NODE -> DocumentTypeImpl(this as DomDocumentType)
-        NodeConsts.ELEMENT_NODE -> ElementImpl(this as DomElement)
-        NodeConsts.PROCESSING_INSTRUCTION_NODE -> ProcessingInstructionImpl(this as DomProcessingInstruction)
-        NodeConsts.TEXT_NODE -> TextImpl(this as DomText)
-        else -> error("Node type ${NodeType(nodeType)} not supported")
-    }
+internal fun DomNode.wrap(): NodeImpl<out DomNode> = when (nodeType) {
+    NodeConsts.ATTRIBUTE_NODE -> AttrImpl(this as DomAttr)
+    NodeConsts.CDATA_SECTION_NODE -> CDATASectionImpl(this as DomCDATASection)
+    NodeConsts.COMMENT_NODE -> CommentImpl(this as DomComment)
+    NodeConsts.DOCUMENT_NODE -> DocumentImpl(this as DomDocument)
+    NodeConsts.DOCUMENT_FRAGMENT_NODE -> DocumentFragmentImpl(this as DocumentFragment)
+    NodeConsts.DOCUMENT_TYPE_NODE -> DocumentTypeImpl(this as DomDocumentType)
+    NodeConsts.ELEMENT_NODE -> ElementImpl(this as DomElement)
+    NodeConsts.PROCESSING_INSTRUCTION_NODE -> ProcessingInstructionImpl(this as DomProcessingInstruction)
+    NodeConsts.TEXT_NODE -> TextImpl(this as DomText)
+    else -> error("Node type ${NodeType(nodeType)} not supported")
 }
 
-internal fun Node1.wrap(): INode =
-    (this as DomNode).wrap()
+internal fun Node1.wrap(): NodeImpl<*> = when (this) {
+    is NodeImpl<*> -> this
+    else -> (this as DomNode).wrap()
+}
 
-internal fun Node2.wrap(): INode = when (this) {
-    is INode -> this
+internal fun Node.wrap(): NodeImpl<*> = when (this) {
+    is NodeImpl<*> -> this
     else -> error("Node type ${getNodetype()} not supported")
 }
 
-internal fun DomDocument.wrap(): IDocument = when (this) {
-    is IDocument -> this
+internal fun DomDocument.wrap(): DocumentImpl = when (this) {
+    is Document -> this as DocumentImpl
     else -> DocumentImpl(this)
 }
 
-internal fun DomElement.wrap(): IElement = when (this) {
-    is IElement -> this
+internal fun DomElement.wrap(): ElementImpl = when (this) {
+    is Element -> this as ElementImpl
     else -> ElementImpl(this)
 }
 
-internal fun DomText.wrap(): IText = when (this) {
-    is IText -> this
+internal fun DomText.wrap(): TextImpl = when (this) {
+    is Text -> this as TextImpl
     else -> TextImpl(this)
 }
 
-internal fun DomDocumentType.wrap(): IDocumentType = when (this) {
-    is IDocumentType -> this
+internal fun DomDocumentType.wrap(): DocumentTypeImpl = when (this) {
+    is DocumentType -> this as DocumentTypeImpl
     else -> DocumentTypeImpl(this)
 }
 
-internal fun DomAttr.wrap(): IAttr = when (this) {
-    is IAttr -> this
+internal fun DomAttr.wrap(): AttrImpl = when (this) {
+    is Attr2 -> this as AttrImpl
     else -> AttrImpl(this)
 }
