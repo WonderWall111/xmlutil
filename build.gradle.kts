@@ -55,6 +55,10 @@ tasks.register<Copy>("pages") {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
+tasks.named<Wrapper>("wrapper") {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
 idea {
     module {
         isDownloadSources = true
