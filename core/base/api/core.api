@@ -313,6 +313,7 @@ public abstract class nl/adaptivity/xmlutil/XmlDelegatingWriter : nl/adaptivity/
 	public fun getIndentString ()Ljava/lang/String;
 	public fun getNamespaceContext ()Ljavax/xml/namespace/NamespaceContext;
 	public fun getNamespaceUri (Ljava/lang/String;)Ljava/lang/String;
+	public fun getOrCreatePrefix (Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String;
 	public fun getPrefix (Ljava/lang/String;)Ljava/lang/String;
 	public fun ignorableWhitespace (Ljava/lang/String;)V
 	public fun namespaceAttr (Ljava/lang/String;Ljava/lang/String;)V
@@ -691,6 +692,8 @@ public abstract interface class nl/adaptivity/xmlutil/XmlWriter : java/io/Closea
 	public abstract fun getIndentString ()Ljava/lang/String;
 	public abstract fun getNamespaceContext ()Ljavax/xml/namespace/NamespaceContext;
 	public abstract fun getNamespaceUri (Ljava/lang/String;)Ljava/lang/String;
+	public fun getOrCreatePrefix (Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String;
+	public static synthetic fun getOrCreatePrefix$default (Lnl/adaptivity/xmlutil/XmlWriter;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ljava/lang/String;
 	public abstract fun getPrefix (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun ignorableWhitespace (Ljava/lang/String;)V
 	public abstract fun namespaceAttr (Ljava/lang/String;Ljava/lang/String;)V
@@ -709,6 +712,8 @@ public abstract interface class nl/adaptivity/xmlutil/XmlWriter : java/io/Closea
 
 public final class nl/adaptivity/xmlutil/XmlWriter$DefaultImpls {
 	public static fun getIndent (Lnl/adaptivity/xmlutil/XmlWriter;)I
+	public static fun getOrCreatePrefix (Lnl/adaptivity/xmlutil/XmlWriter;Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String;
+	public static synthetic fun getOrCreatePrefix$default (Lnl/adaptivity/xmlutil/XmlWriter;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ljava/lang/String;
 	public static fun namespaceAttr (Lnl/adaptivity/xmlutil/XmlWriter;Lnl/adaptivity/xmlutil/Namespace;)V
 	public static fun processingInstruction (Lnl/adaptivity/xmlutil/XmlWriter;Ljava/lang/String;Ljava/lang/String;)V
 	public static fun safeCdsect (Lnl/adaptivity/xmlutil/XmlWriter;Ljava/lang/String;)V
