@@ -122,6 +122,7 @@ class SimpleResolver(internal val xml: XML, private val baseURI: URI, val isNetw
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun URI.resolve2(other: URI): URI = when {
     other.isAbsolute -> other
     else -> URL(toURL(), other.toASCIIString()).toURI()

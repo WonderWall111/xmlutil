@@ -100,7 +100,7 @@ class IdAttrTest : PlatformTestBase<IdAttrTest.Container>(
     @Serializable(ID2.Serializer::class)
     value class ID2(val value: String) {
 
-        private class Serializer : KSerializer<ID2> {
+        class Serializer : KSerializer<ID2> {
             override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ID2", PrimitiveKind.STRING)
 
             override fun serialize(

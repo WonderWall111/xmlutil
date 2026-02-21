@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Benchmark)
 open class Parsing {
 
+    @Suppress("DEPRECATION")
     val xml = XML.compat {
         recommended_0_87_0()
     }

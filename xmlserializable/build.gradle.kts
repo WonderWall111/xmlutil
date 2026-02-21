@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 
 plugins {
     id("projectPlugin")
@@ -65,7 +66,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            freeCompilerArgs.add("-Xjvm-default=all")
+            jvmDefault = JvmDefaultMode.ENABLE
         }
         compilations.all {
             tasks.named<Test>("${target.name}Test") {
@@ -124,12 +125,6 @@ kotlin {
             }
         }
 
-    }
-    sourceSets.all {
-        languageSettings {
-            optIn("nl.adaptivity.xmlutil.XmlUtilInternal")
-            optIn("nl.adaptivity.xmlutil.ExperimentalXmlUtilApi")
-        }
     }
 
 }

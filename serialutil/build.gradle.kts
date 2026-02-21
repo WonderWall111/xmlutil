@@ -45,6 +45,8 @@ base {
 
 config {
     createAndroidCompatComponent = true
+    dokkaModuleName = "serialutil"
+    optIns = emptyList()
 }
 
 kotlin {
@@ -68,6 +70,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                compileOnly(projects.core) // for optin markers
                 api(libs.serialization.core)
             }
         }
@@ -110,10 +113,6 @@ apiValidation {
 }
 
 doPublish()
-
-config {
-    dokkaModuleName = "serialutil"
-}
 
 idea {
     module {

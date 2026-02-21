@@ -163,9 +163,6 @@ kotlin {
                     implementation(kotlin("test-annotations-common"))
                 }
             }
-            languageSettings.apply {
-                optIn("nl.adaptivity.xmlutil.XmlUtilInternal")
-            }
         }
     }
 
