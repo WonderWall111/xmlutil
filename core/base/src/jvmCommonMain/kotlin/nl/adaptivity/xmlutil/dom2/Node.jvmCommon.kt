@@ -44,16 +44,19 @@ public actual interface Node: PlatformNode {
     public actual override fun lookupPrefix(namespace: String): String?
     public actual override fun lookupNamespaceURI(prefix: String): String?
 
+    @IgnorableReturnValue
     override fun appendChild(newChild: PlatformNode): Node
 
     @IgnorableReturnValue
     public actual fun appendChild(node: Node): Node
 
+    @IgnorableReturnValue
     override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
 
     @IgnorableReturnValue
     public actual fun replaceChild(newChild: Node, oldChild: Node): Node
 
+    @IgnorableReturnValue
     override fun removeChild(oldChild: PlatformNode): Node
 
     @IgnorableReturnValue

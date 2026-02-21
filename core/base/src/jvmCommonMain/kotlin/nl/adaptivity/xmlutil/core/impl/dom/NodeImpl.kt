@@ -125,26 +125,32 @@ internal abstract class NodeImpl<N : PlatformNode>(delegate: N) : INode {
         return delegate.getUserData(key)
     }
 
+    @IgnorableReturnValue
     override fun appendChild(node: INode): INode {
         return delegate.appendChild(node.unWrap()).wrap()
     }
 
+    @IgnorableReturnValue
     override fun appendChild(newChild: PlatformNode): INode {
         return delegate.appendChild(newChild.unWrap()).wrap()
     }
 
+    @IgnorableReturnValue
     override fun replaceChild(newChild: INode, oldChild: INode): INode {
         return delegate.replaceChild(newChild.unWrap(), oldChild.unWrap()).wrap()
     }
 
+    @IgnorableReturnValue
     override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): INode {
         return delegate.replaceChild(newChild.unWrap(), oldChild.unWrap()).wrap()
     }
 
+    @IgnorableReturnValue
     override fun removeChild(node: INode): INode {
         return delegate.removeChild(node.unWrap()).wrap()
     }
 
+    @IgnorableReturnValue
     override fun removeChild(oldChild: PlatformNode): INode {
         return delegate.removeChild(oldChild.unWrap()).wrap()
     }

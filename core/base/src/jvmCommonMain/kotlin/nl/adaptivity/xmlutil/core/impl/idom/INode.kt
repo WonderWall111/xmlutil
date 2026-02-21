@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -37,17 +37,23 @@ public interface INode : PlatformNode, Node {
     override fun getAttributes(): INamedNodeMap? = null
     override fun getChildNodes(): INodeList
 
+    @IgnorableReturnValue
     override fun appendChild(node: Node): INode = appendChild(node as INode)
 
+    @IgnorableReturnValue
     public fun appendChild(node: INode): INode
 
+    @IgnorableReturnValue
     override fun replaceChild(newChild: Node, oldChild: Node): INode =
         replaceChild(newChild as INode, oldChild as INode)
 
+    @IgnorableReturnValue
     public fun replaceChild(newChild: INode, oldChild: INode): INode
 
+    @IgnorableReturnValue
     override fun removeChild(node: Node): INode = removeChild(node as INode)
 
+    @IgnorableReturnValue
     public fun removeChild(node: INode): INode
 }
 
