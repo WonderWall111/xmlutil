@@ -308,6 +308,7 @@ class TestXSTestSuite {
         return nodes
     }
 
+    @IgnorableReturnValue
     private fun extractDescriptors(
         rootDescriptor: XmlDescriptor,
         collector: MutableList<XmlDescriptor> = mutableListOf()
