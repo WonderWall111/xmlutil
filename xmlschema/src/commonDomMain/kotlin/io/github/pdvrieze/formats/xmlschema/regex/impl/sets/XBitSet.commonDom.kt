@@ -1,27 +1,28 @@
 /*
- * Copyright (c) 2023.
+ * Copyright (c) 2023-2026.
  *
  * This file is part of xmlutil.
  *
- * This file is licenced to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You should have received a copy of the license with the source distribution.
- * Alternatively, you may obtain a copy of the License at
+ * This file is licenced to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance
+ * with the License.  You should have  received a copy of the license
+ * with the source distribution. Alternatively, you may obtain a copy
+ * of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.  See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 package io.github.pdvrieze.formats.xmlschema.regex.impl.sets
 
 import nl.adaptivity.xmlutil.XmlUtilInternal
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 @XmlUtilInternal
 public actual class XBitSet actual constructor(size: Int) {
 
@@ -132,19 +133,17 @@ public actual class XBitSet actual constructor(size: Int) {
     }
 
     /** Sets the bits with indices between [from] (inclusive) and [to] (exclusive) to the specified value. */
-    actual fun set(from : Int, to: Int, value: Boolean): Unit = set(from until to, value)
-
-    /** Sets the bits from the range specified to the specified value. */
-    fun set(range: IntRange, value: Boolean) {
-        if (range.start < 0 || range.endInclusive < 0) {
+    actual fun set(from : Int, to: Int, value: Boolean) {
+        if (from < 0 || to < 0) {
             throw IndexOutOfBoundsException()
         }
-        if (range.start > range.endInclusive) { // Empty range.
+        val endInclusive = to - 1
+        if (from > endInclusive) { // Empty range.
             return
         }
-        ensureCapacity(range.endInclusive)
-        val (fromIndex, fromOffset) = range.start.asBitCoordinates
-        val (toIndex, toOffset) = range.endInclusive.asBitCoordinates
+        ensureCapacity(endInclusive)
+        val (fromIndex, fromOffset) = from.asBitCoordinates
+        val (toIndex, toOffset) = endInclusive.asBitCoordinates
         if (toIndex == fromIndex) {
             val mask = getMaskBetween(fromOffset, toOffset)
             setBitsWithMask(fromIndex, mask, value)

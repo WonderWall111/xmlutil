@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2026.
+ * Copyright (c) 2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,13 +20,16 @@
 
 package io.github.pdvrieze.formats.xpath.impl
 
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlWriter
 
-@OptIn(XPathInternal::class)
-class RangeExpr(val from: Expr, val to: Expr) : Expr() {
+@XPathInternal
+class CastExpr(val expr: Expr, val type: QName) : Expr() {
     override fun appendToString(builder: StringBuilder, output: XmlWriter?) {
-        from.appendToString(builder, output)
-        builder.append(" to ")
-        to.appendToString(builder, output)
+        expr.appendToString(builder, output)
+        builder.append(" cast as ")
+
+        appendQName(type, builder, output)
     }
+
 }

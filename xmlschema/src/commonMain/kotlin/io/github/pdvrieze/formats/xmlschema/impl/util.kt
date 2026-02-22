@@ -41,7 +41,7 @@ fun invariant(value: Boolean) {
  * Assertion that should never fail, but is always checked
  */
 @OptIn(ExperimentalContracts::class)
-inline fun invariant(value: Boolean, lazyMessage: () -> Any ) {
+inline fun invariant(value: Boolean, lazyMessage: () -> Any) {
     contract {
         returns() implies value
     }
@@ -55,6 +55,7 @@ inline fun invariant(value: Boolean, lazyMessage: () -> Any ) {
  * Assertion that should never fail, but is always checked
  */
 @OptIn(ExperimentalContracts::class)
+@IgnorableReturnValue
 inline fun <T : Any> invariantNotNull(value: T?, lazyMessage: () -> Any): T {
     contract {
         returns() implies (value != null)
@@ -72,11 +73,14 @@ inline fun <T : Any> invariantNotNull(value: T?, lazyMessage: () -> Any): T {
  * Assertion that should never fail, but is always checked
  */
 @OptIn(ExperimentalContracts::class)
-inline fun <T : Any> invariantNotNull(value: T?): T {
+fun <T : Any> invariantNotNull(value: T?): T {
     contract {
         returns() implies (value != null)
     }
-    return invariantNotNull<T>(value) { "Check failed." }
+    when (value) {
+        null -> throw AssertionError("Check failed.")
+        else -> return value
+    }
 }
 
 @OptIn(ExperimentalContracts::class)
