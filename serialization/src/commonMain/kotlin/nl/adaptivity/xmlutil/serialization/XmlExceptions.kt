@@ -51,6 +51,13 @@ public open class XmlSerialException(
             null -> rawMessage
             else ->"Serialization exception at [$extLocationInfo]: $rawMessage"
         }
+
+    @XmlUtilInternal
+    public fun <E: XmlSerialException> E.withFileName(fileName: String): E {
+        setFileLocation(fileName)
+        return this
+    }
+
 }
 
 public class XmlParsingException(
