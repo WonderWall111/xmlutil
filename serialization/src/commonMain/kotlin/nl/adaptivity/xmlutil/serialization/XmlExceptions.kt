@@ -26,20 +26,27 @@ import nl.adaptivity.xmlutil.XmlUtilInternal
 
 public open class XmlSerialException(
     message: String,
-    public val extLocationInfo: XmlReader.LocationInfo?,
+    extLocationInfo: XmlReader.LocationInfo?,
     cause: Throwable? = null
 ) : SerializationException(message, cause) {
+    public var extLocationInfo: XmlReader.LocationInfo? = extLocationInfo
+        private set
+
     public constructor(message: String, cause: Throwable? = null) : this(message, null, cause)
 
     @XmlUtilInternal
-    public open fun withFileName(fileName: String): XmlSerialException {
+    public fun setFileLocation(fileName: String) {
         val locationInfo = extLocationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
-        return when {
-            locationInfo === extLocationInfo -> this
-            else -> XmlSerialException(message!!, locationInfo, this)
-        }
+        if (locationInfo !== extLocationInfo) extLocationInfo = locationInfo
     }
 
+}
+
+
+@XmlUtilInternal
+public fun <E: XmlSerialException> E.withFileName(fileName: String): E {
+    setFileLocation(fileName)
+    return this
 }
 
 private class FileNameLocationInfo(val fileName: String): XmlReader.LocationInfo {
@@ -60,50 +67,34 @@ public class XmlParsingException(
 ) : XmlSerialException("Invalid XML value at position: $extLocationInfo: $message", extLocationInfo, cause) {
     public constructor(locationInfo: String?, message: String, cause: Exception? = null) :
             this(locationInfo?.let(XmlReader::StringLocationInfo), message, cause)
-
-
-    @XmlUtilInternal
-    public override fun withFileName(fileName: String): XmlParsingException {
-        val locationInfo = extLocationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
-        return when {
-            locationInfo === extLocationInfo -> this
-            else -> XmlParsingException(locationInfo, message!!, this)
-        }
-    }
-
 }
 
-public class UnknownXmlFieldException : XmlSerialException {
+public class UnknownXmlFieldException private constructor(
+    message: String,
+    extLocationInfo: XmlReader.LocationInfo?,
+    cause: Throwable? = null
+) : XmlSerialException(
+    message,
+    extLocationInfo,
+    cause
+) {
 
     public constructor(
-        extLocationInfo: XmlReader.LocationInfo?,
         xmlName: String,
+        extLocationInfo: XmlReader.LocationInfo?,
         candidates: Collection<Any> = emptyList()
     ) : this(
         "Could not find a field for name $xmlName${candidateString(candidates)}${extLocationInfo?.let { " at position $it" } ?: ""}",
-        extLocationInfo
+        extLocationInfo,
+        null
     )
 
     public constructor(
         locationInfo: String?,
         xmlName: String,
         candidates: Collection<Any> = emptyList()
-    ) : this(locationInfo?.let(XmlReader::StringLocationInfo), xmlName, candidates)
+    ) : this(xmlName, locationInfo?.let(XmlReader::StringLocationInfo), candidates)
 
-    private constructor(message: String, extLocationInfo: XmlReader.LocationInfo?, cause: Throwable? = null) : super(
-        message,
-        extLocationInfo,
-        cause
-    )
-
-    @XmlUtilInternal
-    public override fun withFileName(fileName: String): UnknownXmlFieldException {
-        val locationInfo = extLocationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
-        return when {
-            locationInfo === extLocationInfo -> this
-            else -> UnknownXmlFieldException(message!!, locationInfo, this)
-        }
-    }
 }
 
 private fun candidateString(candidates: Iterable<Any>) =

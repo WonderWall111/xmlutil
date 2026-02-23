@@ -196,9 +196,8 @@ public abstract interface class nl/adaptivity/xmlutil/serialization/UnknownChild
 public final class nl/adaptivity/xmlutil/serialization/UnknownXmlFieldException : nl/adaptivity/xmlutil/serialization/XmlSerialException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Collection;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Collection;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/util/Collection;)V
-	public synthetic fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/util/Collection;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/serialization/XmlSerialException;
+	public fun <init> (Ljava/lang/String;Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/util/Collection;)V
+	public synthetic fun <init> (Ljava/lang/String;Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/util/Collection;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public abstract interface annotation class nl/adaptivity/xmlutil/serialization/WillBePrivate : java/lang/annotation/Annotation {
@@ -666,7 +665,6 @@ public final class nl/adaptivity/xmlutil/serialization/XmlParsingException : nl/
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/lang/Exception;)V
 	public synthetic fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/serialization/XmlSerialException;
 }
 
 public abstract interface annotation class nl/adaptivity/xmlutil/serialization/XmlPolyChildren : java/lang/annotation/Annotation {

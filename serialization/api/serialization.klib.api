@@ -654,8 +654,8 @@ final class nl.adaptivity.xmlutil.serialization/PolyInfo { // nl.adaptivity.xmlu
 }
 
 final class nl.adaptivity.xmlutil.serialization/UnknownXmlFieldException : nl.adaptivity.xmlutil.serialization/XmlSerialException { // nl.adaptivity.xmlutil.serialization/UnknownXmlFieldException|null[0]
+    constructor <init>(kotlin/String, nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin.collections/Collection<kotlin/Any> = ...) // nl.adaptivity.xmlutil.serialization/UnknownXmlFieldException.<init>|<init>(kotlin.String;nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.collections.Collection<kotlin.Any>){}[0]
     constructor <init>(kotlin/String?, kotlin/String, kotlin.collections/Collection<kotlin/Any> = ...) // nl.adaptivity.xmlutil.serialization/UnknownXmlFieldException.<init>|<init>(kotlin.String?;kotlin.String;kotlin.collections.Collection<kotlin.Any>){}[0]
-    constructor <init>(nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/String, kotlin.collections/Collection<kotlin/Any> = ...) // nl.adaptivity.xmlutil.serialization/UnknownXmlFieldException.<init>|<init>(nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.String;kotlin.collections.Collection<kotlin.Any>){}[0]
 }
 
 final class nl.adaptivity.xmlutil.serialization/XML : kotlinx.serialization/StringFormat { // nl.adaptivity.xmlutil.serialization/XML|null[0]
@@ -1117,7 +1117,7 @@ open class nl.adaptivity.xmlutil.serialization/XmlSerialException : kotlinx.seri
     constructor <init>(kotlin/String, kotlin/Throwable? = ...) // nl.adaptivity.xmlutil.serialization/XmlSerialException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
     constructor <init>(kotlin/String, nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/Throwable? = ...) // nl.adaptivity.xmlutil.serialization/XmlSerialException.<init>|<init>(kotlin.String;nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.Throwable?){}[0]
 
-    final val extLocationInfo // nl.adaptivity.xmlutil.serialization/XmlSerialException.extLocationInfo|{}extLocationInfo[0]
+    final var extLocationInfo // nl.adaptivity.xmlutil.serialization/XmlSerialException.extLocationInfo|{}extLocationInfo[0]
         final fun <get-extLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil.serialization/XmlSerialException.extLocationInfo.<get-extLocationInfo>|<get-extLocationInfo>(){}[0]
 }
 

@@ -711,10 +711,12 @@ abstract interface nl.adaptivity.xmlutil/XmlReader : kotlin.collections/Iterator
     open fun requireNextTag(nl.adaptivity.xmlutil/EventType, kotlin/String?, kotlin/String?) // nl.adaptivity.xmlutil/XmlReader.requireNextTag|requireNextTag(nl.adaptivity.xmlutil.EventType;kotlin.String?;kotlin.String?){}[0]
     open fun requireNextTag(nl.adaptivity.xmlutil/EventType, nl.adaptivity.xmlutil/QName?) // nl.adaptivity.xmlutil/XmlReader.requireNextTag|requireNextTag(nl.adaptivity.xmlutil.EventType;nl.adaptivity.xmlutil.QName?){}[0]
 
-    abstract interface LocationInfo // nl.adaptivity.xmlutil/XmlReader.LocationInfo|null[0]
+    abstract interface LocationInfo { // nl.adaptivity.xmlutil/XmlReader.LocationInfo|null[0]
+        abstract fun withFileName(kotlin/String): nl.adaptivity.xmlutil/XmlReader.LocationInfo // nl.adaptivity.xmlutil/XmlReader.LocationInfo.withFileName|withFileName(kotlin.String){}[0]
+    }
 
     final class ExtLocationInfo : nl.adaptivity.xmlutil/XmlReader.LocationInfo { // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo|null[0]
-        constructor <init>(kotlin/Int, kotlin/Int, kotlin/Int) // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int){}[0]
+        constructor <init>(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/String? = ...) // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.String?){}[0]
 
         final fun equals(kotlin/Any?): kotlin/Boolean // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.hashCode|hashCode(){}[0]
@@ -727,6 +729,7 @@ abstract interface nl.adaptivity.xmlutil/XmlReader : kotlin.collections/Iterator
         final fun equals(kotlin/Any?): kotlin/Boolean // nl.adaptivity.xmlutil/XmlReader.StringLocationInfo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // nl.adaptivity.xmlutil/XmlReader.StringLocationInfo.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // nl.adaptivity.xmlutil/XmlReader.StringLocationInfo.toString|toString(){}[0]
+        final fun withFileName(kotlin/String): nl.adaptivity.xmlutil/XmlReader.StringLocationInfo // nl.adaptivity.xmlutil/XmlReader.StringLocationInfo.withFileName|withFileName(kotlin.String){}[0]
     }
 }
 
@@ -763,7 +766,7 @@ abstract interface nl.adaptivity.xmlutil/XmlWriter : nl.adaptivity.xmlutil.core.
     abstract fun startDocument(kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ...) // nl.adaptivity.xmlutil/XmlWriter.startDocument|startDocument(kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
     abstract fun startTag(kotlin/String?, kotlin/String, kotlin/String?) // nl.adaptivity.xmlutil/XmlWriter.startTag|startTag(kotlin.String?;kotlin.String;kotlin.String?){}[0]
     abstract fun text(kotlin/String) // nl.adaptivity.xmlutil/XmlWriter.text|text(kotlin.String){}[0]
-    open fun getOrCreatePrefix(kotlin/String, kotlin/String? = ...): kotlin/String // nl.adaptivity.xmlutil/XmlWriter.getOrCreatePrefix|getOrCreatePrefix(kotlin.String;kotlin.String?){}[0]
+    open fun getOrCreatePrefix(kotlin/String, kotlin/String? = ..., kotlin/Boolean = ...): kotlin/String // nl.adaptivity.xmlutil/XmlWriter.getOrCreatePrefix|getOrCreatePrefix(kotlin.String;kotlin.String?;kotlin.Boolean){}[0]
     open fun namespaceAttr(nl.adaptivity.xmlutil/Namespace) // nl.adaptivity.xmlutil/XmlWriter.namespaceAttr|namespaceAttr(nl.adaptivity.xmlutil.Namespace){}[0]
     open fun processingInstruction(kotlin/String, kotlin/String) // nl.adaptivity.xmlutil/XmlWriter.processingInstruction|processingInstruction(kotlin.String;kotlin.String){}[0]
     open fun safeCdsect(kotlin/String) // nl.adaptivity.xmlutil/XmlWriter.safeCdsect|safeCdsect(kotlin.String){}[0]
@@ -796,7 +799,7 @@ abstract class nl.adaptivity.xmlutil/XmlDelegatingWriter : nl.adaptivity.xmlutil
     open fun entityRef(kotlin/String) // nl.adaptivity.xmlutil/XmlDelegatingWriter.entityRef|entityRef(kotlin.String){}[0]
     open fun flush() // nl.adaptivity.xmlutil/XmlDelegatingWriter.flush|flush(){}[0]
     open fun getNamespaceUri(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil/XmlDelegatingWriter.getNamespaceUri|getNamespaceUri(kotlin.String){}[0]
-    open fun getOrCreatePrefix(kotlin/String, kotlin/String?): kotlin/String // nl.adaptivity.xmlutil/XmlDelegatingWriter.getOrCreatePrefix|getOrCreatePrefix(kotlin.String;kotlin.String?){}[0]
+    open fun getOrCreatePrefix(kotlin/String, kotlin/String?, kotlin/Boolean): kotlin/String // nl.adaptivity.xmlutil/XmlDelegatingWriter.getOrCreatePrefix|getOrCreatePrefix(kotlin.String;kotlin.String?;kotlin.Boolean){}[0]
     open fun getPrefix(kotlin/String?): kotlin/String? // nl.adaptivity.xmlutil/XmlDelegatingWriter.getPrefix|getPrefix(kotlin.String?){}[0]
     open fun ignorableWhitespace(kotlin/String) // nl.adaptivity.xmlutil/XmlDelegatingWriter.ignorableWhitespace|ignorableWhitespace(kotlin.String){}[0]
     open fun namespaceAttr(kotlin/String, kotlin/String) // nl.adaptivity.xmlutil/XmlDelegatingWriter.namespaceAttr|namespaceAttr(kotlin.String;kotlin.String){}[0]
