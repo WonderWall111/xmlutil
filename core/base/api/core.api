@@ -537,13 +537,16 @@ public final class nl/adaptivity/xmlutil/XmlReader$DefaultImpls {
 }
 
 public final class nl/adaptivity/xmlutil/XmlReader$ExtLocationInfo : nl/adaptivity/xmlutil/XmlReader$LocationInfo {
-	public fun <init> (III)V
+	public fun <init> (IIILjava/lang/String;)V
+	public synthetic fun <init> (IIILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+	public synthetic fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 }
 
 public abstract interface class nl/adaptivity/xmlutil/XmlReader$LocationInfo {
+	public abstract fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 }
 
 public final class nl/adaptivity/xmlutil/XmlReader$StringLocationInfo : nl/adaptivity/xmlutil/XmlReader$LocationInfo {
@@ -551,6 +554,8 @@ public final class nl/adaptivity/xmlutil/XmlReader$StringLocationInfo : nl/adapt
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+	public synthetic fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
+	public fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/XmlReader$StringLocationInfo;
 }
 
 public final class nl/adaptivity/xmlutil/XmlReaderUtil {

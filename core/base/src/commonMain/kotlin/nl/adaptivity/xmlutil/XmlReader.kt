@@ -234,10 +234,18 @@ public interface XmlReader : Closeable, Iterator<EventType> {
     public val version: String?
 
     /** Base interface for location information */
-    public interface LocationInfo
+    public interface LocationInfo {
+        public fun withFileName(fileName: String): LocationInfo
+    }
 
     /** Simple location information that just wraps a String */
     public class StringLocationInfo(private val str: String) : LocationInfo {
+
+        override fun withFileName(fileName: String): StringLocationInfo = when {
+            fileName in str -> this
+            else -> StringLocationInfo("file $fileName: $str")
+        }
+
         override fun toString(): String = str
 
         override fun equals(other: Any?): Boolean {
@@ -259,8 +267,15 @@ public interface XmlReader : Closeable, Iterator<EventType> {
     /**
      * Extended location info that actually provides column, line, and or file/string offset information.
      */
-    public class ExtLocationInfo(private val col: Int, private val line: Int, private val offset: Int) : LocationInfo {
+    public class ExtLocationInfo(private val col: Int, private val line: Int, private val offset: Int, private val fileName: String? = null) : LocationInfo {
+        @XmlUtilInternal
+        public override fun withFileName(fileName: String): ExtLocationInfo = when {
+            this.fileName == fileName -> this
+            else -> ExtLocationInfo(col, line, offset, fileName)
+        }
+
         override fun toString(): String = buildString {
+            if (fileName != null) append("file ").append(fileName).append(": ")
             when {
                 line >= 0 -> {
                     append(line)
