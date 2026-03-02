@@ -34,7 +34,7 @@ import kotlinx.serialization.encoding.*
 /**
  * Platform independent implementation of QName
  */
-public expect class QName {
+public expect open class QName {
     /**
      * Create a new constructor with the given namespace uri, local part and prefix.
      *
@@ -73,6 +73,10 @@ public expect class QName {
      * Retrieve the namespace URI for this QName.
      */
     public fun getNamespaceURI(): String
+
+    final override fun hashCode(): Int
+
+    final override fun equals(other: Any?): Boolean
 }
 
 /**
