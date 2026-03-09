@@ -974,6 +974,9 @@ final class nl.adaptivity.xmlutil.serialization/XmlConfig { // nl.adaptivity.xml
 final class nl.adaptivity.xmlutil.serialization/XmlParsingException : nl.adaptivity.xmlutil.serialization/XmlSerialException { // nl.adaptivity.xmlutil.serialization/XmlParsingException|null[0]
     constructor <init>(kotlin/String?, kotlin/String, kotlin/Exception? = ...) // nl.adaptivity.xmlutil.serialization/XmlParsingException.<init>|<init>(kotlin.String?;kotlin.String;kotlin.Exception?){}[0]
     constructor <init>(nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/String, kotlin/Exception? = ...) // nl.adaptivity.xmlutil.serialization/XmlParsingException.<init>|<init>(nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.String;kotlin.Exception?){}[0]
+
+    final val message // nl.adaptivity.xmlutil.serialization/XmlParsingException.message|{}message[0]
+        final fun <get-message>(): kotlin/String // nl.adaptivity.xmlutil.serialization/XmlParsingException.message.<get-message>|<get-message>(){}[0]
 }
 
 open class nl.adaptivity.xmlutil.serialization/DefaultXmlSerializationPolicy : nl.adaptivity.xmlutil.serialization/XmlSerializationPolicy { // nl.adaptivity.xmlutil.serialization/DefaultXmlSerializationPolicy|null[0]
@@ -1116,6 +1119,11 @@ open class nl.adaptivity.xmlutil.serialization/DefaultXmlSerializationPolicy : n
 open class nl.adaptivity.xmlutil.serialization/XmlSerialException : kotlinx.serialization/SerializationException { // nl.adaptivity.xmlutil.serialization/XmlSerialException|null[0]
     constructor <init>(kotlin/String, kotlin/Throwable? = ...) // nl.adaptivity.xmlutil.serialization/XmlSerialException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
     constructor <init>(kotlin/String, nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/Throwable? = ...) // nl.adaptivity.xmlutil.serialization/XmlSerialException.<init>|<init>(kotlin.String;nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.Throwable?){}[0]
+
+    final val superMessage // nl.adaptivity.xmlutil.serialization/XmlSerialException.superMessage|{}superMessage[0]
+        final fun <get-superMessage>(): kotlin/String? // nl.adaptivity.xmlutil.serialization/XmlSerialException.superMessage.<get-superMessage>|<get-superMessage>(){}[0]
+    open val message // nl.adaptivity.xmlutil.serialization/XmlSerialException.message|{}message[0]
+        open fun <get-message>(): kotlin/String? // nl.adaptivity.xmlutil.serialization/XmlSerialException.message.<get-message>|<get-message>(){}[0]
 
     final var extLocationInfo // nl.adaptivity.xmlutil.serialization/XmlSerialException.extLocationInfo|{}extLocationInfo[0]
         final fun <get-extLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil.serialization/XmlSerialException.extLocationInfo.<get-extLocationInfo>|<get-extLocationInfo>(){}[0]

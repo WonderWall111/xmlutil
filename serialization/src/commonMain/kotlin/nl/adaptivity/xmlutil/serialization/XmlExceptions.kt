@@ -37,16 +37,16 @@ public open class XmlSerialException(
     @XmlUtilInternal
     public fun setFileLocation(fileName: String) {
         val locationInfo = extLocationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
-        if (locationInfo !== extLocationInfo) extLocationInfo = locationInfo
+        if (extLocationInfo !== locationInfo) extLocationInfo = locationInfo
     }
 
-}
+    protected val superMessage: String? get() = super.message
 
-
-@XmlUtilInternal
-public fun <E: XmlSerialException> E.withFileName(fileName: String): E {
-    setFileLocation(fileName)
-    return this
+    override val message: String?
+        get() = when (extLocationInfo) {
+            null ->  superMessage
+            else ->"Serialization exception at [$extLocationInfo]: $superMessage"
+        }
 }
 
 private class FileNameLocationInfo(val fileName: String): XmlReader.LocationInfo {
@@ -64,9 +64,12 @@ public class XmlParsingException(
     extLocationInfo: XmlReader.LocationInfo?,
     message: String,
     cause: Exception? = null
-) : XmlSerialException("Invalid XML value at position: $extLocationInfo: $message", extLocationInfo, cause) {
+) : XmlSerialException("Invalid XML value: $message", extLocationInfo, cause) {
     public constructor(locationInfo: String?, message: String, cause: Exception? = null) :
             this(locationInfo?.let(XmlReader::StringLocationInfo), message, cause)
+
+    override val message: String
+        get() = "Invalid XML value at position: ${extLocationInfo}: $superMessage"
 }
 
 public class UnknownXmlFieldException private constructor(
@@ -84,7 +87,7 @@ public class UnknownXmlFieldException private constructor(
         extLocationInfo: XmlReader.LocationInfo?,
         candidates: Collection<Any> = emptyList()
     ) : this(
-        "Could not find a field for name $xmlName${candidateString(candidates)}${extLocationInfo?.let { " at position $it" } ?: ""}",
+        "Could not find a field for name $xmlName${candidateString(candidates)}",
         extLocationInfo,
         null
     )

@@ -665,6 +665,7 @@ public final class nl/adaptivity/xmlutil/serialization/XmlParsingException : nl/
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/lang/Exception;)V
 	public synthetic fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public abstract interface annotation class nl/adaptivity/xmlutil/serialization/XmlPolyChildren : java/lang/annotation/Annotation {
@@ -682,6 +683,8 @@ public class nl/adaptivity/xmlutil/serialization/XmlSerialException : kotlinx/se
 	public fun <init> (Ljava/lang/String;Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getExtLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
+	public fun getMessage ()Ljava/lang/String;
+	protected final fun getSuperMessage ()Ljava/lang/String;
 }
 
 public abstract interface annotation class nl/adaptivity/xmlutil/serialization/XmlSerialName : java/lang/annotation/Annotation {
