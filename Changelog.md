@@ -8,7 +8,7 @@ Changes:
   only applies if there are 2 or more characters and this would collapse to an
   empty string). The old behaviour only allowed a single character without
   surrounding whitespace.
-
+- Update kotlinx.io support to 0.9.0
 
 # 1.0.0-rc2
 *(Jan 18, 2026)<br />*
