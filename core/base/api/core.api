@@ -473,6 +473,8 @@ public class nl/adaptivity/xmlutil/XmlException : java/io/IOException {
 	public synthetic fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/Throwable;)V
 	public final fun getLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getRawMessage ()Ljava/lang/String;
 }
 
 public abstract interface class nl/adaptivity/xmlutil/XmlReader : java/io/Closeable, java/util/Iterator, kotlin/jvm/internal/markers/KMappedMarker {

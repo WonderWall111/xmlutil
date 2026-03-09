@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -31,6 +31,8 @@ public open class XmlException : IOException {
 
     public val locationInfo: XmlReader.LocationInfo?
 
+    public val rawMessage: String? get() = super.message
+
     @JvmOverloads
     public constructor(locationInfo: XmlReader.LocationInfo? = null) {
         this.locationInfo = locationInfo
@@ -58,13 +60,15 @@ public open class XmlException : IOException {
     }
 
     public constructor(message: String, reader: XmlReader, cause: Throwable) :
-            super("${reader.extLocationInfo ?: "Unknown position"} - $message", cause) {
+            super(message, cause) {
         this.locationInfo = reader.extLocationInfo
     }
 
     public constructor(message: String, reader: XmlReader) :
-            super("${reader.extLocationInfo ?: "Unknown position"} - $message") {
+            super(message) {
         this.locationInfo = reader.extLocationInfo
     }
 
+    override val message: String?
+        get() = "${locationInfo ?: "Unknown position"} - ${rawMessage}"
 }

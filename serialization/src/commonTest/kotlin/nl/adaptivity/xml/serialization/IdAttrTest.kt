@@ -89,7 +89,7 @@ class IdAttrTest : PlatformTestBase<IdAttrTest.Container>(
             @Suppress("DEPRECATION")
             XML.compat.decodeFromString(serializer, duplicateIds3)
         }
-        assertEquals("Invalid XML value at position: null: Invalid XML value: Duplicate use of id 'a'", e.message)
+        assertEquals("Invalid XML value at position: <unknown>: Duplicate use of id 'a'", e.message)
     }
 
     @JvmInline

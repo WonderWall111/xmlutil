@@ -126,7 +126,7 @@ internal open class XmlDecoderBase internal constructor(
         } catch (e: XmlSerialException) {
             throw e
         } catch (e: XmlException) {
-            throw XmlParsingException(e.locationInfo, e.message ?: "<unknown>", e)
+            throw XmlParsingException(e.locationInfo, e.rawMessage ?: "<unknown>", e)
         } catch (e: Exception) {
             throw XmlParsingException(input.extLocationInfo, e.message ?: "<unknown>", e)
         }

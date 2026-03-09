@@ -684,7 +684,7 @@ public class nl/adaptivity/xmlutil/serialization/XmlSerialException : kotlinx/se
 	public synthetic fun <init> (Ljava/lang/String;Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getExtLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public fun getMessage ()Ljava/lang/String;
-	protected final fun getSuperMessage ()Ljava/lang/String;
+	public final fun getRawMessage ()Ljava/lang/String;
 }
 
 public abstract interface annotation class nl/adaptivity/xmlutil/serialization/XmlSerialName : java/lang/annotation/Annotation {

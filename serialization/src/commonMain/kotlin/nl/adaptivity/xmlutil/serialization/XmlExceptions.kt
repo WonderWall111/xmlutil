@@ -40,12 +40,15 @@ public open class XmlSerialException(
         if (extLocationInfo !== locationInfo) extLocationInfo = locationInfo
     }
 
-    protected val superMessage: String? get() = super.message
+    /**
+     * Message for this exception that does not include location information.
+     */
+    public val rawMessage: String? get() = super.message
 
     override val message: String?
         get() = when (extLocationInfo) {
-            null ->  superMessage
-            else ->"Serialization exception at [$extLocationInfo]: $superMessage"
+            null -> rawMessage
+            else ->"Serialization exception at [$extLocationInfo]: $rawMessage"
         }
 }
 
@@ -64,12 +67,18 @@ public class XmlParsingException(
     extLocationInfo: XmlReader.LocationInfo?,
     message: String,
     cause: Exception? = null
-) : XmlSerialException("Invalid XML value: $message", extLocationInfo, cause) {
+) : XmlSerialException(message, extLocationInfo, cause) {
     public constructor(locationInfo: String?, message: String, cause: Exception? = null) :
             this(locationInfo?.let(XmlReader::StringLocationInfo), message, cause)
 
+    init {
+        require("Unknown position" !in message) { "Position information should not be in the stored message" }
+    }
+
     override val message: String
-        get() = "Invalid XML value at position: ${extLocationInfo}: $superMessage"
+        get() {
+            return "Invalid XML value at position: ${extLocationInfo ?: "<unknown>"}: $rawMessage"
+        }
 }
 
 public class UnknownXmlFieldException private constructor(
