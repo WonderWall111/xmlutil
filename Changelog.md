@@ -1,5 +1,12 @@
 # 1.0.0-SNAPSHOT
 Features:
+- Add a getOrCreatePrefix function that can be used to get an appropriate
+  prefix for a given namespace. If there is no existing prefix, one will be
+  created and added to the tag. If a prefixHint is given, this will be
+  prioritised (to select from multiple prefixes)/to create a prefix if none
+  is registered.
+- Exceptions will now have the ability to provide more extensive location
+  information. This includes adding file name information to the exception.
 
 Changes:
 - Parsing of single characters now allows for xml Whitespace and will collapse the
@@ -8,7 +15,20 @@ Changes:
   only applies if there are 2 or more characters and this would collapse to an
   empty string). The old behaviour only allowed a single character without
   surrounding whitespace.
-- Update kotlinx.io support to 0.9.0
+- Update kotlinx.io support to 0.9.0, atomicfu to 0.31.0, kotlinx.serialization
+  to 1.10.0, kotlinx.benchmark to 0.4.16, kotlin to 2.3.10, junit to 5.14.3.
+- Always expand entities in attribute values (causing an exception if the entity
+  is not known). Note that there is not yet a mechanism to handle entitites in
+  the platform independent parser.
+- Dom2 on Android, JVM and JS now inherits the regular dom interfaces (native
+  has no DOM so no inheritance). Overall make the dom implementation work
+  better with native node types.
+- The JavaScript implementation no longer contains the IDom interfaces/package.
+  This was an implementation package.
+
+Fixes:
+- Make ElementSerializer work better in an existing document context by
+  extracting the document from the decoder if possible.
 
 # 1.0.0-rc2
 *(Jan 18, 2026)<br />*
