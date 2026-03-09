@@ -56,7 +56,7 @@ internal object ElementSerializer : XmlSerializer<Element> {
 
     override fun deserializeXML(decoder: Decoder, input: XmlReader, previousValue: Element?, isValueChild: Boolean): Element {
         require(input.eventType == EventType.START_ELEMENT) { "${input.eventType} can not be deserialized as XML element" }
-        val document = previousValue?.ownerDocument ?: createDocument(input.name)
+        val document = previousValue?.ownerDocument ?: (decoder as? Document2Decoder)?.document ?: createDocument(input.name)
         val fragment: DocumentFragment = document.createDocumentFragment()
         @Suppress("DEPRECATION")
         val out = DomWriter(fragment)
