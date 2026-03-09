@@ -764,51 +764,19 @@ public final class nl/adaptivity/xmlutil/XmlWriterUtil {
 	public static final fun writeSimpleElement (Lnl/adaptivity/xmlutil/XmlWriter;Ljavax/xml/namespace/QName;Ljava/lang/String;)V
 }
 
-public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/XmlReader {
-	public static final field ILLEGAL_TYPE Ljava/lang/String;
+public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/core/internal/AbstractKtXmlReader {
 	public static final field PROCESS_NAMESPACES Z
-	public static final field UNEXPECTED_EOF Ljava/lang/String;
 	public fun <init> (Ljava/io/Reader;Z)V
 	public synthetic fun <init> (Ljava/io/Reader;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
-	public fun getAttributeCount ()I
-	public fun getAttributeLocalName (I)Ljava/lang/String;
-	public fun getAttributeNamespace (I)Ljava/lang/String;
-	public fun getAttributePrefix (I)Ljava/lang/String;
-	public fun getAttributeValue (I)Ljava/lang/String;
-	public fun getAttributeValue (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public final fun getColumnNumber ()I
-	public fun getDepth ()I
-	public fun getEncoding ()Ljava/lang/String;
-	public fun getEventType ()Lnl/adaptivity/xmlutil/EventType;
-	public final fun getExpandEntities ()Z
-	public fun getExtLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
-	public final fun getLineNumber ()I
-	public fun getLocalName ()Ljava/lang/String;
-	public fun getNamespaceContext ()Lnl/adaptivity/xmlutil/IterableNamespaceContext;
-	public fun getNamespaceDecls ()Ljava/util/List;
 	public fun getNamespacePrefix (Ljava/lang/String;)Ljava/lang/String;
-	public fun getNamespaceURI ()Ljava/lang/String;
 	public fun getNamespaceURI (Ljava/lang/String;)Ljava/lang/String;
-	public fun getPiData ()Ljava/lang/String;
-	public fun getPiTarget ()Ljava/lang/String;
-	public fun getPrefix ()Ljava/lang/String;
-	public final fun getRelaxed ()Z
-	public fun getStandalone ()Ljava/lang/Boolean;
-	public fun getText ()Ljava/lang/String;
-	public fun getVersion ()Ljava/lang/String;
 	public fun hasNext ()Z
-	public final fun isEmptyElementTag ()Z
-	public fun isKnownEntity ()Z
-	public fun isStarted ()Z
-	public fun isWhitespace ()Z
 	public synthetic fun next ()Ljava/lang/Object;
 	public fun next ()Lnl/adaptivity/xmlutil/EventType;
 	public fun nextTag ()Lnl/adaptivity/xmlutil/EventType;
-	public fun remove ()V
-	public fun require (Lnl/adaptivity/xmlutil/EventType;Ljava/lang/String;Ljava/lang/String;)V
 	public fun toString ()Ljava/lang/String;
 }
 

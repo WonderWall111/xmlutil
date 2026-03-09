@@ -22,15 +22,16 @@
 
 package nl.adaptivity.xmlutil.core
 
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.EventType.*
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.core.impl.DefaultEntityMap
-import nl.adaptivity.xmlutil.core.impl.NamespaceHolder
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
+import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.isNameChar11
 import nl.adaptivity.xmlutil.core.internal.isNameCodepoint
 import nl.adaptivity.xmlutil.core.internal.isNameStartChar
-import kotlin.jvm.JvmInline
+import nl.adaptivity.xmlutil.isXmlWhitespace
 import kotlin.jvm.JvmStatic
 
 private const val BUF_SIZE = 4096
@@ -48,80 +49,15 @@ private const val outputBufLeft = 0
 public class KtXmlReader internal constructor(
     private val reader: Reader,
     encoding: String?,
-    public val relaxed: Boolean = false,
-    public val expandEntities: Boolean = false,
-) : XmlReader {
+    relaxed: Boolean = false,
+    expandEntities: Boolean = false,
+) : AbstractKtXmlReader(encoding, relaxed, expandEntities) {
 
     public constructor(reader: Reader, relaxed: Boolean = false) :
             this(reader, null, relaxed)
 
     public constructor(reader: Reader, expandEntities: Boolean, relaxed: Boolean = false) :
             this(reader, null, relaxed, expandEntities)
-
-    private var line: Int = 1
-    private val column: Int get() = offset - lastColumnStart + 1
-    private var lastColumnStart = 0
-    private var offset: Int = 0
-
-    private var _eventType: EventType? = null //START_DOCUMENT // Already have this state
-    public override val eventType: EventType
-        get() = when (val et = _eventType) {
-            null -> throw IllegalStateException("Not yet started")
-            ENTITY_REF if (expandEntities) -> TEXT
-            else -> et
-        }
-
-    override val isStarted: Boolean
-        get() = state != State.BEFORE_START
-
-    private var entityName: String? = null
-
-    public override val isKnownEntity: Boolean
-        get() = when (_eventType) {
-            ENTITY_REF -> !unresolvedEntity
-
-            else -> throw IllegalStateException("isKnownEntity is only relevant for entities")
-        }
-
-    public override val localName: String
-        get() = when (_eventType) {
-            ENTITY_REF if (!expandEntities) -> entityName ?: throw XmlException("Missing entity name")
-            START_ELEMENT, END_ELEMENT -> elementStack[depth - 1].localName ?: throw XmlException("Missing local name")
-            else -> throw IllegalStateException("Local name not accessible outside of element tags: $_eventType")
-        }
-
-    public override val namespaceURI: String
-        get() = when (_eventType) {
-            START_ELEMENT, END_ELEMENT -> elementStack[depth - 1].namespace ?: throw XmlException(
-                "Missing namespace",
-                extLocationInfo
-            )
-
-            else -> throw IllegalStateException("Local name not accessible outside of element tags")
-        }
-
-    public override val prefix: String
-        get() = when (_eventType) {
-            START_ELEMENT, END_ELEMENT -> elementStack[depth - 1].prefix ?: ""
-
-            else -> throw IllegalStateException("Local name not accessible outside of element tags")
-        }
-
-    private var isSelfClosing = false
-
-    override var attributeCount: Int = 0
-        private set
-
-    private var attrData: Array<String?> = arrayOfNulls(16)
-
-    override var encoding: String? = encoding
-        private set
-
-    public override var version: String? = null
-        private set
-
-    public override var standalone: Boolean? = null
-        private set
 
 
     private var srcBufPos: Int = 0
@@ -151,211 +87,17 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    private val namespaceHolder = NamespaceHolder()
-
-    public override val depth: Int
-        get() = namespaceHolder.depth
-
-    private var elementStack: ElementStack = ElementStack()
-
-    // variables so we don't need readCName to return a pair
-    private var readPrefix: String? = null
-    private var readLocalname: String? = null
-
     /** Target buffer for storing incoming text (including aggregated resolved entities)  */
     private var outputBuf = CharArray(ALT_BUF_SIZE)
 
     /** Write position   */
     private var outputBufRight = 0
 
-    private var isWhitespace = false
-
-    //    private int stackMismatch = 0;
-    private var error: String? = null
-
-    private var unresolvedEntity = false
-
-    private var state = State.BEFORE_START
-
-    override val namespaceDecls: List<Namespace>
-        get() = namespaceHolder.namespacesAtCurrentDepth
-
-    override val namespaceContext: IterableNamespaceContext
-        get() = namespaceHolder.namespaceContext
-
 
     override fun close() {
         //NO-Op
     }
 
-    private fun incCol() {
-        offset += 1
-    }
-
-    private fun incLine(offsetAdd: Int = 1) {
-        val newOffset = offset + offsetAdd
-        offset = newOffset
-        lastColumnStart = newOffset
-        line += 1
-    }
-
-    private fun adjustNsp(prefix: String?, localName: String) {
-        var hasActualAttribute = false
-
-        // Loop through all attributes to collect namespace attributes and split name into prefix/localName.
-        // Namespaces will not be set yet (as the namespace declaring attribute may be afterwards)
-        var attrIdx = 0
-        while (attrIdx < attributeCount) {
-            val attr = attribute(attrIdx++)
-
-            val aLocalName: String = attr.localName!!
-            val aPrefix: String? = attr.prefix
-
-            when (aPrefix) {
-                "xmlns" -> {
-                    namespaceHolder.addPrefixToContext(aLocalName, attr.value)
-                    if (attr.value == "") error("illegal empty namespace")
-
-                    attr.localName = null // mark for deletion
-                }
-
-                null if aLocalName == "xmlns" -> {
-                    namespaceHolder.addPrefixToContext("", attr.value)
-                    attr.localName = null // mark for deletion
-                }
-
-                else -> hasActualAttribute = true
-            }
-        }
-        if (hasActualAttribute) {
-            var attrInIdx = 0
-            var attrOutIdx = 0
-
-            // This gradually copies the attributes to remove namespace declarations
-            // use while loop as we need the final size afterwards
-            while (attrInIdx < attributeCount) {
-                val attrIn = attribute(attrInIdx++)
-                val attrLocalName = attrIn.localName
-                if (attrLocalName != null) {
-                    val attrOut = attribute(attrOutIdx++)
-
-                    if (attrIn != attrOut) {
-                        copyAttributeNotNS(attrIn.index, attrOut.index)
-                    }
-
-                    val attrPrefix = attrIn.prefix
-
-                    if (attrPrefix == "") {
-                        error("illegal attribute name: ${fullname(attrPrefix, attrLocalName)} at $this")
-                        attrOut.namespace = "" // always true for null namespace
-                    } else if (attrPrefix != null) {
-                        val attrNs = namespaceHolder.getNamespaceUri(attrPrefix)
-                        if (attrNs == null) {
-                            elementStack[depth - 1].also {
-                                it.localName = localName
-                                it.prefix = prefix
-                                it.namespace = "<not yet set>"
-                            }
-                            error("Undefined Prefix: $attrPrefix in $this")
-                        }
-                        attrOut.namespace = attrNs
-                    } else {
-                        attrOut.namespace = ""
-                    }
-                }
-            }
-
-            if (attrInIdx != attrOutIdx) {
-                shrinkAttributeBuffer(attrOutIdx)
-            }
-
-        } else {
-            shrinkAttributeBuffer(0)
-        }
-
-        val ns = when {
-            PROCESS_NAMESPACES -> namespaceHolder.getNamespaceUri(prefix ?: "")
-                ?: XMLConstants.NULL_NS_URI.also { if (prefix != null) error("undefined prefix: $prefix") }
-
-            else -> XMLConstants.NULL_NS_URI
-        }
-
-        val d = depth - 1
-        elementStack[d].prefix = prefix
-        elementStack[d].localName = localName
-        elementStack[d].namespace = ns
-    }
-
-    private fun error(desc: String) {
-        if (relaxed) {
-            if (error == null) error = "ERR: $desc"
-        } else exception(desc)
-    }
-
-    private fun exception(desc: String): Nothing {
-        throw XmlException(
-            when {
-                desc.length < 100 -> desc
-                else -> "${desc.take(100)}\n"
-            },
-            this
-        )
-    }
-
-    private fun parseUnexpectedOrWS(eventType: EventType) {
-        when (eventType) {
-            START_DOCUMENT -> {
-                error("Unexpected START_DOCUMENT in state $state")
-                parseStartTag(true) // parse it to ignore it
-            }
-
-            START_ELEMENT -> {
-                error("Unexpected start tag after document body")
-                parseStartTag(false)
-            }
-
-            END_ELEMENT -> {
-                error("Unexpected end tag outside of body")
-                parseEndTag()
-            }
-
-            ATTRIBUTE,
-            IGNORABLE_WHITESPACE,
-            COMMENT -> throw UnsupportedOperationException("Comments/WS are always allowed - they may start the document tough")
-
-            TEXT -> {
-                pushText('<')
-                when {
-                    isWhitespace -> _eventType = IGNORABLE_WHITESPACE
-                    else -> error("Non-whitespace text where not expected: '${text}'")
-                }
-            }
-
-            CDSECT -> {
-                error("CData sections are not supported outside of the document body")
-                parseCData()
-            }
-
-            DOCDECL -> {
-                error("Document declarations are not supported outside the preamble")
-                parseDoctype()
-            }
-
-            END_DOCUMENT -> {
-                error("End of document before end of document element")
-            }
-
-            ENTITY_REF -> {
-                error("Entity reference outside document body")
-                pushEntity()
-            }
-
-            PROCESSING_INSTRUCTION -> {
-                error("Processing instruction inside document body")
-                parsePI()
-            }
-        }
-    }
 
     private fun nextImplDocStart() {
         val eventType = peekType()
@@ -379,7 +121,7 @@ public class KtXmlReader internal constructor(
                 pos++
             }
             if (pos != attributeCount) error("illegal xmldecl")
-            isWhitespace = true
+            _isWhitespace = true
         } // if it is not a doc start synthesize an event.
         _eventType = START_DOCUMENT
         state = State.START_DOC
@@ -390,13 +132,7 @@ public class KtXmlReader internal constructor(
      * common base for next and nextToken. Clears the state, except from
      * txtPos and whitespace. Does not set the type variable  */
     private fun nextImplPreamble() {
-        error?.let { e ->
-            push(e)
-
-            this.error = null
-            _eventType = COMMENT
-            return
-        }
+        if(pushErrorComment()) return
 
         val eventType = peekType()
         _eventType = eventType
@@ -468,7 +204,7 @@ public class KtXmlReader internal constructor(
                 pushRegularText('<', expandEntities)
             } else {
                 pushText('<')
-                if (isWhitespace) _eventType = IGNORABLE_WHITESPACE
+                if (_isWhitespace) _eventType = IGNORABLE_WHITESPACE
             }
 
             CDSECT -> parseCData()
@@ -515,23 +251,6 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    private fun readTagContentUntil(delim: Char) {
-        var c: Char
-        do {
-            c = readAndPush()
-        } while (c != delim || peek() != '>'.code)
-        popOutput()
-        readAssert('>') // '>'
-        return
-    }
-
-    private fun parsePI() {
-        readAssert('<') // <
-        readAssert('?') // '?'
-        resetOutputBuffer()
-        readTagContentUntil('?')
-    }
-
     private fun parseComment() {
         readAssert('<') // <
         readAssert('!') // '!'
@@ -553,98 +272,8 @@ public class KtXmlReader internal constructor(
         return
     }
 
-    private fun parseCData() {
-        readAssert('<') // <
-        readAssert('!') // '['
-        read("[CDATA[")
-
-        resetOutputBuffer()
-        var c: Char
-        do {
-            c = readAndPush()
-        } while (c != ']' || peek() != ']'.code || peek(1) != '>'.code)
-        popOutput() // ']'
-        readAssert(']') // ']'
-        readAssert('>') // '>'
-        return
-    }
-
-    /** precondition: &lt! consumed  */
-    private fun parseDoctype() {
-        var nesting = 1
-        var quote: Char? = null
-
-        while (true) {
-            val i = read()
-            when (i) {
-                '\''.code,
-                '"'.code -> when (quote) {
-                    null -> quote = i.toChar()
-                    i.toChar() -> quote = null
-                }
-
-                '-'.code -> if (quote == '!') {
-                    pushChar('-')
-
-                    var c = read()
-                    pushChar(c)
-                    if (c != '-'.code) continue
-
-                    c = read()
-                    pushChar(c)
-                    if (c != '>'.code) continue
-
-                    quote = null
-                }
-
-                '['.code -> if (quote == null && nesting == 1) ++nesting
-
-                ']'.code -> if (quote == null) {
-                    pushChar(']')
-                    val c = read()
-                    pushChar(c)
-                    if (c != '>'.code) continue
-                    if (nesting != 2) error("Invalid nesting of document type declaration: $nesting")
-                    return
-                }
-
-                '<'.code -> if (quote == null) {
-                    if (nesting < 2) error("Doctype with internal subset must have an opening '['")
-
-                    pushChar('<')
-                    var c = read()
-                    pushChar(c)
-                    if (c != '!'.code) {
-                        nesting++; continue
-                    }
-
-                    c = read()
-                    pushChar(c)
-                    if (c != '-'.code) {
-                        nesting++; continue
-                    }
-
-                    c = read()
-                    pushChar(c)
-                    if (c != '-'.code) {
-                        nesting++; continue
-                    }
-                    quote = '!' // marker for comment
-                }
-
-                '>'.code -> if (quote == null) {
-                    when (--nesting) {
-                        1 -> error("Missing closing ']' for doctype")
-                        0 -> return
-                    }
-                }
-            }
-            pushChar(i)
-        }
-    }
-
     /* precondition: &lt;/ consumed */
-    private fun parseEndTag() {
+    override fun parseEndTag() {
         if (depth == 0) {
             error("element stack empty")
             _eventType = COMMENT
@@ -730,15 +359,15 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    private fun get(): String {
+    override fun get(): String {
         return outputBuf.concatToString(outputBufLeft, outputBufRight)
     }
 
-    private fun popOutput() {
+    override fun popOutput() {
         --outputBufRight
     }
 
-    private fun resetOutputBuffer() {
+    override fun resetOutputBuffer() {
         // Do not reset it for speed reasons
         // if (outputBuf.size != ALT_BUF_SIZE) {
         //     outputBuf = CharArray(ALT_BUF_SIZE)
@@ -758,7 +387,7 @@ public class KtXmlReader internal constructor(
         outputBufRight = outRight + count
     }
 
-    private fun push(s: String) {
+    override fun push(s: String) {
         val minSizeNeeded = outputBufRight + s.length
         if (minSizeNeeded > outputBuf.size) {
             growOutputBuf(minSizeNeeded)
@@ -769,20 +398,13 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    private fun pushChar(c: Char) {
+    override fun pushChar(c: Char) {
         val newPos = outputBufRight
 
         // +1 for surrogates; if we don't have enough space in
         if (newPos >= outputBuf.size) growOutputBuf()
 
         outputBuf[outputBufRight++] = c
-    }
-
-    private fun pushChar(cp: Int) {
-        when {
-            cp < 0 -> error(UNEXPECTED_EOF)
-            else -> pushChar(cp.toChar())
-        }
     }
 
     private fun pushCodePoint(c: Int) {
@@ -804,124 +426,11 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    /** Sets name and attributes  */
-    private fun parseStartTag(xmldecl: Boolean) {
-        val prefix: String?
-        val localName: String
-        resetOutputBuffer()
-        if (xmldecl) {
-            prefix = null
-            localName = readName()
-        } else {
-            readCName()
-            prefix = readPrefix
-            localName = readLocalname!!
-        }
-        clearAttributes()
-        while (true) {
-            skip()
-            when (val c = peek(0)) {
-                '?'.code -> {
-                    if (!xmldecl) error("? found outside of xml declaration")
-                    readAssert('?')
-                    read('>')
-                    return
-                }
-
-                '/'.code -> {
-                    if (xmldecl) error("/ found to close xml declaration")
-                    isSelfClosing = true
-                    readAssert('/')
-                    if (isXmlWhitespace(peek().toChar())) {
-                        error("ERR: Whitespace between empty content tag closing elements")
-                        while (isXmlWhitespace(peek().toChar())) {
-                            val _ = read()
-                        }
-                    }
-                    read('>')
-                    break
-                }
-
-                '>'.code -> {
-                    if (xmldecl) error("xml declaration must be closed by '?>', not '>'")
-                    readAssert('>')
-                    break
-                }
-
-                -1 -> {
-                    error(UNEXPECTED_EOF)
-                    return
-                }
-
-                ' '.code, '\t'.code, '\n'.code, '\r'.code -> {
-                    val _ = next() // ignore whitespace
-                }
-
-                else -> when {
-                    isNameStartChar(c.toChar()) -> {
-                        resetOutputBuffer()
-                        readCName()
-                        val aLocalName = readLocalname!!
-
-                        if (aLocalName.isEmpty()) {
-                            error("attr name expected")
-                            break
-                        }
-                        skip()
-                        if (peek() != '='.code) {
-                            val fullname = fullname(readPrefix, aLocalName)
-                            error("Attr.value missing in $fullname '='. Found: ${peek(0).toChar()}")
-
-                            addUnresolvedAttribute(readPrefix, aLocalName, fullname)
-                        } else {
-                            read('=')
-                            skip()
-                            when (val delimiter = peek()) {
-                                '\''.code, '"'.code -> {
-                                    readAssert(delimiter.toChar())
-                                    // This is an attribute, we don't care about whitespace content
-                                    resetOutputBuffer()
-                                    pushAttributeValue(delimiter.toChar())
-                                    readAssert(delimiter.toChar())
-                                }
-
-                                else -> {
-                                    error("attr value delimiter missing!")
-                                    resetOutputBuffer()
-                                    pushWSDelimAttrValue()
-                                }
-                            }
-
-                            addUnresolvedAttribute(readPrefix, aLocalName, get())
-                        }
-                    }
-
-                    else -> {
-                        val fullName = fullname(prefix, localName)
-                        error("unexpected character in tag($fullName): '${c.toChar()}'")
-                        readAssert(c.toChar())
-                    }
-                }
-            }
-
-        }
-
-        val d = depth
-        namespaceHolder.incDepth()
-        elementStack.ensureCapacity(depth)
-
-        if (PROCESS_NAMESPACES) {
-            adjustNsp(prefix, localName)
-        } else {
-            elementStack[d].namespace = ""
-        }
-    }
-
     /**
      * result: if the setName parameter is set,
      * the name of the entity is stored in "name"
      */
-    private fun pushEntity(expandEntities: Boolean = this.expandEntities) {
+    override fun pushEntity(expandEntities: Boolean) {
         readAssert('&')
         val first = peek(0)
 
@@ -933,7 +442,7 @@ public class KtXmlReader internal constructor(
     }
 
     private fun pushRefEntity(expandEntities: Boolean) {
-        unresolvedEntity = false
+        isUnresolvedEntity = false
         val first = read()
         val codeBuilder = StringBuilder(8)
 
@@ -963,7 +472,7 @@ public class KtXmlReader internal constructor(
         }
 
         val result = DefaultEntityMap[code]
-        unresolvedEntity = result == null
+        isUnresolvedEntity = result == null
         when {
             result != null -> push(result)
             expandEntities -> exception("Unknown entity \"&$code;\" in entity expanding mode")
@@ -1021,7 +530,7 @@ public class KtXmlReader internal constructor(
      * '"': parse to quote
      * NO LONGER SUPPORTED - use pushTextWsDelim ' ': parse to whitespace or '>'
      */
-    private fun pushText(delimiter: Char) {
+    override fun pushText(delimiter: Char) {
         var bufCount = srcBufCount
         var innerLoopEnd = minOf(bufCount, BUF_SIZE)
         var curPos = srcBufPos
@@ -1111,7 +620,7 @@ public class KtXmlReader internal constructor(
         }
 
         // We didn't return through pushNonWSText, so it is WS
-        isWhitespace = true
+        _isWhitespace = true
         srcBufPos = curPos
     }
 
@@ -1211,7 +720,7 @@ public class KtXmlReader internal constructor(
             left = curPos
 
         }
-        isWhitespace = false
+        _isWhitespace = false
         srcBufPos = curPos
     }
 
@@ -1219,7 +728,7 @@ public class KtXmlReader internal constructor(
      * Specialisation of pushText that does not recognize whitespace (thus able to be used at that point)
      * @param delimiter The "stopping" delimiter
      */
-    private fun pushAttributeValue(delimiter: Char) {
+    override fun pushAttributeValue(delimiter: Char) {
         var bufCount = srcBufCount
         var innerLoopEnd = minOf(bufCount, BUF_SIZE)
         var curPos = srcBufPos
@@ -1302,12 +811,12 @@ public class KtXmlReader internal constructor(
             left = curPos
 
         }
-        isWhitespace = false
+        _isWhitespace = false
         srcBufPos = curPos
     }
 
     /** Push attribute delimited by whitespace */
-    private fun pushWSDelimAttrValue() {
+    override fun pushWSDelimAttrValue() {
         var bufCount = srcBufCount
         var leftEnd = minOf(bufCount, BUF_SIZE)
         var left: Int
@@ -1370,24 +879,19 @@ public class KtXmlReader internal constructor(
         srcBufPos = curPos
     }
 
-    private fun read(s: String) {
+    override fun read(s: String) {
         for (c in s) {
             val d = read()
             if (c.code != d) error("Found unexpected character '$d' while parsing '$s'")
         }
     }
 
-    private fun read(c: Char) {
+    override fun read(c: Char) {
         val a = read()
         if (a != c.code) error("expected: '" + c + "' actual: '" + a.toChar() + "'")
     }
 
-    private fun readAssert(c: Char) = read(c)/* {
-        *//*val a = *//*read()
-//        assert(a == c.code) { "This should have parsed as '$c', but was '${a.toChar()}'" }
-    }*/
-
-    private fun read(): Int {
+    override fun read(): Int {
         val pos = srcBufPos
         if (pos >= srcBufCount) return -1
         if (pos + 2 >= BUF_SIZE) return readAcross()
@@ -1420,7 +924,7 @@ public class KtXmlReader internal constructor(
         }
     }
 
-    private fun readAndPush(): Char {
+    override fun readAndPush(): Char {
         val pos = srcBufPos
         if (pos >= srcBufCount) exception(UNEXPECTED_EOF)
 
@@ -1537,7 +1041,7 @@ public class KtXmlReader internal constructor(
     }
 
     /** Does never read more than needed  */
-    private fun peek(pos: Int): Int {
+    override fun peek(pos: Int): Int {
         // In this case we *may* need the right buffer, otherwise not
         // optimize this implementation for the "happy" path
         if (srcBufPos + (pos shl 2 + 1) >= BUF_SIZE) return peekAcross(pos)
@@ -1565,7 +1069,7 @@ public class KtXmlReader internal constructor(
     }
 
     /** Does never read more than needed  */
-    private fun peek(): Int {
+    override fun peek(): Int {
         // In this case we *may* need the right buffer, otherwise not
         // optimize this implementation for the "happy" path
         val current = srcBufPos
@@ -1621,7 +1125,7 @@ public class KtXmlReader internal constructor(
     }
 
     @Suppress("DuplicatedCode")
-    private fun readName(): String {
+    override fun readName(): String {
         var left = srcBufPos
 
         var bufEnd: Int
@@ -1672,7 +1176,7 @@ public class KtXmlReader internal constructor(
     }
 
     @Suppress("DuplicatedCode")
-    private fun readCName() {
+    override fun readCName() {
         var left = srcBufPos
 
         val cnt = srcBufCount
@@ -1739,7 +1243,7 @@ public class KtXmlReader internal constructor(
         readLocalname = get()
     }
 
-    private fun skip() {
+    override fun skip() {
         while (true) {
             val c = peek()
             if (c == -1 || !isXmlWhitespace(c.toChar())) break // More sane
@@ -1786,7 +1290,7 @@ public class KtXmlReader internal constructor(
 
             et != TEXT -> buf.append(text)
 
-            isWhitespace -> buf.append(
+            _isWhitespace -> buf.append(
                 "(whitespace)"
             )
 
@@ -1807,74 +1311,8 @@ public class KtXmlReader internal constructor(
         return "KtXmlReader [${getPositionDescription()}]"
     }
 
-    override val extLocationInfo: XmlReader.LocationInfo
-        get() = XmlReader.ExtLocationInfo(col = column, line = line, offset = offset)
-
-    public fun getLineNumber(): Int {
-        return line
-    }
-
-    public fun getColumnNumber(): Int {
-        return column
-    }
-
-    override fun isWhitespace(): Boolean = when (eventType) {
-        TEXT, IGNORABLE_WHITESPACE -> isWhitespace
-        CDSECT -> false
-        else -> exception(ILLEGAL_TYPE)
-    }
-
-    override val text: String
-        get() = when {
-            eventType.isTextElement -> get()
-            else -> throw XmlException("The element is not text, it is: $eventType")
-        }
-
-    override val piTarget: String
-        get() {
-            check(eventType == PROCESSING_INSTRUCTION)
-            return get().substringBefore(' ')
-        }
-
-    override val piData: String
-        get() {
-            check(eventType == PROCESSING_INSTRUCTION)
-            return get().substringAfter(' ', "")
-        }
-
-    public fun isEmptyElementTag(): Boolean {
-        if (_eventType != START_ELEMENT) exception(ILLEGAL_TYPE)
-        return isSelfClosing
-    }
-
-    override fun getAttributeNamespace(index: Int): String {
-        return attribute(index).namespace!!
-    }
-
-    override fun getAttributeLocalName(index: Int): String {
-        return attribute(index).localName!!
-    }
-
-    override fun getAttributePrefix(index: Int): String {
-        return attribute(index).prefix ?: ""
-    }
-
-    override fun getAttributeValue(index: Int): String {
-        return attribute(index).value!!
-    }
-
-    override fun getAttributeValue(nsUri: String?, localName: String): String? {
-        for (attrIdx in 0 until attributeCount) {
-            val attr = attribute(attrIdx)
-            if (attr.localName == localName && (nsUri == null || attr.namespace == nsUri)) {
-                return attr.value
-            }
-        }
-        return null
-    }
-
     override fun next(): EventType {
-        isWhitespace = true
+        _isWhitespace = true
 
         // reset the output buffer
         resetOutputBuffer()
@@ -1904,34 +1342,18 @@ public class KtXmlReader internal constructor(
         var et: EventType
         do {
             et = next()
-        } while (et.isIgnorable || (et == TEXT && isWhitespace))
+        } while (et.isIgnorable || (et == TEXT && _isWhitespace))
 
         if (et != END_ELEMENT && et != START_ELEMENT) exception("unexpected type")
         return et
     }
 
-    override fun require(type: EventType, namespace: String?, name: String?) {
-        if (type != this._eventType || (namespace != null && namespace != elementStack[depth - 1].namespace)
-            || (name != null && name != elementStack[depth - 1].localName)
-        ) {
-            exception("expected: $type {$namespace}$name, found: $_eventType {$namespaceURI}$localName")
-        }
-    }
-
     private companion object {
-        const val UNEXPECTED_EOF = "Unexpected EOF"
-        const val ILLEGAL_TYPE = "Wrong event type"
-
         const val PROCESS_NAMESPACES = true
 
-        @JvmStatic
-        private fun fullname(prefix: String?, localName: String): String = when (prefix) {
-            null -> localName
-            else -> "$prefix:$localName"
-        }
 
         @JvmStatic
-        private fun Reader.readUntilFullOrEOF(buffer: CharArray): Int {
+        protected fun Reader.readUntilFullOrEOF(buffer: CharArray): Int {
             val bufSize = buffer.size
             var totalRead: Int = read(buffer, 0, bufSize)
             if (totalRead < 0) return -1
@@ -1942,160 +1364,8 @@ public class KtXmlReader internal constructor(
             }
             return totalRead
         }
-    }
-
-    private var elementData: Array<String?> = arrayOfNulls(48)
-
-    private inner class ElementStack {
-
-        operator fun get(idx: Int) = element(idx)
-
-        fun ensureCapacity(required: Int) {
-            val requiredCapacity = required * 3 // three slots per element
-            if (elementData.size >= requiredCapacity) return
-
-            elementData = elementData.copyOf(requiredCapacity + 12)
-        }
 
     }
 
-    private fun element(idx: Int) = ElementDelegate(idx)
-
-    @JvmInline
-    private value class ElementDelegate(val index: Int)
-
-    private var ElementDelegate.namespace: String?
-        get() {
-            if (index >= depth) throw IndexOutOfBoundsException()
-            return elementData[index * 3]
-        }
-        set(value) {
-            elementData[index * 3] = value
-        }
-
-    private var ElementDelegate.prefix: String?
-        get() {
-            if (index >= depth) throw IndexOutOfBoundsException()
-            return elementData[index * 3 + 1]
-        }
-        set(value) {
-            elementData[index * 3 + 1] = value
-        }
-
-    private var ElementDelegate.localName: String?
-        get() {
-            if (index >= depth) throw IndexOutOfBoundsException()
-            return elementData[index * 3 + 2]
-        }
-        set(value) {
-            elementData[index * 3 + 2] = value
-        }
-
-    private fun clearAttributes() {
-        val oldSize = attributeCount
-        if (oldSize > 0) {
-            attrData.fill(null, 0, oldSize * 4)
-        }
-        attributeCount = 0
-    }
-
-    private fun shrinkAttributeBuffer(newSize: Int) {
-        attrData.fill(null, newSize * 4, attributeCount * 4)
-        attributeCount = newSize
-    }
-
-    private fun ensureAttributeBufferCapacity(required: Int) {
-        val requiredSize = required * 4
-        val oldData = attrData
-        if (oldData.size >= requiredSize) return
-
-        attrData = oldData.copyOf(requiredSize + 16)
-    }
-
-    private fun addUnresolvedAttribute(attrPrefix: String?, attrLocalName: String, attrValue: String) {
-        val oldSize = attributeCount
-        val newSize = if (oldSize < 0) 1 else oldSize + 1
-        attributeCount = newSize
-
-        ensureAttributeBufferCapacity(newSize)
-        var i = newSize * 4 - 4
-
-        val d = attrData
-        d[i++] = null
-        d[i++] = attrPrefix
-        d[i++] = attrLocalName
-        d[i] = attrValue
-    }
-
-    private fun copyAttributeNotNS(fromIdx: Int, toIdx: Int) {
-        attrData.copyInto(attrData, toIdx * 4 + 1, fromIdx * 4 + 1, fromIdx * 4 + 4)
-    }
-
-
-    private inner class AttributesCollection {
-
-    }
-
-    @JvmInline
-    private value class AttributeDelegate(val index: Int)
-
-    private fun attribute(index: Int): AttributeDelegate = AttributeDelegate(index)
-
-    private var AttributeDelegate.namespace: String?
-        get() {
-            if (index >= attributeCount) throw IndexOutOfBoundsException()
-            return attrData[index * 4]
-        }
-        set(value) {
-            attrData[index * 4] = value
-        }
-
-    private var AttributeDelegate.prefix: String?
-        get() {
-            if (index >= attributeCount) throw IndexOutOfBoundsException()
-            return attrData[index * 4 + 1]
-        }
-        set(value) {
-            attrData[index * 4 + 1] = value
-        }
-
-    private var AttributeDelegate.localName: String?
-        get() {
-            if (index >= attributeCount) throw IndexOutOfBoundsException()
-            return attrData[index * 4 + 2]
-        }
-        set(value) {
-            attrData[index * 4 + 2] = value
-        }
-
-    private var AttributeDelegate.value: String?
-        get() {
-            if (index >= attributeCount) throw IndexOutOfBoundsException()
-            return attrData[index * 4 + 3]
-        }
-        set(value) {
-            attrData[index * 4 + 3] = value
-        }
-
-
-    private enum class State {
-        /** Parsing hasn't started yet */
-        BEFORE_START,
-
-        /** At or past parsing the xml header */
-        START_DOC,
-
-        /** At or past parsing the document type definition */
-        DOCTYPE_DECL,
-
-        /** Parsing the main document element */
-        BODY,
-
-        /** At end of main document element end tag, or after it*/
-        POST,
-
-        /** At end of file */
-        EOF
-    }
 
 }
