@@ -1,4 +1,14 @@
 # 1.0.0-SNAPSHOT
+Features:
+
+Changes:
+- Parsing of single characters now allows for xml Whitespace and will collapse the
+  whitespace if there are more than 2 characters. It should be noted that to parse
+  a single space character this must not be surrounded by whitespace (collapsing
+  only applies if there are 2 or more characters and this would collapse to an
+  empty string). The old behaviour only allowed a single character without
+  surrounding whitespace.
+
 
 # 1.0.0-rc2
 *(Jan 18, 2026)<br />*

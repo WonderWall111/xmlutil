@@ -231,7 +231,17 @@ internal open class XmlDecoderBase internal constructor(
         }
 
         override fun decodeChar(): Char = handleParseError {
-            decodeStringCollapsed().single()
+            val s = decodeString()
+            when (s.length) {
+                1 -> s[0]
+                else -> {
+                    val collapsed = xmlCollapseWhitespace(s)
+                    when (collapsed.length) {
+                        1 -> collapsed[0]
+                        else -> throw SerializationException("Cannot decode char from '$s'")
+                    }
+                }
+            }
         }
 
         override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
