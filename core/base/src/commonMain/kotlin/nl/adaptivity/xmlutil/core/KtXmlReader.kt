@@ -40,6 +40,21 @@ private const val ALT_BUF_SIZE = 512
 private const val outputBufLeft = 0
 
 @XmlUtilInternal
+public object CopySequenceMarker
+
+@IgnorableReturnValue
+internal inline fun InputBuffer.createCopySequence(block: context(CopySequenceMarker) () -> Unit): CharSequence {
+    startOrResumeCopySequenceXX()
+    var r: CharSequence
+    try {
+        context(CopySequenceMarker) { block() }
+    } finally {
+        r = finalizeCopySequenceXX()
+    }
+    return r
+}
+
+@XmlUtilInternal
 public interface InputBuffer {
     public val offset: Int
 
@@ -49,6 +64,11 @@ public interface InputBuffer {
 
     public val column: Int get() = offset - lastColumnStart
 
+    /**
+     * Ensure that there is an active copy sequence. This does nothing if the sequence is already
+     * active. If it is paused, it will be resumed. If there is no sequence it will be started.
+     */
+    public fun ensureActiveCopySequence()
 
     /**
      * Mark the start or resumption of a sequence that will be copied to string later. By default
@@ -57,17 +77,30 @@ public interface InputBuffer {
      *  - A line ending involving a '\r' (must be exposed as '\n')
      *  - Buffer swaps
      */
-    public fun startOrResumeCopySequence()
+    public fun startOrResumeCopySequenceXX() {
+        ensureActiveCopySequence()
+    }
+
+    context(_: CopySequenceMarker)
+    public fun CopySequenceMarker.resumeCopySequence()
 
     /**
      * Finish/finalise a copy sequence. This means it cannot be appended to anymore
      */
-    public fun finalizeCopySequence(): CharSequence
+    public fun finalizeCopySequenceXX(): CharSequence
 
     /**
      * Pause a copy sequence. This means that reading will not add further tokens to the sequence.
      */
-    public fun pauseCopySequence()
+    context(_: CopySequenceMarker)
+    public open fun pauseCopySequence() {
+        ensurePausedCopySequence()
+    }
+
+    /**
+     * Pause a copy sequence if it exists. If it does exist create one and then pause it.
+     */
+    public fun ensurePausedCopySequence()
 
     /**
      * Read tokens into the sequence up to the expected delimiters. The delimiters will
@@ -79,15 +112,97 @@ public interface InputBuffer {
      * @param pauseOnDelimiter Pause the sequence on observation of the delimiter.
      * @param consumeDelimiter If true, the delimiter will be consumed.
      */
+    context(_: CopySequenceMarker)
     public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true)
 
+    /**
+     * Add the given character to the copy sequence. This requires an active copy sequence.
+     * It will force buffering of the underlying read characters if needed.
+     */
+    context(_: CopySequenceMarker)
+    public fun addToCopySequence(char: Char)
+
+    context(_: CopySequenceMarker)
+    public fun addToCopySequence(seq: CharSequence) {
+        seq.forEach { addToCopySequence(it) }
+    }
+
+    /**
+     * Read a range of characters from the input buffer into a sequence.
+     * Note that this requires the characters to be still in the buffer. It is intended
+     * for handling peeks of entity reference names.
+     *
+     * Note the caller is required to ensure there are no '\r' characters present
+     */
+    public fun readSubRange(start: Int, end: Int): CharSequence
+
+    /**
+     * Read the subrange indicated by the ofsets and append it to the (active or paused) output
+     * buffer.
+     */
+    context(_: CopySequenceMarker)
+    public fun appendSubRangeToSequence(start: Int, end: Int) {
+        for (c in readSubRange(start, end)) addToCopySequence(c)
+    }
+
     /** Try to read the next character without increasing the position  */
-    public fun peek(): Int
+    public fun peek(): Int = peek(0)
+
+    public fun peekChar(): Char {
+        val c = peek()
+        if (c < 0) error("Unexpected EOF")
+        return c.toChar()
+    }
+
+    public fun peekChar(offset: Int): Char {
+        val c = peek(offset)
+        if (c < 0) error("Unexpected EOF")
+        return c.toChar()
+    }
+
+    /** Determine whether the next character is the expected character, but do not consume it. */
+    public fun peek(expected: Char): Boolean = peek(0, expected)
+
+    /**
+     * Try to read the next character starting at the given offset.
+     * @param offset The offset to use. Note that large offset may break due to missing checks
+     */
+    public fun peek(offset: Int): Int
+
+    /**
+     * Determine whether the following characters match the expected character sequence starting
+     * at the given offset.
+     *
+     * @param expected The expected character sequence. Note that this may not contain '\r'
+     * characters as the implementation does not normalize end-of-line.
+     */
+    public fun peek(offset: Int, expected: CharSequence): Boolean {
+        return expected.indices.all { peek(offset + it) == expected[it].code }
+    }
+
+    /**
+     * Determine whether the following characters match the expected character sequence starting
+     * at the given offset.
+     *
+     * @param expected The expected character. Note that this may not be '\r'
+     * characters as the implementation does not normalize end-of-line.
+     */
+    public fun peek(offset: Int, expected: Char): Boolean {
+        return peek(offset) == expected.code
+    }
 
     /**
      * Determine whether the following characters match the expected character sequence)
+     *
+     * @param expected The expected character sequence. Note that this may not contain '\r'
+     * characters as the implementation does not normalize end-of-line.
      */
-    public fun peek(expected: CharSequence): Boolean
+    public fun peek(expected: CharSequence): Boolean = peek(0, expected)
+
+    /**
+     * Skip the given amount of characters. This function should not be used to skip over line endings.
+     */
+    public fun skip(count: Int)
 
     /** Does never read more than needed  */
     public fun read(): Int
@@ -101,7 +216,15 @@ public interface InputBuffer {
     /**
      * Read the current character to the copy buffer.
      */
+    context(_: CopySequenceMarker)
     public fun readToCopyBuffer()
+
+    @XmlUtilInternal
+    @Deprecated("Nesting copy sequences is invalid", level = DeprecationLevel.ERROR)
+    context(_: CopySequenceMarker)
+    public fun createCopySequence(): Nothing {
+        throw UnsupportedOperationException("Nesting copy sequences is invalid")
+    }
 }
 
 @XmlUtilInternal
@@ -187,6 +310,12 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
     private var copySequenceStart = -1
     private var copyBuilder: StringBuilder? = null
 
+    override fun ensureActiveCopySequence() {
+        if (copySequenceStart < 0) {
+            copySequenceStart = srcBufPos
+        }
+    }
+
     /**
      * Mark the start of a sequence that will be copied to string later. By default this will
      * just store the start position. It however also triggers handling of special cases, that
@@ -194,11 +323,18 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
      *  - A line ending involving a '\r' (must be exposed as '\n')
      *  - Buffer swaps
      */
-    override fun startOrResumeCopySequence() {
+    override fun startOrResumeCopySequenceXX() {
         check(copySequenceStart < 0) { "Copy sequence already started" }
         copySequenceStart = srcBufPos
     }
 
+    context(_: CopySequenceMarker)
+    override fun CopySequenceMarker.resumeCopySequence() {
+        check(copySequenceStart < -1 && copyBuilder != null) { "Copy sequence is not paused" }
+        copySequenceStart = srcBufPos
+    }
+
+    context(_: CopySequenceMarker)
     override fun pauseCopySequence() {
         check(copySequenceStart>=0) { "Copy sequence not active (either not started or already suspended)" }
         val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
@@ -206,7 +342,13 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         copySequenceStart = -2 // mark as paused
     }
 
-    override fun finalizeCopySequence(): String {
+    override fun ensurePausedCopySequence() {
+        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+        if (copySequenceStart >= 0) b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+        copySequenceStart = -2 // mark as paused
+    }
+
+    override fun finalizeCopySequenceXX(): String {
         val b = copyBuilder
         val start = copySequenceStart
         copySequenceStart = -1
@@ -224,10 +366,12 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
+    context(_: CopySequenceMarker)
     override fun readToCopyBuffer() {
         if (read() < 0) error("End of stream while adding character to copy buffer")
     }
 
+    context(_: CopySequenceMarker)
     override fun addDelimitedToCopySequence(
         delimiter: String,
         pauseOnDelimiter: Boolean,
@@ -245,15 +389,101 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
+    context(_: CopySequenceMarker)
+    override fun addToCopySequence(char: Char) {
+        this.ifAssertions {
+            assert(copySequenceStart >= 0 || copyBuilder != null) {
+                "Copy sequence not active (either not started or suspended)"
+            }
+        }
+
+        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        b.append(char)
+    }
+
+    context(_: CopySequenceMarker)
+    override fun addToCopySequence(seq: CharSequence) {
+        this.ifAssertions {
+            assert(copySequenceStart >= 0 || copyBuilder != null) {
+                "Copy sequence not active (either not started or suspended)"
+            }
+        }
+
+        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        b.append(seq)
+    }
+
+    override fun readSubRange(start: Int, end: Int): CharSequence {
+        val bufStart = start - offsetBase
+        val bufEnd = end - offsetBase
+        if (bufEnd >= srcBufCount) error("End of file in subrange")
+        return buildString {
+            when {
+                bufStart >= BUF_SIZE ->
+                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+
+                bufEnd <= BUF_SIZE ->
+                    appendRange(bufLeft, bufStart, bufEnd)
+
+                else -> {
+                    appendRange(bufLeft, bufStart, BUF_SIZE)
+                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
+                }
+            }
+        }
+    }
+
+    context(_: CopySequenceMarker)
+    override fun appendSubRangeToSequence(start: Int, end: Int) {
+        val bufStart = start - offsetBase
+        val bufEnd = end - offsetBase
+        if (copySequenceStart == bufEnd && srcBufPos == bufEnd) {
+            copySequenceStart = bufStart
+            return
+        }
+
+        val builder = copyBuilder ?: StringBuilder(end - start).also { copyBuilder = it }
+
+        builder.apply {
+            if (copySequenceStart >=0) { // this is guaranteed to be only in the left buffer
+                appendRange(bufLeft, copySequenceStart, srcBufPos)
+            }
+            when {
+                bufStart >= BUF_SIZE ->
+                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+
+                bufEnd <= BUF_SIZE ->
+                    appendRange(bufLeft, bufStart, bufEnd)
+
+                else -> {
+                    appendRange(bufLeft, bufStart, BUF_SIZE)
+                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
+                }
+            }
+        }
+
+
+
+
+
+        super.appendSubRangeToSequence(start, end)
+    }
+
     /** Try to read the next character without increasing the position  */
     override fun peek(): Int {
-        // In this case we *may* need the right buffer, otherwise not
-        // optimize this implementation for the "happy" path
-        val current = srcBufPos
-        if (current >= srcBufCount) return -1
+        return peekCommon(srcBufPos)
+    }
+
+    override fun peek(offset: Int): Int {
+        return peekCommon(srcBufPos + offset)
+    }
+
+    private fun peekCommon(bufPos: Int): Int {
+        // end of buffer. This implies bufPos < 2 * BUF_SIZE
+        if (bufPos >= srcBufCount) return -1
         val c = when {
-            current >= BUF_SIZE -> bufRight[current - BUF_SIZE]
-            else -> bufLeft[current]
+            bufPos >= BUF_SIZE -> bufRight[bufPos - BUF_SIZE]
+            else -> bufLeft[bufPos]
         }
 
         return when (c) {
@@ -267,26 +497,44 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
      * as to not require range checks for the buffers (only end of file).
      */
     override fun peek(expected: CharSequence): Boolean {
+        return peekCommon(srcBufPos, expected)
+    }
+
+    /**
+     * This implementation matches, but also assumes that the expected sequence is not such large
+     * as to not require range checks for the buffers (only end of file).
+     */
+    override fun peek(offset: Int, expected: CharSequence): Boolean {
+        return peekCommon(srcBufPos + offset, expected)
+    }
+
+    private fun peekCommon(bufStart: Int, expected: CharSequence): Boolean {
         val l = expected.length
-        if (srcBufPos + l >= srcBufCount) return false // must be end of file
+        if (bufStart + l >= srcBufCount) return false // must be end of file
         when {
-            srcBufPos + l <=BUF_SIZE -> { // most common
-                val start = srcBufPos
+            bufStart + l <= BUF_SIZE -> { // most common
+                val start = bufStart
                 return (0..<l).all { i -> expected[i] == bufLeft[start + i] }
             }
 
-            srcBufPos < BUF_SIZE -> { // overlap, a bit more likely than the last option
-                val split = l - (BUF_SIZE - srcBufPos)
-                val start = srcBufPos
-                return (0..<split).all { i -> expected[i] == bufLeft[start + i] } &&
+            bufStart < BUF_SIZE -> { // overlap, a bit more likely than the last option
+                val split = l - (BUF_SIZE - bufStart)
+                return (0..<split).all { i -> expected[i] == bufLeft[bufStart + i] } &&
                         (split..<l).all { i -> expected[i] == bufRight[i - split] }
             }
 
             else -> { // strings only in the right buffer
-                val start = srcBufPos - BUF_SIZE
+                val start = bufStart - BUF_SIZE
                 return (0..<l).all { i -> expected[i] == bufRight[start + i] }
             }
         }
+    }
+
+    override fun skip(count: Int) {
+        val newPos = srcBufPos + count
+        if (newPos >= srcBufCount) error("End of file while skipping")
+        srcBufPos = newPos
+        if (newPos >= BUF_SIZE) swapInputBuffer()
     }
 
     /** Does never read more than needed  */
@@ -431,7 +679,6 @@ public class KtXmlReader internal constructor(
         val spIdx = depth - 1
         val expectedPrefix = elementStack[spIdx].prefix //?: exception("Missing prefix")
         val expectedLocalName = elementStack[spIdx].localName ?: exception("Missing localname")
-        val expectedLength = (expectedPrefix?.run { length + 1 } ?: 0) + expectedLocalName.length
 
         // fast path implementation that just verifies the tags
         // (rather than parsing them directly without that knowledge of expectation)
@@ -503,118 +750,8 @@ public class KtXmlReader internal constructor(
         outputBuf[outputBufRight++] = c
     }
 
-    private fun pushCodePoint(c: Int) {
-        if (c < 0) error("UNEXPECTED EOF")
-
-        val newPos = outputBufRight
-
-        if (newPos + 1 >= outputBuf.size) { // +1 for surrogates; if we don't have enough space in
-            growOutputBuf()
-        }
-
-        if (c > 0xffff) { // This comparison works as surrogates are in the 0xd800-0xdfff range
-            // write high Unicode value as surrogate pair
-            val offset = c - 0x010000
-            outputBuf[outputBufRight++] = ((offset ushr 10) + 0xd800).toChar() // high surrogate
-            outputBuf[outputBufRight++] = ((offset and 0x3ff) + 0xdc00).toChar() // low surrogate
-        } else {
-            outputBuf[outputBufRight++] = c.toChar()
-        }
-    }
-
-    /**
-     * result: if the setName parameter is set,
-     * the name of the entity is stored in "name"
-     */
-    override fun pushEntity(expandEntities: Boolean) {
-        readAssert('&')
-        val first = peek(0)
-
-        when {
-            first == '#'.code -> pushCharEntity()
-            first < 0 -> error(UNEXPECTED_EOF)
-            else -> pushRefEntity(expandEntities)
-        }
-    }
-
-    private fun pushRefEntity(expandEntities: Boolean) {
-        isUnresolvedEntity = false
-        val first = read()
-        val codeBuilder = StringBuilder(8)
-
-        if (!isNameStartChar(first.toChar())) {
-            error("Entity reference does not start with name char &${get()}${first.toChar()}")
-            return
-        }
-        codeBuilder.append(first.toChar())
-
-        while (true) {
-            val c = peek(0)
-            if (c == ';'.code) {
-                readAssert(';')
-                break
-            }
-            if (!isNameChar11(c.toChar())) {
-                error("unterminated entity ref ($codeBuilder)")
-
-                return
-            }
-            codeBuilder.append(read().toChar())
-        }
-
-        val code = codeBuilder.toString()//get(pos)
-        if (_eventType == ENTITY_REF) {
-            entityName = code
-        }
-
-        val result = DefaultEntityMap[code]
-        isUnresolvedEntity = result == null
-        when {
-            result != null -> push(result)
-            expandEntities -> exception("Unknown entity \"&$code;\" in entity expanding mode")
-        }
-    }
-
-    private fun pushCharEntity() {
-        readAssert('#') // #
-        val codeBuilder = StringBuilder(8)
-
-        var isHex = false
-
-        when (val first = read()) {
-            'x'.code -> isHex = true // hex char refs
-            in '0'.code..'9'.code -> {
-                codeBuilder.append(first.toChar())
-            }
-
-            else -> error("Unexpected start of numeric entity reference '&${first.toChar()}'")
-        }
-
-        while (true) {
-            when (val c = peek(0)) {
-                -1 -> error(UNEXPECTED_EOF)
-                ';'.code -> {
-                    readAssert(';')
-                    break
-                }
-
-                in 'a'.code..'f'.code, // allow hex
-                in 'A'.code..'F'.code, // allow hex
-                in '0'.code..'9'.code -> codeBuilder.append(read().toChar())
-
-                else -> {
-                    error("Unexpected content in numeric entity reference: ${c.toChar()} (in $codeBuilder")
-                    break
-                }
-            }
-        }
-        val code = codeBuilder.toString()//get(pos)
-
-        if (_eventType == ENTITY_REF) entityName = code
-
-        val cp = if (isHex) code.toInt(16) else code.toInt()
-        pushCodePoint(cp)
-        return
+    override fun resolveEntity(entityName: CharSequence): String? {
+        return DefaultEntityMap[entityName.toString()]
     }
 
     /**
@@ -778,7 +915,7 @@ public class KtXmlReader internal constructor(
 
                         left == curPos -> { // start with entity
                             srcBufPos = curPos
-                            pushEntity()
+                            pushCopySequence { pushEntity() }
                             curPos = srcBufPos
                             left = curPos
                         }
@@ -869,7 +1006,8 @@ public class KtXmlReader internal constructor(
                     '&' -> when {
                         left == curPos -> { // start with entity
                             srcBufPos = curPos
-                            pushEntity(expandEntities = true) // always expand attribute values
+                            // always expand attribute values
+                            pushCopySequence { pushEntity(expandEntities=true) }
                             curPos = srcBufPos
                             left = curPos
                         }
@@ -945,7 +1083,7 @@ public class KtXmlReader internal constructor(
 
                     '&' -> when (left) {
                         curPos -> { // start with entity
-                            pushEntity()
+                            pushCopySequence { pushEntity() }
                             curPos = srcBufPos
                         }
 

@@ -105,6 +105,11 @@ kotlin {
         }
     }
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+
     targets.all {
         @Suppress("OPT_IN_USAGE")
         when (val t = this) {

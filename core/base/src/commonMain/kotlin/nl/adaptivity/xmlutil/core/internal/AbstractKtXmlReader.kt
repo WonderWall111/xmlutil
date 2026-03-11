@@ -22,7 +22,9 @@ package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.EventType.*
+import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.createCopySequence
 import nl.adaptivity.xmlutil.core.impl.NamespaceHolder
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
@@ -406,18 +408,40 @@ public abstract class AbstractKtXmlReader(
     //region Output
 
     /** Add the given character (16-bit) to the output buffer if it is > 0 */
-    protected fun pushChar(cp: Int) {
+    protected fun pushChar(charCode: Int) {
         when {
-            cp < 0 -> error(UNEXPECTED_EOF)
-            else -> pushChar(cp.toChar())
+            charCode < 0 -> error(UNEXPECTED_EOF)
+            else -> pushChar(charCode.toChar())
         }
     }
 
     /** Add the given character to the output buffer */
     protected abstract fun pushChar(c: Char)
 
+    context(_: CopySequenceMarker)
+    private fun pushCodePoint(c: Int) {
+        if (c < 0) error("UNEXPECTED EOF")
+
+        if (c > 0xffff) { // This comparison works as surrogates are in the 0xd800-0xdfff range
+            // write high Unicode value as surrogate pair
+            val offset = c - 0x010000
+
+            val high = ((offset ushr 10) + 0xd800).toChar() // high surrogate
+            val low = ((offset and 0x3ff) + 0xdc00).toChar() // low surrogate
+            inputBuffer.addToCopySequence(high)
+            inputBuffer.addToCopySequence(low)
+        } else {
+            inputBuffer.addToCopySequence(c.toChar())
+        }
+    }
+
     /** Add the entire given string to the output buffer */
     protected abstract fun push(s: CharSequence)
+
+    internal inline fun pushCopySequence(block: CopySequenceMarker.() -> Unit) {
+        val x = inputBuffer.createCopySequence(block)
+        push(x)
+    }
 
     /**
      * Push the text until the [delimiter] to the output buffer.
@@ -617,7 +641,7 @@ public abstract class AbstractKtXmlReader(
 
     protected open fun readAssert(s: String, errorMessage: (Char) -> String ) {
         for (c in s) {
-            val d = read()
+            val d = inputBuffer.read()
             if (c.code != d) error(errorMessage(c))
         }
     }
@@ -633,8 +657,8 @@ public abstract class AbstractKtXmlReader(
     protected abstract fun readAndPush(): Char
 
     /** Does never read more than needed  */
-    protected abstract fun peek(): Int
-    protected abstract fun peek(pos: Int): Int
+    protected open fun peek(): Int = inputBuffer.peek()
+    protected open fun peek(pos: Int): Int = inputBuffer.peek(pos)
 
     //endregion
 
@@ -754,9 +778,9 @@ public abstract class AbstractKtXmlReader(
     protected fun parseCData() {
         readAssert("<![CDATA[")
 
-        inputBuffer.startOrResumeCopySequence()
-        inputBuffer.addDelimitedToCopySequence("]]>")
-        setOutputBuffer(inputBuffer.finalizeCopySequence())
+        pushCopySequence {
+            inputBuffer.addDelimitedToCopySequence("]]>")
+        }
         return
     }
 
@@ -834,7 +858,115 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    protected abstract fun pushEntity(expandEntities: Boolean = this.expandEntities)
+    /**
+     * Add the entity to the output sequence.
+     * result: if the setName parameter is set,
+     * the name of the entity is stored in "name"
+     */
+    protected open fun CopySequenceMarker.pushEntity(expandEntities: Boolean = this@AbstractKtXmlReader.expandEntities) {
+        inputBuffer.ensurePausedCopySequence() // can never be correct
+        readAssert('&')
+
+        when {
+            inputBuffer.peek('#') -> pushCharEntity()
+            else -> pushRefEntity(expandEntities)
+        }
+    }
+
+    protected abstract fun resolveEntity(entityName: CharSequence): CharSequence?
+
+    context(_: CopySequenceMarker)
+    private fun pushRefEntity(expandEntities: Boolean) {
+        isUnresolvedEntity = false
+
+        val startBuffer = inputBuffer.offset
+
+        run {
+            val first = inputBuffer.readChar()
+            if (!isNameStartChar(first)) {
+                error("Entity reference does not start with name char &${get()}${first}")
+                return
+            }
+        }
+
+        while (true) {
+            when (val c = inputBuffer.readChar()) {
+                ';' -> break
+
+                else if !isNameChar11(c, false) -> {
+                    error("Entity contains invalid character: '$c'")
+                    inputBuffer.appendSubRangeToSequence(startBuffer-1, inputBuffer.offset-1)
+                    return
+                }
+            }
+        }
+
+        val code = inputBuffer.readSubRange(startBuffer, inputBuffer.offset-1).toString()
+        if (_eventType == ENTITY_REF) {
+            entityName = code
+        }
+
+        val result = resolveEntity(code)
+        isUnresolvedEntity = result == null
+        when {
+            result != null -> inputBuffer.addToCopySequence(result)
+            expandEntities -> exception("Unknown entity \"&$code;\" in entity expanding mode")
+        }
+    }
+
+    private fun CopySequenceMarker.pushCharEntity() {
+        readAssert('#') // #
+
+        var isHex: Boolean
+        var current: Int
+
+        val first = inputBuffer.readChar()
+        when (first) {
+            'x' -> {
+                isHex = true
+                current = 0
+            }
+
+            in '0'..'9' -> {
+                isHex = false
+                current = (first.code - '0'.code) // poor man's atoi
+            }
+
+            else -> {
+                error("Unexpected character in character entity: '$first'")
+                inputBuffer.addToCopySequence("&#")
+                inputBuffer.addToCopySequence(first)
+                inputBuffer.pauseCopySequence() // Peeked elements don't need pushing
+                return
+            }
+        }
+
+        while (true) {
+            when (val char = inputBuffer.readChar()) {
+                ';' -> break
+
+                in '0'..'9' -> current = (char.code - '0'.code) + when {
+                    isHex -> current shl 4
+                    else -> current * 10
+                }
+
+                in 'a'..'f' if isHex -> current = (current shl 4) + (char.code - 'a'.code + 10)
+
+                in 'A'..'F' if isHex -> current = (current shl 4) + (char.code - 'A'.code + 10)
+
+                else -> {
+                    error("Unexpected character in character entity: '$first'")
+                    inputBuffer.addToCopySequence('&')
+                    with(inputBuffer) { resumeCopySequence() } // Peeked elements don't need pushing
+                    return
+                }
+            }
+        }
+
+        pushCodePoint(current)
+        return
+    }
+
 
     protected fun parsePI() {
         readAssert('<') // <
@@ -898,7 +1030,7 @@ public abstract class AbstractKtXmlReader(
 
             ENTITY_REF -> {
                 error("Entity reference outside document body")
-                pushEntity()
+                pushCopySequence { pushEntity() }
             }
 
             PROCESSING_INSTRUCTION -> {
@@ -954,8 +1086,7 @@ public abstract class AbstractKtXmlReader(
     protected fun nextImplDocStart() {
         val eventType = peekType()
         if (eventType == START_DOCUMENT) {
-            readAssert('<') // <
-            readAssert('?') // ?
+            readAssert("<?")
             parseStartTag(true)
             if (attributeCount < 1 || "version" != attribute(0).localName) error("version expected")
             version = attribute(0).value
@@ -1039,7 +1170,7 @@ public abstract class AbstractKtXmlReader(
             COMMENT -> parseComment()
 
             ENTITY_REF if (expandEntities) -> pushRegularText('<', true)
-            ENTITY_REF -> pushEntity()
+            ENTITY_REF -> pushCopySequence { pushEntity() }
 
             START_ELEMENT -> {
                 readAssert('<')
@@ -1106,12 +1237,12 @@ public abstract class AbstractKtXmlReader(
     private fun parseComment() {
         readAssert("<!--")
 
-        inputBuffer.startOrResumeCopySequence()
-        inputBuffer.addDelimitedToCopySequence("--")
-        if (inputBuffer.readChar() != '>') {
-            error("XML Comments may not contain inner --, or be terminated by '--->'")
+        pushCopySequence {
+            inputBuffer.addDelimitedToCopySequence("--")
+            if (inputBuffer.readChar() != '>') {
+                error("XML Comments may not contain inner --, or be terminated by '--->'")
+            }
         }
-        setOutputBuffer(inputBuffer.finalizeCopySequence())
 
         return
     }
@@ -1126,8 +1257,7 @@ public abstract class AbstractKtXmlReader(
                 '/'.code -> END_ELEMENT
                 '?'.code -> when {
                     // order backwards to ensure
-                    peek(2) == 'x'.code && peek(3) == 'm'.code &&
-                            peek(4) == 'l'.code && !isNameCodepoint(peek(5)) ->
+                    inputBuffer.peek(2, "xml") && !isNameCodepoint(peek(5)) ->
                         START_DOCUMENT
 
                     else -> PROCESSING_INSTRUCTION
