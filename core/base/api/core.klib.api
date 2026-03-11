@@ -817,12 +817,6 @@ final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil.core.
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean;kotlin.Boolean){}[0]
 
-    final fun close() // nl.adaptivity.xmlutil.core/KtXmlReader.close|close(){}[0]
-    final fun getNamespacePrefix(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.getNamespacePrefix|getNamespacePrefix(kotlin.String){}[0]
-    final fun getNamespaceURI(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.getNamespaceURI|getNamespaceURI(kotlin.String){}[0]
-    final fun hasNext(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.hasNext|hasNext(){}[0]
-    final fun next(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil.core/KtXmlReader.next|next(){}[0]
-    final fun nextTag(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil.core/KtXmlReader.nextTag|nextTag(){}[0]
     final fun toString(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.toString|toString(){}[0]
 }
 

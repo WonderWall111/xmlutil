@@ -770,13 +770,7 @@ public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmluti
 	public synthetic fun <init> (Ljava/io/Reader;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun close ()V
-	public fun getNamespacePrefix (Ljava/lang/String;)Ljava/lang/String;
-	public fun getNamespaceURI (Ljava/lang/String;)Ljava/lang/String;
-	public fun hasNext ()Z
-	public synthetic fun next ()Ljava/lang/Object;
-	public fun next ()Lnl/adaptivity/xmlutil/EventType;
-	public fun nextTag ()Lnl/adaptivity/xmlutil/EventType;
+	public synthetic fun getInputBuffer ()Lnl/adaptivity/xmlutil/core/InputBuffer;
 	public fun toString ()Ljava/lang/String;
 }
 

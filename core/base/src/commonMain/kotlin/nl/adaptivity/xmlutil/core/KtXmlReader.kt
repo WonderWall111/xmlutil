@@ -22,14 +22,13 @@
 
 package nl.adaptivity.xmlutil.core
 
-import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.EventType.*
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.core.impl.DefaultEntityMap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.isNameChar11
-import nl.adaptivity.xmlutil.core.internal.isNameCodepoint
 import nl.adaptivity.xmlutil.core.internal.isNameStartChar
 import nl.adaptivity.xmlutil.isXmlWhitespace
 import kotlin.jvm.JvmStatic
@@ -37,6 +36,320 @@ import kotlin.jvm.JvmStatic
 private const val BUF_SIZE = 4096
 private const val ALT_BUF_SIZE = 512
 private const val outputBufLeft = 0
+
+@XmlUtilInternal
+public interface InputBuffer {
+    public val offset: Int
+
+    public val line: Int
+
+    public val lastColumnStart: Int
+
+    public val column: Int get() = offset - lastColumnStart
+
+
+    /**
+     * Mark the start or resumption of a sequence that will be copied to string later. By default
+     * this will just store the start position. It however also triggers handling of special cases,
+     * that may trigger the use of a StringBuilder to store the sequence:
+     *  - A line ending involving a '\r' (must be exposed as '\n')
+     *  - Buffer swaps
+     */
+    public fun startOrResumeCopySequence()
+
+    /**
+     * Finish/finalise a copy sequence. This means it cannot be appended to anymore
+     */
+    public fun finalizeCopySequence(): CharSequence
+
+    /**
+     * Pause a copy sequence. This means that reading will not add further tokens to the sequence.
+     */
+    public fun pauseCopySequence()
+
+    /**
+     * Read tokens into the sequence up to the expected delimiters. The delimiters will
+     * also be consumed.
+     *
+     * If an end of stream is encountered this function should throw an exception.
+     *
+     * @param delimiter The expected delimiter.
+     * @param pauseOnDelimiter Pause the sequence on observation of the delimiter.
+     * @param consumeDelimiter If true, the delimiter will be consumed.
+     */
+    public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true)
+
+    /** Try to read the next character without increasing the position  */
+    public fun peek(): Int
+
+    /**
+     * Determine whether the following characters match the expected character sequence)
+     */
+    public fun peek(expected: CharSequence): Boolean
+
+    /** Does never read more than needed  */
+    public fun read(): Int
+
+    public fun readChar(): Char {
+        val c = read()
+        if (c < 0) error("Unexpected EOF")
+        return c.toChar()
+    }
+
+    /**
+     * Read the current character to the copy buffer.
+     */
+    public fun readToCopyBuffer()
+}
+
+@XmlUtilInternal
+public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
+
+    /** Current position in the buffer */
+    internal var srcBufPos: Int = 0
+
+    /** Combined count of characters in the buffer */
+    internal var srcBufCount: Int = 0
+
+    /** Current buffer to parse from */
+    internal var bufLeft = CharArray(BUF_SIZE)
+
+    /** Next pending buffer */
+    internal var bufRight: CharArray// = CharArray(BUF_SIZE)
+
+    /**
+     * Rather than update offset on each character read, we only update it on buffer swap.
+     */
+    private var offsetBase = 0
+
+    override val offset: Int
+        get() = offsetBase + srcBufPos
+
+    override var line: Int = 0
+
+    override var lastColumnStart: Int = 0
+        set
+
+    init { // Read the first buffers on creation, rather than delayed
+        var cnt = readUntilFullOrEOF(bufLeft)
+        require(cnt >= 0) { "Trying to parse an empty file (that is not valid XML)" }
+        if (cnt < BUF_SIZE) {
+            bufRight = CharArray(0)
+            srcBufCount = cnt
+        } else {
+            val newRight = CharArray(BUF_SIZE)
+            bufRight = newRight
+            cnt = readUntilFullOrEOF(newRight).coerceAtLeast(0) // in case the EOF is exactly at the boundary
+            srcBufCount = BUF_SIZE + cnt
+        }
+
+        if (bufLeft[0].code == 0x0feff) {
+            srcBufPos = 1 /* drop BOM */
+            lastColumnStart = 1
+        }
+    }
+
+    private fun swapInputBuffer() {
+        if (copySequenceStart >= 0) { // make the copy sequence still work
+            val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+            val p = srcBufPos
+            if (p<= BUF_SIZE) {
+                b.appendRange(bufLeft, copySequenceStart, p)
+            } else {
+                b.appendRange(bufLeft, copySequenceStart, BUF_SIZE)
+                b.appendRange(bufRight, 0, (p - BUF_SIZE))
+            }
+            copySequenceStart = 0
+        }
+        val rightBufCount = srcBufCount - BUF_SIZE
+        if (rightBufCount < 0) error("End of stream while swapping inputs")
+
+        val oldLeft = bufLeft
+        bufLeft = bufRight
+        bufRight = oldLeft
+
+        srcBufPos -= BUF_SIZE
+        offsetBase += BUF_SIZE
+
+        if (rightBufCount >= BUF_SIZE) {
+            val newRead = readUntilFullOrEOF(bufRight)
+            srcBufCount = when {
+                newRead < 0 -> rightBufCount
+                else -> rightBufCount + newRead
+            }
+        } else {
+            srcBufCount = rightBufCount
+        }
+    }
+
+    private var copySequenceStart = -1
+    private var copyBuilder: StringBuilder? = null
+
+    /**
+     * Mark the start of a sequence that will be copied to string later. By default this will
+     * just store the start position. It however also triggers handling of special cases, that
+     * may trigger the use of a StringBuilder to store the sequence:
+     *  - A line ending involving a '\r' (must be exposed as '\n')
+     *  - Buffer swaps
+     */
+    override fun startOrResumeCopySequence() {
+        check(copySequenceStart < 0) { "Copy sequence already started" }
+        copySequenceStart = srcBufPos
+    }
+
+    override fun pauseCopySequence() {
+        check(copySequenceStart>=0) { "Copy sequence not active (either not started or already suspended)" }
+        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+        b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+        copySequenceStart = -2 // mark as paused
+    }
+
+    override fun finalizeCopySequence(): String {
+        val b = copyBuilder
+        val start = copySequenceStart
+        copySequenceStart = -1
+        copyBuilder = null
+
+        when {
+            b == null && (start < 0) -> error("No copy sequence started")
+
+            b == null -> return bufLeft.concatToString(start, srcBufPos)
+
+            start >= 0 ->
+                return b.appendRange(bufLeft, start, srcBufPos).toString()
+
+            else -> return b.toString()
+        }
+    }
+
+    override fun readToCopyBuffer() {
+        if (read() < 0) error("End of stream while adding character to copy buffer")
+    }
+
+    override fun addDelimitedToCopySequence(
+        delimiter: String,
+        pauseOnDelimiter: Boolean,
+        consumeDelimiter: Boolean
+    ) {
+        require(copySequenceStart>=0) { "Copy sequence not active (either not started or suspended)" }
+        while (true) { // loop over multiple subsequent buffers.
+            if (peek(delimiter)) {
+                if (pauseOnDelimiter) pauseCopySequence()
+                if (consumeDelimiter) srcBufPos += delimiter.length // this should work even if we cross the buffer size
+                return
+            } else {
+                readToCopyBuffer()
+            }
+        }
+    }
+
+    /** Try to read the next character without increasing the position  */
+    override fun peek(): Int {
+        // In this case we *may* need the right buffer, otherwise not
+        // optimize this implementation for the "happy" path
+        val current = srcBufPos
+        if (current >= srcBufCount) return -1
+        val c = when {
+            current >= BUF_SIZE -> bufRight[current - BUF_SIZE]
+            else -> bufLeft[current]
+        }
+
+        return when (c) {
+            '\r' -> '\n'.code
+            else -> c.code
+        }
+    }
+
+    /**
+     * This implementation matches, but also assumes that the expected sequence is not such large
+     * as to not require range checks for the buffers (only end of file).
+     */
+    override fun peek(expected: CharSequence): Boolean {
+        val l = expected.length
+        if (srcBufPos + l >= srcBufCount) return false // must be end of file
+        when {
+            srcBufPos + l <=BUF_SIZE -> { // most common
+                val start = srcBufPos
+                return (0..<l).all { i -> expected[i] == bufLeft[start + i] }
+            }
+
+            srcBufPos < BUF_SIZE -> { // overlap, a bit more likely than the last option
+                val split = l - (BUF_SIZE - srcBufPos)
+                val start = srcBufPos
+                return (0..<split).all { i -> expected[i] == bufLeft[start + i] } &&
+                        (split..<l).all { i -> expected[i] == bufRight[i - split] }
+            }
+
+            else -> { // strings only in the right buffer
+                val start = srcBufPos - BUF_SIZE
+                return (0..<l).all { i -> expected[i] == bufRight[start + i] }
+            }
+        }
+    }
+
+    /** Does never read more than needed  */
+    override fun read(): Int {
+        // In this case we *may* need the right buffer, otherwise not
+        // optimize this implementation for the "happy" path
+        val initPos = srcBufPos
+        if (initPos >= srcBufCount) return -1
+
+        if (initPos >= BUF_SIZE) swapInputBuffer() // swap if needed. Note that peek will work
+        // correctly
+
+        val r = when (val char = bufLeft[srcBufPos++]) {
+            '\r' -> { // as \r is always transformed to \n, this requires a stringBuilder.
+                val n = srcBufPos + 1
+                if (copySequenceStart>=0) {
+                    (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
+                        .appendRange(bufLeft, copySequenceStart, srcBufPos)
+                        .append('\n')
+                    copySequenceStart = n
+                }
+                if (peek() == '\n'.code) {
+                    srcBufPos = n
+                }
+
+                line += 1
+                lastColumnStart = offset
+                '\n'
+            }
+
+            '\n' -> {
+                if (peek() == '\r'.code) {
+                    val n = srcBufPos + 1
+                    if (copySequenceStart>=0) {
+                        (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
+                            .appendRange(bufLeft, copySequenceStart, srcBufPos)
+                        copySequenceStart = n
+                    }
+                    srcBufPos = n
+                }
+
+                line += 1
+                lastColumnStart = offset
+                '\n'
+            }
+
+            else -> char
+        }
+        return r.code
+    }
+
+
+    private fun readUntilFullOrEOF(buffer: CharArray): Int {
+        val bufSize = buffer.size
+        var totalRead: Int = reader.read(buffer, 0, bufSize)
+        if (totalRead < 0) return -1
+        while (totalRead < bufSize) {
+            val lastRead = reader.read(buffer, totalRead, bufSize - totalRead)
+            if (lastRead < 0) return totalRead
+            totalRead += lastRead
+        }
+        return totalRead
+    }
+
+}
 
 @ExperimentalXmlUtilApi
 /**
@@ -59,33 +372,32 @@ public class KtXmlReader internal constructor(
     public constructor(reader: Reader, expandEntities: Boolean, relaxed: Boolean = false) :
             this(reader, null, relaxed, expandEntities)
 
+    override val inputBuffer: SwappedInputBuffer = SwappedInputBuffer(reader)
 
-    private var srcBufPos: Int = 0
-    private var srcBufCount: Int = 0
+    private var srcBufPos: Int
+        get() = inputBuffer.srcBufPos
+        set(value) {
+            inputBuffer.srcBufPos = value
+        }
+
+    private var srcBufCount: Int
+        get() = inputBuffer.srcBufCount
+        set(value) {
+            inputBuffer.srcBufCount = value
+        }
 
     //    private val srcBuf = CharArray(8192)
-    private var bufLeft = CharArray(BUF_SIZE)
-    private var bufRight: CharArray// = CharArray(BUF_SIZE)
-
-    init { // Read the first buffers on creation, rather than delayed
-        var cnt = reader.readUntilFullOrEOF(bufLeft)
-        require(cnt >= 0) { "Trying to parse an empty file (that is not valid XML)" }
-        if (cnt < BUF_SIZE) {
-            bufRight = CharArray(0)
-            srcBufCount = cnt
-        } else {
-            val newRight = CharArray(BUF_SIZE)
-            bufRight = newRight
-            cnt = reader.readUntilFullOrEOF(newRight).coerceAtLeast(0) // in case the EOF is exactly at the boundary
-            srcBufCount = BUF_SIZE + cnt
+    private var bufLeft
+        get() = inputBuffer.bufLeft
+        set(value) {
+            inputBuffer.bufLeft = value
         }
 
-        if (bufLeft[0].code == 0x0feff) {
-            srcBufPos = 1 /* drop BOM */
-            offset = 1 // but also contain the BOM in the offset
-            lastColumnStart = 1
+    private var bufRight: CharArray
+        get() = inputBuffer.bufRight
+        set(value) {
+            inputBuffer.bufRight = value
         }
-    }
 
     /** Target buffer for storing incoming text (including aggregated resolved entities)  */
     private var outputBuf = CharArray(ALT_BUF_SIZE)
@@ -93,184 +405,14 @@ public class KtXmlReader internal constructor(
     /** Write position   */
     private var outputBufRight = 0
 
-
-    override fun close() {
-        //NO-Op
-    }
-
-
-    private fun nextImplDocStart() {
-        val eventType = peekType()
-        if (eventType == START_DOCUMENT) {
-            readAssert('<') // <
-            readAssert('?') // ?
-            parseStartTag(true)
-            if (attributeCount < 1 || "version" != attribute(0).localName) error("version expected")
-            version = attribute(0).value
-            var pos = 1
-            if (pos < attributeCount && "encoding" == attribute(1).localName) {
-                encoding = attribute(1).value
-                pos++
-            }
-            if (pos < attributeCount && "standalone" == attribute(pos).localName) {
-                when (val st = attribute(pos).value) {
-                    "yes" -> standalone = true
-                    "no" -> standalone = false
-                    else -> error("illegal standalone value: $st")
-                }
-                pos++
-            }
-            if (pos != attributeCount) error("illegal xmldecl")
-            _isWhitespace = true
-        } // if it is not a doc start synthesize an event.
-        _eventType = START_DOCUMENT
-        state = State.START_DOC
-        return
-    }
-
-    /**
-     * common base for next and nextToken. Clears the state, except from
-     * txtPos and whitespace. Does not set the type variable  */
-    private fun nextImplPreamble() {
-        if(pushErrorComment()) return
-
-        val eventType = peekType()
-        _eventType = eventType
-        when (eventType) {
-            PROCESSING_INSTRUCTION -> parsePI()
-
-            START_ELEMENT -> {
-                state = State.BODY // this must start the body
-                readAssert('<')
-                parseStartTag(false)
-            }
-
-            DOCDECL -> {
-                read("<!DOCTYPE")
-                parseDoctype()
-            }
-
-            COMMENT -> parseComment()
-
-            else -> parseUnexpectedOrWS(eventType)
-        }
-    }
-
-    /**
-     * common base for next and nextToken. Clears the state, except from
-     * txtPos and whitespace. Does not set the type variable  */
-    private fun nextImplBody() {
-        // Depth is only decreased *after* the end element.
-        if (_eventType == END_ELEMENT) namespaceHolder.decDepth()
-
-        // degenerated needs to be handled before error because of possible
-        // processor expectations(!)
-        if (isSelfClosing) {
-            isSelfClosing = false
-            _eventType = END_ELEMENT
-            if (depth == 1) state = State.POST
-            return
-        }
-
-        error?.let { e ->
-            push(e)
-
-            this.error = null
-            _eventType = COMMENT
-            return
-        }
-        val lastEvent = _eventType
-        val eventType = peekType()
-        _eventType = eventType
-        when (eventType) {
-
-            COMMENT -> parseComment()
-
-            ENTITY_REF if (expandEntities) -> pushRegularText('<', true)
-            ENTITY_REF -> pushEntity()
-
-            START_ELEMENT -> {
-                readAssert('<')
-                parseStartTag(false)
-            }
-
-            END_ELEMENT -> {
-                parseEndTag()
-                if (depth == 1) state = State.POST
-            }
-
-            TEXT -> if (lastEvent == ENTITY_REF) { // Entity refs are part of text, so don't
-                // consider the following text whitespace at all
-                pushRegularText('<', expandEntities)
-            } else {
-                pushText('<')
-                if (_isWhitespace) _eventType = IGNORABLE_WHITESPACE
-            }
-
-            CDSECT -> parseCData()
-
-            else -> parseUnexpectedOrWS(eventType)
-
-        }
-    }
-
-    /**
-     * Parse only the post part of the document. *misc* = Comment | PI | S
-     */
-    private fun nextImplPost() {
-        if (_eventType == END_ELEMENT) namespaceHolder.decDepth()
-
-        // degenerated needs to be handled before error because of possible
-        // processor expectations(!)
-        if (isSelfClosing) {
-            isSelfClosing = false
-            _eventType = END_ELEMENT
-            return
-        }
-        error?.let { e ->
-            push(e)
-
-            this.error = null
-            _eventType = COMMENT
-            return
-        }
-
-        val eventType = peekType()
-        _eventType = eventType
-        when (eventType) {
-            PROCESSING_INSTRUCTION -> parsePI()
-
-            COMMENT -> parseComment()
-
-            END_DOCUMENT -> {
-                state = State.EOF
-                return
-            }
-
-            else -> parseUnexpectedOrWS(eventType)
-        }
-    }
-
-    private fun parseComment() {
-        readAssert('<') // <
-        readAssert('!') // '!'
-        readAssert('-') // '-
-        read('-')
-
-        resetOutputBuffer()
-        var c: Char
-        do {
-            c = readAndPush()
-        } while (c != '-' || peek() != '-'.code)
-        if (peek(1) != '>'.code) {
-            error("illegal comment delimiter: --->")
-        }
-        popOutput() // '-'
-        readAssert('-') // '-'
-        readAssert('>') // '>'
-
-        return
-    }
+    override var line: Int
+        get() = inputBuffer.line
+        set(value) { inputBuffer.line = value }
+    override var lastColumnStart: Int
+        get() = inputBuffer.lastColumnStart
+        set(value) { inputBuffer.lastColumnStart = value }
+    override val offset: Int
+        get() = inputBuffer.offset
 
     /* precondition: &lt;/ consumed */
     override fun parseEndTag() {
@@ -289,74 +431,15 @@ public class KtXmlReader internal constructor(
         val expectedLocalName = elementStack[spIdx].localName ?: exception("Missing localname")
         val expectedLength = (expectedPrefix?.run { length + 1 } ?: 0) + expectedLocalName.length
 
-        val expectedEnd = srcBufPos + expectedLength
-        if (expectedEnd > srcBufCount) exception(UNEXPECTED_EOF)
-        if (expectedEnd < BUF_SIZE) { // fast path implementation that just verifies the tags
-            // (rather than parsing them directly without that knowledge of expectation)
-            val left2: Int
-            if (expectedPrefix != null) {
-                val left = srcBufPos
-                for (i in expectedPrefix.indices)
-                    if (bufLeft[left + i] != expectedPrefix[i]) {
-                        val expectedFullName = fullname(expectedPrefix, expectedLocalName)
-                        error("expected: $expectedFullName read: ${readName()}")
-                    }
-                left2 = left + expectedPrefix.length + 1
-            } else {
-                left2 = srcBufPos
-            }
-
-            for (i in expectedLocalName.indices) {
-                if (bufLeft[left2 + i] != expectedLocalName[i]) {
-                    val expectedFullName = fullname(expectedPrefix, expectedLocalName)
-                    error("expected: $expectedFullName read: ${readName()}")
-                }
-            }
-            srcBufPos = left2 + expectedLocalName.length
-            skip()
-            read('>')
-            return
+        // fast path implementation that just verifies the tags
+        // (rather than parsing them directly without that knowledge of expectation)
+        if (expectedPrefix != null) {
+            readAssert(expectedPrefix) { "Expected prefix '$expectedPrefix' for closing tag" }
+            readAssert(':')
         }
-
-        readCName()
-        skip()
-        read('>')
-        if (!relaxed) {
-
-            if (readPrefix != expectedPrefix || readLocalname != expectedLocalName) {
-                val expectedFullName = fullname(expectedPrefix, expectedLocalName)
-                val fullName = fullname(readPrefix, readLocalname!!)
-                error("expected: $expectedFullName read: $fullName")
-            }
-        }
-    }
-
-    private fun peekType(): EventType {
-        return when (peek()) {
-            -1 -> END_DOCUMENT
-            '&'.code -> ENTITY_REF
-            '<'.code -> when (peek(1)) {
-                '/'.code -> END_ELEMENT
-                '?'.code -> when {
-                    // order backwards to ensure
-                    peek(2) == 'x'.code && peek(3) == 'm'.code &&
-                            peek(4) == 'l'.code && !isNameCodepoint(peek(5)) ->
-                        START_DOCUMENT
-
-                    else -> PROCESSING_INSTRUCTION
-                }
-
-                '!'.code -> when (peek(2)) {
-                    '-'.code -> COMMENT
-                    '['.code -> CDSECT
-                    else -> DOCDECL
-                }
-
-                else -> START_ELEMENT
-            }
-
-            else -> TEXT
-        }
+        readAssert(expectedLocalName) { "Expect local part '$expectedLocalName' for closing tag" }
+        skipWS()
+        readAssert('>')
     }
 
     override fun get(): String {
@@ -375,6 +458,12 @@ public class KtXmlReader internal constructor(
         outputBufRight = 0
     }
 
+    override fun setOutputBuffer(output: CharSequence) {
+        // TODO should be replaced at some point
+        outputBufRight = 0
+        push(output)
+    }
+
     private fun pushRange(buffer: CharArray, start: Int, endExcl: Int) {
         val count = endExcl - start
         val outRight = outputBufRight
@@ -387,7 +476,7 @@ public class KtXmlReader internal constructor(
         outputBufRight = outRight + count
     }
 
-    override fun push(s: String) {
+    override fun push(s: CharSequence) {
         val minSizeNeeded = outputBufRight + s.length
         if (minSizeNeeded > outputBuf.size) {
             growOutputBuf(minSizeNeeded)
@@ -559,13 +648,12 @@ public class KtXmlReader internal constructor(
 
                             BUF_SIZE ->
                                 bufRight[0]
+
                             else -> bufLeft[curPos + 1]
                         }
                         if (peekChar != '\n') {
                             pushChar('\n')
                             incLine() // Increase positions here
-                        } else {
-                            ++offset // just ignore this character, but add it to the offset
                         }
                         left = curPos + 1
                         ++curPos
@@ -630,7 +718,7 @@ public class KtXmlReader internal constructor(
      * @param resolveEntities Whether entities should be resolved directly (in attributes) or exposed as entity
      *                        references (content text if expandEntities is false).
      */
-    private fun pushRegularText(delimiter: Char, resolveEntities: Boolean) {
+    override fun pushRegularText(delimiter: Char, resolveEntities: Boolean) {
         var bufCount = srcBufCount
         var innerLoopEnd = minOf(bufCount, BUF_SIZE)
         var curPos = srcBufPos
@@ -834,7 +922,6 @@ public class KtXmlReader internal constructor(
                         srcBufPos = curPos
                         if (peek() == '\n'.code) {
                             ++srcBufPos
-                            ++offset
                         }
                         right = curPos
                         curPos = srcBufPos
@@ -879,49 +966,13 @@ public class KtXmlReader internal constructor(
         srcBufPos = curPos
     }
 
-    override fun read(s: String) {
-        for (c in s) {
-            val d = read()
-            if (c.code != d) error("Found unexpected character '$d' while parsing '$s'")
-        }
-    }
-
-    override fun read(c: Char) {
-        val a = read()
-        if (a != c.code) error("expected: '" + c + "' actual: '" + a.toChar() + "'")
+    /** Does never read more than needed  */
+    override fun peek(): Int {
+        return inputBuffer.peek()
     }
 
     override fun read(): Int {
-        val pos = srcBufPos
-        if (pos >= srcBufCount) return -1
-        if (pos + 2 >= BUF_SIZE) return readAcross()
-
-        val next = pos + 1
-        when (val ch = bufLeft[pos]) {
-            '\r' -> {
-                if (next < srcBufCount && bufLeft[next] == '\n') {
-                    srcBufPos = next + 1
-                    incLine(2)
-                } else {
-                    srcBufPos = next
-                    incLine()
-                }
-                return '\n'.code
-            }
-
-            '\n' -> {
-                srcBufPos = next
-                incLine()
-                return '\n'.code
-            }
-
-            else -> {
-                incCol()
-
-                srcBufPos = next
-                return ch.code
-            }
-        }
+        return inputBuffer.read()
     }
 
     override fun readAndPush(): Char {
@@ -1066,20 +1117,6 @@ public class KtXmlReader internal constructor(
             if (peekCount-- == 0) return chr.code
         }
         return -1
-    }
-
-    /** Does never read more than needed  */
-    override fun peek(): Int {
-        // In this case we *may* need the right buffer, otherwise not
-        // optimize this implementation for the "happy" path
-        val current = srcBufPos
-        if (current >= srcBufCount) return -1
-        if (current >= BUF_SIZE) return peekAcross(0)
-
-        return when (val chr: Char = bufLeft[current]) {
-            '\r' -> '\n'.code
-            else -> chr.code
-        }
     }
 
     /**
@@ -1243,23 +1280,6 @@ public class KtXmlReader internal constructor(
         readLocalname = get()
     }
 
-    override fun skip() {
-        while (true) {
-            val c = peek()
-            if (c == -1 || !isXmlWhitespace(c.toChar())) break // More sane
-
-            readAssert(c.toChar())
-        }
-    }
-
-
-    override fun getNamespacePrefix(namespaceUri: String): String? {
-        return namespaceHolder.getPrefix(namespaceUri)
-    }
-
-    override fun getNamespaceURI(prefix: String): String? {
-        return namespaceHolder.getNamespaceUri(prefix)
-    }
 
     private fun getPositionDescription(): String {
         val et = this._eventType ?: return ("<!--Parsing not started yet-->")
@@ -1309,43 +1329,6 @@ public class KtXmlReader internal constructor(
 
     override fun toString(): String {
         return "KtXmlReader [${getPositionDescription()}]"
-    }
-
-    override fun next(): EventType {
-        _isWhitespace = true
-
-        // reset the output buffer
-        resetOutputBuffer()
-
-        when (state) {
-            State.BEFORE_START -> nextImplDocStart()
-
-            State.START_DOC,
-            State.DOCTYPE_DECL -> nextImplPreamble()
-
-            State.BODY -> nextImplBody()
-            State.POST -> nextImplPost()
-            State.EOF -> error("Reading past end of file")
-        }
-//        assert((offset - srcBufPos) % BUF_SIZE == 0) { "Offset error: ($offset - $srcBufPos) % $BUF_SIZE != 0" }
-        return when (val et = eventType) {
-            ENTITY_REF if (expandEntities) -> TEXT
-            else -> et
-        }
-    }
-
-    override fun hasNext(): Boolean {
-        return _eventType != END_DOCUMENT
-    }
-
-    override fun nextTag(): EventType {
-        var et: EventType
-        do {
-            et = next()
-        } while (et.isIgnorable || (et == TEXT && _isWhitespace))
-
-        if (et != END_ELEMENT && et != START_ELEMENT) exception("unexpected type")
-        return et
     }
 
     private companion object {
