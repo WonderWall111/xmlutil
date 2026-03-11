@@ -95,6 +95,24 @@ class TestKtXmlReader : TestCommonReader() {
     }
 
     @Test
+    fun testUnquotedAttributeValues() {
+        val xml = "<tag attr='foo' attr2=b&lt;ar attr3=baz/>"
+        val reader = KtXmlReader(StringReader(xml), relaxed = true)
+        assertEquals(EventType.START_ELEMENT, reader.nextTag())
+        assertEquals("tag", reader.localName)
+        assertEquals(3, reader.attributeCount)
+        assertEquals("attr", reader.getAttributeLocalName(0))
+        assertEquals("foo", reader.getAttributeValue(0))
+
+        assertEquals("attr2", reader.getAttributeLocalName(1))
+        assertEquals("b<ar", reader.getAttributeValue(1))
+
+        assertEquals("attr3", reader.getAttributeLocalName(2))
+        assertEquals("baz", reader.getAttributeValue(2))
+
+    }
+
+    @Test
     override fun testReadWsInAttr() {
         super.testReadWsInAttr()
     }

@@ -1,0 +1,427 @@
+/*
+ * Copyright (c) 2026.
+ *
+ * This file is part of xmlutil.
+ *
+ * This file is licenced to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance
+ * with the License.  You should have  received a copy of the license
+ * with the source distribution. Alternatively, you may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.  See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package nl.adaptivity.xmlutil.core.internal
+
+import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.core.CopySequenceMarker
+import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
+import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
+
+
+private const val BUF_SIZE = 4096
+
+@XmlUtilInternal
+public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
+
+    /** Current position in the buffer */
+    internal var srcBufPos: Int = 0
+
+    /** Combined count of characters in the buffer */
+    internal var srcBufCount: Int = 0
+
+    /** Current buffer to parse from */
+    internal var bufLeft = CharArray(BUF_SIZE)
+
+    /** Next pending buffer */
+    internal var bufRight: CharArray// = CharArray(BUF_SIZE)
+
+    /**
+     * Rather than update offset on each character read, we only update it on buffer swap.
+     */
+    private var offsetBase = 0
+
+    override val offset: Int
+        get() = offsetBase + srcBufPos
+
+    override var line: Int = 0
+
+    override var lastColumnStart: Int = 0
+        set
+
+    init { // Read the first buffers on creation, rather than delayed
+        var cnt = readUntilFullOrEOF(bufLeft)
+        require(cnt >= 0) { "Trying to parse an empty file (that is not valid XML)" }
+        if (cnt < BUF_SIZE) {
+            bufRight = CharArray(0)
+            srcBufCount = cnt
+        } else {
+            val newRight = CharArray(BUF_SIZE)
+            bufRight = newRight
+            cnt = readUntilFullOrEOF(newRight).coerceAtLeast(0) // in case the EOF is exactly at the boundary
+            srcBufCount = BUF_SIZE + cnt
+        }
+
+        if (bufLeft[0].code == 0x0feff) {
+            srcBufPos = 1 /* drop BOM */
+            lastColumnStart = 1
+        }
+    }
+
+    private fun swapInputBuffer() {
+        if (copySequenceStart >= 0) { // make the copy sequence still work
+            val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+            val p = srcBufPos
+            if (p<= BUF_SIZE) {
+                b.appendRange(bufLeft, copySequenceStart, p)
+            } else {
+                b.appendRange(bufLeft, copySequenceStart, BUF_SIZE)
+                b.appendRange(bufRight, 0, (p - BUF_SIZE))
+            }
+            copySequenceStart = 0
+        }
+        val rightBufCount = srcBufCount - BUF_SIZE
+        if (rightBufCount < 0) error("End of stream while swapping inputs")
+
+        val oldLeft = bufLeft
+        bufLeft = bufRight
+        bufRight = oldLeft
+
+        srcBufPos -= BUF_SIZE
+        offsetBase += BUF_SIZE
+
+        if (rightBufCount >= BUF_SIZE) {
+            val newRead = readUntilFullOrEOF(bufRight)
+            srcBufCount = when {
+                newRead < 0 -> rightBufCount
+                else -> rightBufCount + newRead
+            }
+        } else {
+            srcBufCount = rightBufCount
+        }
+    }
+
+    private var copySequenceStart = -1
+    private var copyBuilder: StringBuilder? = null
+
+    override fun ensureActiveCopySequence() {
+        if (copySequenceStart < 0) {
+            copySequenceStart = srcBufPos
+        }
+    }
+
+    /**
+     * Mark the start of a sequence that will be copied to string later. By default this will
+     * just store the start position. It however also triggers handling of special cases, that
+     * may trigger the use of a StringBuilder to store the sequence:
+     *  - A line ending involving a '\r' (must be exposed as '\n')
+     *  - Buffer swaps
+     */
+    override fun startOrResumeCopySequenceXX() {
+        check(copySequenceStart < 0) { "Copy sequence already started" }
+        copySequenceStart = srcBufPos
+    }
+
+    context(_: CopySequenceMarker)
+    override fun resumeCopySequence() {
+        check(copySequenceStart < -1 && copyBuilder != null) { "Copy sequence is not paused" }
+        copySequenceStart = srcBufPos
+    }
+
+    context(_: CopySequenceMarker)
+    override fun pauseCopySequence() {
+        check(copySequenceStart>=0) { "Copy sequence not active (either not started or already suspended)" }
+        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+        b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+        copySequenceStart = -2 // mark as paused
+    }
+
+    override fun ensurePausedCopySequence() {
+        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+        if (copySequenceStart >= 0) b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+        copySequenceStart = -2 // mark as paused
+    }
+
+    override fun finalizeCopySequenceXX(): String {
+        val b = copyBuilder
+        val start = copySequenceStart
+        copySequenceStart = -1
+        copyBuilder = null
+
+        when {
+            b == null && (start < 0) -> error("No copy sequence started")
+
+            b == null -> return bufLeft.concatToString(start, srcBufPos)
+
+            start >= 0 ->
+                return b.appendRange(bufLeft, start, srcBufPos).toString()
+
+            else -> return b.toString()
+        }
+    }
+
+    context(_: CopySequenceMarker)
+    override fun readToCopyBuffer() {
+        if (read() < 0) error("End of stream while adding character to copy buffer")
+    }
+
+    context(_: CopySequenceMarker)
+    override fun addDelimitedToCopySequence(
+        delimiter: String,
+        pauseOnDelimiter: Boolean,
+        consumeDelimiter: Boolean
+    ) {
+        require(copySequenceStart>=0) { "Copy sequence not active (either not started or suspended)" }
+        while (true) { // loop over multiple subsequent buffers.
+            if (peek(delimiter)) {
+                if (pauseOnDelimiter) pauseCopySequence()
+                if (consumeDelimiter) srcBufPos += delimiter.length // this should work even if we cross the buffer size
+                return
+            } else {
+                readToCopyBuffer()
+            }
+        }
+    }
+
+    context(_: CopySequenceMarker)
+    override fun addToCopySequence(char: Char) {
+        this.ifAssertions {
+            assert(copySequenceStart >= 0 || copyBuilder != null) {
+                "Copy sequence not active (either not started or suspended)"
+            }
+        }
+
+        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        b.append(char)
+    }
+
+    context(_: CopySequenceMarker)
+    override fun addToCopySequence(seq: CharSequence) {
+        this.ifAssertions {
+            assert(copySequenceStart >= 0 || copyBuilder != null) {
+                "Copy sequence not active (either not started or suspended)"
+            }
+        }
+
+        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        b.append(seq)
+    }
+
+    override fun readSubRange(start: Int, end: Int): CharSequence {
+        val bufStart = start - offsetBase
+        val bufEnd = end - offsetBase
+        if (bufEnd >= srcBufCount) error("End of file in subrange")
+        return buildString {
+            when {
+                bufStart >= BUF_SIZE ->
+                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+
+                bufEnd <= BUF_SIZE ->
+                    appendRange(bufLeft, bufStart, bufEnd)
+
+                else -> {
+                    appendRange(bufLeft, bufStart, BUF_SIZE)
+                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
+                }
+            }
+        }
+    }
+
+    context(_: CopySequenceMarker)
+    override fun appendSubRangeToSequence(start: Int, end: Int) {
+        val bufStart = start - offsetBase
+        val bufEnd = end - offsetBase
+        if (copySequenceStart == bufEnd && srcBufPos == bufEnd) {
+            copySequenceStart = bufStart
+            return
+        }
+
+        val builder = copyBuilder ?: StringBuilder(end - start).also { copyBuilder = it }
+
+        builder.apply {
+            if (copySequenceStart >=0) { // this is guaranteed to be only in the left buffer
+                appendRange(bufLeft, copySequenceStart, srcBufPos)
+            }
+            when {
+                bufStart >= BUF_SIZE ->
+                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+
+                bufEnd <= BUF_SIZE ->
+                    appendRange(bufLeft, bufStart, bufEnd)
+
+                else -> {
+                    appendRange(bufLeft, bufStart, BUF_SIZE)
+                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
+                }
+            }
+        }
+
+
+
+
+
+        super.appendSubRangeToSequence(start, end)
+    }
+
+    /** Try to read the next character without increasing the position  */
+    override fun peek(): Int {
+        return peekCommon(srcBufPos)
+    }
+
+    override fun peek(offset: Int): Int {
+        return peekCommon(srcBufPos + offset)
+    }
+
+    private fun peekCommon(bufPos: Int): Int {
+        // end of buffer. This implies bufPos < 2 * BUF_SIZE
+        if (bufPos >= srcBufCount) return -1
+        val c = when {
+            bufPos >= BUF_SIZE -> bufRight[bufPos - BUF_SIZE]
+            else -> bufLeft[bufPos]
+        }
+
+        return when (c) {
+            '\r' -> '\n'.code
+            else -> c.code
+        }
+    }
+
+    /**
+     * This implementation matches, but also assumes that the expected sequence is not such large
+     * as to not require range checks for the buffers (only end of file).
+     */
+    override fun peek(expected: CharSequence): Boolean {
+        return peekCommon(srcBufPos, expected)
+    }
+
+    /**
+     * This implementation matches, but also assumes that the expected sequence is not such large
+     * as to not require range checks for the buffers (only end of file).
+     */
+    override fun peek(offset: Int, expected: CharSequence): Boolean {
+        return peekCommon(srcBufPos + offset, expected)
+    }
+
+    private fun peekCommon(bufStart: Int, expected: CharSequence): Boolean {
+        val l = expected.length
+        if (bufStart + l >= srcBufCount) return false // must be end of file
+        when {
+            bufStart + l <= BUF_SIZE -> { // most common
+                val start = bufStart
+                return (0..<l).all { i -> expected[i] == bufLeft[start + i] }
+            }
+
+            bufStart < BUF_SIZE -> { // overlap, a bit more likely than the last option
+                val split = l - (BUF_SIZE - bufStart)
+                return (0..<split).all { i -> expected[i] == bufLeft[bufStart + i] } &&
+                        (split..<l).all { i -> expected[i] == bufRight[i - split] }
+            }
+
+            else -> { // strings only in the right buffer
+                val start = bufStart - BUF_SIZE
+                return (0..<l).all { i -> expected[i] == bufRight[start + i] }
+            }
+        }
+    }
+
+    override fun skip(count: Int) {
+        val newPos = srcBufPos + count
+        if (newPos >= srcBufCount) error("End of file while skipping")
+        srcBufPos = newPos
+        if (newPos >= BUF_SIZE) swapInputBuffer()
+    }
+
+    /** Does never read more than needed  */
+    override fun read(): Int {
+        // In this case we *may* need the right buffer, otherwise not
+        // optimize this implementation for the "happy" path
+        val initPos = srcBufPos
+        if (initPos >= srcBufCount) return -1
+
+        if (initPos >= BUF_SIZE) swapInputBuffer() // swap if needed. Note that peek will work
+        // correctly
+
+        val r = when (val char = bufLeft[srcBufPos++]) {
+            '\r' -> { // as \r is always transformed to \n, this requires a stringBuilder.
+                val n = srcBufPos + 1
+                @Suppress("EmptyRange") // invalid diagnosis
+                if (copySequenceStart in 0..<srcBufPos) {
+                    (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
+                        .appendRange(bufLeft, copySequenceStart, srcBufPos-1)
+                        .append('\n')
+                    copySequenceStart = srcBufPos
+                }
+                if (peek() == '\n'.code) {
+                    srcBufPos = n
+                }
+
+                line += 1
+                lastColumnStart = offset
+                '\n'
+            }
+
+            '\n' -> {
+                if (peek() == '\r'.code) {
+                    val n = srcBufPos + 1
+                    if (copySequenceStart>=0) {
+                        (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
+                            .appendRange(bufLeft, copySequenceStart, srcBufPos)
+                        copySequenceStart = n
+                    }
+                    srcBufPos = n
+                }
+
+                line += 1
+                lastColumnStart = offset
+                '\n'
+            }
+
+            else -> char
+        }
+        return r.code
+    }
+
+
+    private fun readUntilFullOrEOF(buffer: CharArray): Int {
+        val bufSize = buffer.size
+        var totalRead: Int = reader.read(buffer, 0, bufSize)
+        if (totalRead < 0) return -1
+        while (totalRead < bufSize) {
+            val lastRead = reader.read(buffer, totalRead, bufSize - totalRead)
+            if (lastRead < 0) return totalRead
+            totalRead += lastRead
+        }
+        return totalRead
+    }
+
+    override fun toString(): String {
+        return buildString {
+            append("SwappedInputBuffer(")
+            append("Next = '")
+                .append(bufLeft.concatToString(srcBufPos, (srcBufPos + 10).coerceAtMost(srcBufCount).coerceAtMost(BUF_SIZE)))
+                .append("', output buffer = ")
+            val b = copyBuilder
+
+
+
+            if (copySequenceStart < 0 && b == null) {
+                append("null)")
+            } else {
+                append('\'')
+                if (b!=null) append(b)
+                if (copySequenceStart>=0) appendRange(bufLeft, copySequenceStart, srcBufPos)
+                append("')")
+            }
+        }
+    }
+
+}

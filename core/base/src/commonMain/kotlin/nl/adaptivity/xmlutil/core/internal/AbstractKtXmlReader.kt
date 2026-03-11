@@ -45,10 +45,6 @@ public abstract class AbstractKtXmlReader(
 
     protected abstract val inputBuffer: InputBuffer
 
-    // variables so we don't need readCName to return a pair
-    protected var readPrefix: String? = null
-    protected var readLocalname: String? = null
-
     protected var _isWhitespace: Boolean = false
 
     protected val namespaceHolder: NamespaceHolder = NamespaceHolder()
@@ -444,19 +440,6 @@ public abstract class AbstractKtXmlReader(
     }
 
     /**
-     * Push the text until the [delimiter] to the output buffer.
-     */
-    protected abstract fun pushText(delimiter: Char)
-
-    /**
-     * Specialisation of pushText that does not recognize whitespace (thus able to be used at that point)
-     * @param delimiter The "stopping" delimiter
-     * @param resolveEntities Whether entities should be resolved directly (in attributes) or exposed as entity
-     *                        references (content text if expandEntities is false).
-     */
-    protected abstract fun pushRegularText(delimiter: Char, resolveEntities: Boolean)
-
-    /**
      * Remove the last character from the output buffer
      */
     protected abstract fun popOutput()
@@ -595,34 +578,49 @@ public abstract class AbstractKtXmlReader(
      */
     protected abstract fun setOutputBuffer(output: CharSequence)
 
-    protected abstract fun readName(): String
-
-    /**
-     * Read a cName. This will update the [readPrefix] and [readLocalname] properties to
-     * avoid further allocations.
-     */
-    protected abstract fun readCName()
-
     /**
      * Skip reading whitespace
      */
     protected fun skipWS() {
         while (true) {
-            val c = peek()
+            val c = inputBuffer.peek()
             if (c == -1 || !isXmlWhitespace(c.toChar())) break // More sane
-
-            readAssert(c.toChar())
+            inputBuffer.skip(1)
         }
     }
 
-    /**
-     * Specialisation of pushText that does not recognize whitespace (thus able to be used at that point)
-     * @param delimiter The "stopping" delimiter
-     */
-    protected abstract fun pushAttributeValue(delimiter: Char)
+    context(_: CopySequenceMarker)
+    protected open fun pushAttributeValue(delimiter: Char) {
+        while (true) {
+            when (inputBuffer.peekChar()) {
+                '&' -> pushEntity(true)
+                '\t', '\n' -> {
+                    inputBuffer.pauseCopySequence()
+                    inputBuffer.addToCopySequence(' ')
+                    inputBuffer.skip(1)
+                    inputBuffer.resumeCopySequence()
+                }
 
-    /** Push attribute delimited by whitespace */
-    protected abstract fun pushWSDelimAttrValue()
+                '\r' -> throw AssertionError("Carriage returns should have been normalized out here")
+
+                delimiter -> return
+                else -> inputBuffer.readToCopyBuffer()
+            }
+        }
+    }
+
+    /** Push attribute delimited by whitespace. Only used in relaxed mode */
+    context(_: CopySequenceMarker)
+    protected open fun pushWSDelimAttrValue() {
+        while (true) {
+            when (val c = inputBuffer.peekChar()) {
+                '&' -> pushEntity(true)
+                '>', '\t', '\n', '\r', ' ' -> return
+                '/' if peek(1) == '>'.code -> return
+                else -> inputBuffer.readToCopyBuffer()
+            }
+        }
+    }
 
     /**
      * Read the next character from the input. This will read UTF-16 values not codepoints.
@@ -669,11 +667,20 @@ public abstract class AbstractKtXmlReader(
         resetOutputBuffer()
         if (xmldecl) {
             prefix = null
-            localName = readName()
+            readAssert("xml")
+            val next = inputBuffer.peekChar()
+            require(! next.isNameChar()) { "XML declarations must be prefixed with '<?xml' and must be followed by a non-name-char" }
+            localName = "xml"
         } else {
-            readCName()
-            prefix = readPrefix
-            localName = readLocalname!!
+            val s = parseNCName().toString()
+            if (inputBuffer.peek(':')) {
+                prefix = s
+                inputBuffer.skip(1)
+                localName = parseNCName().toString()
+            } else {
+                prefix = null
+                localName = s
+            }
         }
         clearAttributes()
         while (true) {
@@ -718,8 +725,18 @@ public abstract class AbstractKtXmlReader(
                 else -> when {
                     isNameStartChar(c.toChar()) -> {
                         resetOutputBuffer()
-                        readCName()
-                        val aLocalName = readLocalname!!
+                        val s = parseNCName().toString()
+                        val aLocalName: String?
+                        val aPrefix: String?
+                        if (inputBuffer.peek(':')) {
+                            aPrefix = s
+                            inputBuffer.skip(1)
+                            aLocalName = parseNCName().toString()
+                        } else {
+                            aPrefix = null
+                            aLocalName = s
+                        }
+
 
                         if (aLocalName.isEmpty()) {
                             error("attr name expected")
@@ -727,30 +744,29 @@ public abstract class AbstractKtXmlReader(
                         }
                         skipWS()
                         if (peek() != '='.code) {
-                            val fullname = fullname(readPrefix, aLocalName)
+                            val fullname = fullname(aPrefix, aLocalName)
                             error("Attr.value missing in $fullname '='. Found: ${peek().toChar()}")
 
-                            addUnresolvedAttribute(readPrefix, aLocalName, fullname)
+                            addUnresolvedAttribute(aPrefix, aLocalName, fullname)
                         } else {
                             readAssert('=')
                             skipWS()
-                            when (val delimiter = peek()) {
-                                '\''.code, '"'.code -> {
-                                    readAssert(delimiter.toChar())
+                            val value: String
+                            when (val delimiter = inputBuffer.peekChar()) {
+                                '\'', '"' -> {
+                                    inputBuffer.skip(1)
                                     // This is an attribute, we don't care about whitespace content
-                                    resetOutputBuffer()
-                                    pushAttributeValue(delimiter.toChar())
-                                    readAssert(delimiter.toChar())
+                                    value = inputBuffer.createCopySequence { pushAttributeValue(delimiter) }.toString()
+                                    readAssert(delimiter)
                                 }
 
                                 else -> {
                                     error("attr value delimiter missing!")
-                                    resetOutputBuffer()
-                                    pushWSDelimAttrValue()
+                                    value = inputBuffer.createCopySequence { pushWSDelimAttrValue() }.toString()
                                 }
                             }
 
-                            addUnresolvedAttribute(readPrefix, aLocalName, get())
+                            addUnresolvedAttribute(aPrefix, aLocalName, value)
                         }
                     }
 
@@ -863,17 +879,41 @@ public abstract class AbstractKtXmlReader(
      * result: if the setName parameter is set,
      * the name of the entity is stored in "name"
      */
-    protected open fun CopySequenceMarker.pushEntity(expandEntities: Boolean = this@AbstractKtXmlReader.expandEntities) {
-        inputBuffer.ensurePausedCopySequence() // can never be correct
+    context(_: CopySequenceMarker)
+    protected open fun pushEntity(expandEntities: Boolean = this@AbstractKtXmlReader.expandEntities) {
+        inputBuffer.pauseCopySequence()
         readAssert('&')
 
         when {
             inputBuffer.peek('#') -> pushCharEntity()
             else -> pushRefEntity(expandEntities)
         }
+        inputBuffer.resumeCopySequence()
     }
 
     protected abstract fun resolveEntity(entityName: CharSequence): CharSequence?
+
+    private fun Char.isNameChar() = when {
+        version == "1.1" -> isNameChar11(this)
+        else -> isNameChar10(this)
+    }
+
+    context(_: CopySequenceMarker)
+    protected open fun pushNCName() {
+        if (! isNameStartChar(inputBuffer.readChar())) {
+            error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
+        }
+
+        var c = inputBuffer.peek()
+        while (c >= 0 && c != ':'.code && c.toChar().isNameChar()) {
+            inputBuffer.readToCopyBuffer()
+            c = inputBuffer.peek()
+        }
+    }
+
+    protected open fun parseNCName(): CharSequence {
+        return inputBuffer.createCopySequence { pushNCName() }
+    }
 
     context(_: CopySequenceMarker)
     private fun pushRefEntity(expandEntities: Boolean) {
@@ -914,7 +954,8 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    private fun CopySequenceMarker.pushCharEntity() {
+    context(_: CopySequenceMarker)
+    private fun pushCharEntity() {
         readAssert('#') // #
 
         var isHex: Boolean
@@ -957,7 +998,7 @@ public abstract class AbstractKtXmlReader(
                 else -> {
                     error("Unexpected character in character entity: '$first'")
                     inputBuffer.addToCopySequence('&')
-                    with(inputBuffer) { resumeCopySequence() } // Peeked elements don't need pushing
+                    inputBuffer.resumeCopySequence() // Peeked elements don't need pushing
                     return
                 }
             }
@@ -965,6 +1006,47 @@ public abstract class AbstractKtXmlReader(
 
         pushCodePoint(current)
         return
+    }
+
+
+    context(_: CopySequenceMarker)
+    protected open fun pushNonWSText(delimiter: Char, expandEntities: Boolean) {
+        _isWhitespace = false
+        while (true) {
+            val c = inputBuffer.peekChar()
+            when (c) {
+                delimiter -> return
+                '&' -> when {
+                    expandEntities -> pushEntity(expandEntities)
+                    else -> return
+                }
+
+                else -> inputBuffer.readToCopyBuffer()
+            }
+        }
+    }
+
+
+    /**
+     * Push the text until the [delimiter] to the output buffer.
+     */
+    context(_: CopySequenceMarker)
+    protected open fun pushMaybeWSText(delimiter: Char) {
+        _isWhitespace = true
+
+        var c = inputBuffer.peek()
+        while (c >= 0) {
+            when {
+                isXmlWhitespace(c.toChar()) -> {
+                    inputBuffer.readToCopyBuffer()
+                }
+
+                c == delimiter.code -> return
+
+                else -> return pushNonWSText(delimiter, expandEntities)
+            }
+            c = inputBuffer.peek()
+        }
     }
 
 
@@ -1007,7 +1089,7 @@ public abstract class AbstractKtXmlReader(
             COMMENT -> throw UnsupportedOperationException("Comments/WS are always allowed - they may start the document tough")
 
             TEXT -> {
-                pushText('<')
+                pushCopySequence { pushMaybeWSText('<') }
                 when {
                     _isWhitespace -> _eventType = IGNORABLE_WHITESPACE
                     else -> error("Non-whitespace text where not expected: '${text}'")
@@ -1169,7 +1251,7 @@ public abstract class AbstractKtXmlReader(
 
             COMMENT -> parseComment()
 
-            ENTITY_REF if (expandEntities) -> pushRegularText('<', true)
+            ENTITY_REF if (expandEntities) -> pushCopySequence { pushNonWSText('<', true) }
             ENTITY_REF -> pushCopySequence { pushEntity() }
 
             START_ELEMENT -> {
@@ -1184,9 +1266,10 @@ public abstract class AbstractKtXmlReader(
 
             TEXT -> if (lastEvent == ENTITY_REF) { // Entity refs are part of text, so don't
                 // consider the following text whitespace at all
-                pushRegularText('<', expandEntities)
+                pushCopySequence { pushNonWSText('<', expandEntities) }
             } else {
-                pushText('<')
+//                pushMaybeWSTextXX('<')
+                pushCopySequence { pushMaybeWSText('<') }
                 if (_isWhitespace) _eventType = IGNORABLE_WHITESPACE
             }
 
@@ -1247,7 +1330,30 @@ public abstract class AbstractKtXmlReader(
         return
     }
 
-    protected abstract fun parseEndTag()
+    protected open fun parseEndTag() {
+        if (depth == 0) {
+            error("element stack empty")
+            _eventType = COMMENT
+            return
+        }
+
+        readAssert("</")
+
+        resetOutputBuffer()
+        val spIdx = depth - 1
+        val expectedPrefix = elementStack[spIdx].prefix //?: exception("Missing prefix")
+        val expectedLocalName = elementStack[spIdx].localName ?: exception("Missing localname")
+
+        // fast path implementation that just verifies the tags
+        // (rather than parsing them directly without that knowledge of expectation)
+        if (expectedPrefix != null) {
+            readAssert(expectedPrefix) { "Expected prefix '$expectedPrefix' for closing tag" }
+            readAssert(':')
+        }
+        readAssert(expectedLocalName) { "Expect local part '$expectedLocalName' for closing tag" }
+        skipWS()
+        readAssert('>')
+    }
 
     private fun peekType(): EventType {
         return when (peek()) {
