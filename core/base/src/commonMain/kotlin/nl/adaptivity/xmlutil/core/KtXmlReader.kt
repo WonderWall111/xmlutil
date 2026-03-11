@@ -27,6 +27,8 @@ import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.core.impl.DefaultEntityMap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
+import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
 import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.isNameChar11
 import nl.adaptivity.xmlutil.core.internal.isNameStartChar
@@ -447,6 +449,11 @@ public class KtXmlReader internal constructor(
     }
 
     override fun popOutput() {
+        ifAssertions {
+            assert(outputBufRight>0) {
+                "Pop before buffer"
+            }
+        }
         --outputBufRight
     }
 

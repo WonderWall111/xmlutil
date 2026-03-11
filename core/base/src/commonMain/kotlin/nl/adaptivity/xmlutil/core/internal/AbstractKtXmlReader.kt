@@ -752,20 +752,11 @@ public abstract class AbstractKtXmlReader(
     }
 
     protected fun parseCData() {
-        readAssert('<') // <
-        readAssert('!') // '['
-        readAssert("[CDATA[")
+        readAssert("<![CDATA[")
 
         inputBuffer.startOrResumeCopySequence()
-        resetOutputBuffer()
-        var c: Char
-
-        do {
-            c = inputBuffer.readChar()
-        } while (c != ']' || ! inputBuffer.peek("]>"))
-        popOutput() // ']'
-        readAssert(']') // ']'
-        readAssert('>') // '>'
+        inputBuffer.addDelimitedToCopySequence("]]>")
+        setOutputBuffer(inputBuffer.finalizeCopySequence())
         return
     }
 
