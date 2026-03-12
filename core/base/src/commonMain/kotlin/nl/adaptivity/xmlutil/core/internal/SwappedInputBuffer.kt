@@ -313,7 +313,7 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
 
     private fun peekCommon(bufStart: Int, expected: CharSequence): Boolean {
         val l = expected.length
-        if (bufStart + l >= srcBufCount) return false // must be end of file
+        if (bufStart + l > srcBufCount) return false // must be end of file
         when {
             bufStart + l <= BUF_SIZE -> { // most common
                 val start = bufStart
