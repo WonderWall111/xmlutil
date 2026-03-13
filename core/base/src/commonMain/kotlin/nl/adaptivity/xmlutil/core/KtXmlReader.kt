@@ -24,7 +24,6 @@ package nl.adaptivity.xmlutil.core
 
 import nl.adaptivity.xmlutil.EventType.*
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
-import nl.adaptivity.xmlutil.core.impl.DefaultEntityMap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
 import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
@@ -90,15 +89,6 @@ public class KtXmlReader internal constructor(
     /** Write position   */
     private var outputBufRight = 0
 
-    override var line: Int
-        get() = inputBuffer.line
-        set(value) { inputBuffer.line = value }
-    override var lastColumnStart: Int
-        get() = inputBuffer.lastColumnStart
-        set(value) { inputBuffer.lastColumnStart = value }
-    override val offset: Int
-        get() = inputBuffer.offset
-
     override fun get(): String {
         return outputBuf.concatToString(outputBufLeft, outputBufRight)
     }
@@ -122,31 +112,13 @@ public class KtXmlReader internal constructor(
 
     override fun setOutputBuffer(output: CharSequence) {
         // TODO should be replaced at some point
-        outputBufRight = 0
-        push(output)
-    }
+        if (output.length > outputBuf.size) growOutputBuf(output.length)
 
-    private fun pushRange(buffer: CharArray, start: Int, endExcl: Int) {
-        val count = endExcl - start
-        val outRight = outputBufRight
-        val minSizeNeeded = outRight + count
-        if (minSizeNeeded >= outputBuf.size) {
-            growOutputBuf(minSizeNeeded)
+        var i = 0
+        for (c in output) {
+            outputBuf[i++] = c
         }
-
-        buffer.copyInto(outputBuf, outRight, start, endExcl)
-        outputBufRight = outRight + count
-    }
-
-    override fun push(s: CharSequence) {
-        val minSizeNeeded = outputBufRight + s.length
-        if (minSizeNeeded > outputBuf.size) {
-            growOutputBuf(minSizeNeeded)
-        }
-
-        for (c in s) {
-            outputBuf[outputBufRight++] = c
-        }
+        outputBufRight = output.length
     }
 
     override fun pushChar(c: Char) {
@@ -158,10 +130,6 @@ public class KtXmlReader internal constructor(
         outputBuf[outputBufRight++] = c
     }
 
-    override fun resolveEntity(entityName: CharSequence): String? {
-        return DefaultEntityMap[entityName.toString()]
-    }
-
     /** Does never read more than needed  */
     override fun peek(): Int {
         return inputBuffer.peek()
@@ -171,148 +139,9 @@ public class KtXmlReader internal constructor(
         return inputBuffer.read()
     }
 
-    override fun readAndPush(): Char {
-        val pos = srcBufPos
-        if (pos >= srcBufCount) exception(UNEXPECTED_EOF)
-
-        val nextSrcPos = pos + 1
-        if (nextSrcPos >= BUF_SIZE) { // +1 to also account for CRLF across the boundary
-            return readAcross().also(::pushChar).toChar() // use the slow path for this case
-        }
-
-        var outRight = outputBufRight
-        if (outRight >= outputBuf.size) {
-            growOutputBuf(outRight - outputBufLeft)
-        }
-
-        val bufLeft = bufLeft
-
-        val result: Char
-        when (val ch = bufLeft[pos]) {
-            '\r' -> {
-                srcBufPos = when {
-                    nextSrcPos < srcBufCount && bufLeft[nextSrcPos] == '\n' -> {
-                        incLine(2)
-                        nextSrcPos + 1
-                    }
-
-                    else -> {
-                        incLine()
-                        nextSrcPos
-                    }
-                }
-
-                outputBuf[outRight++] = '\n'
-                result = '\n'
-            }
-
-            '\n' -> {
-                srcBufPos = nextSrcPos
-                incLine()
-                outputBuf[outRight++] = '\n' // it is
-                result = '\n'
-            }
-
-            else -> {
-                incCol()
-                srcBufPos = nextSrcPos
-                outputBuf[outRight++] = ch
-                result = ch
-            }
-        }
-        outputBufRight = outRight
-        return result
-    }
-
     private fun growOutputBuf(minNeeded: Int = outputBufRight) {
         val newSize = maxOf(outputBuf.size * 2, (minNeeded * 5) / 4)
         outputBuf = outputBuf.copyOf(newSize)
-    }
-
-    private fun swapInputBuffer() {
-        val oldLeft = bufLeft
-        bufLeft = bufRight
-        bufRight = oldLeft
-        srcBufPos -= BUF_SIZE
-        val rightBufCount = srcBufCount - BUF_SIZE
-        if (rightBufCount >= BUF_SIZE) {
-            val newRead = reader.readUntilFullOrEOF(bufRight)
-            srcBufCount = when {
-                newRead < 0 -> rightBufCount
-                else -> rightBufCount + newRead
-            }
-        } else {
-            srcBufCount = rightBufCount
-        }
-    }
-
-    private fun readAcross(): Int {
-        var pos = srcBufPos
-        if (pos >= BUF_SIZE) {
-            swapInputBuffer()
-            pos -= BUF_SIZE
-        }
-
-        val next = pos + 1
-        when (val ch = bufLeft[pos]) {
-            '\u0000' -> { // should not happen at end of file (or really generally at all)
-                srcBufPos = next
-                return readAcross() // just recurse
-            }
-
-            '\r' -> {
-                bufLeft[srcBufPos] = '\n'
-                if (next < srcBufCount && getBuf(next) == '\n') {
-                    setBuf(next, '\u0000')
-                    srcBufPos = next + 1
-                    incLine(2)
-                } else {
-                    srcBufPos = next
-                    incLine()
-                }
-                return '\n'.code
-            }
-
-            '\n' -> {
-                srcBufPos = next
-                incLine()
-                return '\n'.code
-            }
-
-            else -> {
-                incCol()
-                srcBufPos = next
-                return ch.code
-            }
-        }
-    }
-
-    /** Does never read more than needed  */
-    override fun peek(pos: Int): Int {
-        // In this case we *may* need the right buffer, otherwise not
-        // optimize this implementation for the "happy" path
-        if (srcBufPos + (pos shl 2 + 1) >= BUF_SIZE) return peekAcross(pos)
-        var current = srcBufPos
-        var peekCount = pos
-
-        while (current < srcBufCount) {
-            var chr: Char = bufLeft[current]
-            when (chr) {
-                '\r' -> {
-                    chr = '\n' // update the char
-                    bufLeft[current] = '\n' // replace it with LF (\n)
-                    if (bufLeft[current + 1] == '\r') {
-                        // Note also as we are separated from the edge of the buffer setting this is valid even
-                        // beyond the end of the file
-                        bufLeft[current++] = '\u0000' // 0 is not a valid XML CHAR, so we can skip it
-                    }
-                }
-
-                else -> ++current
-            }
-            if (peekCount-- == 0) return chr.code
-        }
-        return -1
     }
 
     /**
@@ -361,47 +190,50 @@ public class KtXmlReader internal constructor(
     private fun getPositionDescription(): String {
         val et = this._eventType ?: return ("<!--Parsing not started yet-->")
 
-        val buf = StringBuilder(et.name)
-        buf.append(' ')
-        when {
-            et == START_ELEMENT || et == END_ELEMENT -> {
-                if (isSelfClosing) buf.append("(empty) ")
-                buf.append('<')
-                if (et == END_ELEMENT) buf.append('/')
-                if (elementStack[depth - 1].prefix != null) buf.append("{$namespaceURI}$prefix:")
-                buf.append(name)
+        return buildString {
+            append(et.name)
+            append(' ')
+            when {
+                et == START_ELEMENT || et == END_ELEMENT -> {
+                    if (isSelfClosing) append("(empty) ")
 
-                for (x in 0 until attributeCount) {
-                    buf.append(' ')
-                    val a = attribute(x)
-                    if (a.namespace != null) {
-                        buf.append('{').append(a.namespace).append('}').append(a.prefix).append(':')
+                    append('<')
+                    if (et == END_ELEMENT) append('/')
+
+                    if (elementStack[depth - 1].prefix != null) append("{$namespaceURI}$prefix:")
+                    append(name)
+
+                    for (x in 0 until attributeCount) {
+                        append(' ')
+                        val a = attribute(x)
+                        if (a.namespace != null) {
+                            append('{').append(a.namespace).append('}').append(a.prefix).append(':')
+                        }
+                        append("${a.localName}='${a.value}'")
                     }
-                    buf.append("${a.localName}='${a.value}'")
+
+                    append('>')
                 }
 
-                buf.append('>')
+                et == IGNORABLE_WHITESPACE -> {}
+
+                et != TEXT -> append(text)
+
+                _isWhitespace -> append(
+                    "(whitespace)"
+                )
+
+                else -> { // nonwhitespace text
+                    var textCpy = text
+                    if (textCpy.length > 16) textCpy = textCpy.take(16) + "..."
+                    append(textCpy)
+                }
             }
-
-            et == IGNORABLE_WHITESPACE -> {}
-
-            et != TEXT -> buf.append(text)
-
-            _isWhitespace -> buf.append(
-                "(whitespace)"
-            )
-
-            else -> { // nonwhitespace text
-                var textCpy = text
-                if (textCpy.length > 16) textCpy = textCpy.take(16) + "..."
-                buf.append(textCpy)
+            if (inputBuffer.offset >= 0) {
+                append(inputBuffer.locationInfo).append (" in ")
             }
+            append(reader.toString())
         }
-        if (offset >= 0) {
-            buf.append("@$line:$column [$offset] in ")
-        }
-        buf.append(reader.toString())
-        return buf.toString()
     }
 
     override fun toString(): String {

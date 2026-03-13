@@ -74,6 +74,23 @@ class TestKtXmlReaderExpandEntities : TestCommonReader() {
     }
 
     @Test
+    fun testReadDocEntity() {
+        val xml = """<!DOCTYPE foo [ <!ENTITY xxe "foobar"> ]>
+            |<tag>&xxe;</tag>
+        """.trimMargin()
+        createReader(xml).use { reader ->
+            assertEquals(EventType.START_ELEMENT, reader.nextTag())
+            assertEquals(QName("tag"), reader.name)
+
+            assertEquals(EventType.TEXT, reader.next())
+            assertEquals("foobar", reader.text)
+
+            assertEquals(EventType.END_ELEMENT, reader.next())
+            assertEquals(QName("tag"), reader.name)
+        }
+    }
+
+    @Test
     override fun testReadUnknownEntity() {
         val xml = """<tag>&unknown;</tag>"""
         val e = assertFailsWith<XmlException> {

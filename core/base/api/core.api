@@ -771,7 +771,6 @@ public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmluti
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun getInputBuffer ()Lnl/adaptivity/xmlutil/core/InputBuffer;
-	public synthetic fun resolveEntity (Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
 	public fun toString ()Ljava/lang/String;
 }
 

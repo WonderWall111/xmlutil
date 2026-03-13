@@ -20,19 +20,21 @@
 
 package nl.adaptivity.xmlutil.core
 
+import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.isXmlWhitespace
 
 @XmlUtilInternal
 public object CopySequenceMarker
 
 @IgnorableReturnValue
 internal inline fun InputBuffer.createCopySequence(block: context(CopySequenceMarker) () -> Unit): CharSequence {
-    startOrResumeCopySequenceXX()
+    startCopySequence()
     var r: CharSequence
     try {
         context(CopySequenceMarker) { block() }
     } finally {
-        r = finalizeCopySequenceXX()
+        r = finalizeCopySequence()
     }
     return r
 }
@@ -43,26 +45,19 @@ public interface InputBuffer {
 
     public val line: Int
 
-    public val lastColumnStart: Int
+    public val column: Int
 
-    public val column: Int get() = offset - lastColumnStart
-
-    /**
-     * Ensure that there is an active copy sequence. This does nothing if the sequence is already
-     * active. If it is paused, it will be resumed. If there is no sequence it will be started.
-     */
-    public fun ensureActiveCopySequence()
+    public val locationInfo: XmlReader.LocationInfo
+        get() = XmlReader.ExtLocationInfo(col = column, line = line, offset = offset)
 
     /**
-     * Mark the start or resumption of a sequence that will be copied to string later. By default
+     * Mark the start of a sequence that will be copied to string later. By default
      * this will just store the start position. It however also triggers handling of special cases,
      * that may trigger the use of a StringBuilder to store the sequence:
      *  - A line ending involving a '\r' (must be exposed as '\n')
      *  - Buffer swaps
      */
-    public fun startOrResumeCopySequenceXX() {
-        ensureActiveCopySequence()
-    }
+    public fun startCopySequence()
 
     context(_: CopySequenceMarker)
     public fun resumeCopySequence()
@@ -70,20 +65,13 @@ public interface InputBuffer {
     /**
      * Finish/finalise a copy sequence. This means it cannot be appended to anymore
      */
-    public fun finalizeCopySequenceXX(): CharSequence
+    public fun finalizeCopySequence(): CharSequence
 
     /**
      * Pause a copy sequence. This means that reading will not add further tokens to the sequence.
      */
     context(_: CopySequenceMarker)
-    public open fun pauseCopySequence() {
-        ensurePausedCopySequence()
-    }
-
-    /**
-     * Pause a copy sequence if it exists. If it does exist create one and then pause it.
-     */
-    public fun ensurePausedCopySequence()
+    public abstract fun pauseCopySequence()
 
     /**
      * Read tokens into the sequence up to the expected delimiters. The delimiters will
@@ -96,7 +84,18 @@ public interface InputBuffer {
      * @param consumeDelimiter If true, the delimiter will be consumed.
      */
     context(_: CopySequenceMarker)
-    public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true)
+    public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true) {
+        while (true) { // loop over multiple subsequent buffers.
+            if (peek(delimiter)) {
+                if (pauseOnDelimiter) pauseCopySequence()
+                if (consumeDelimiter) skip(delimiter.length) // this should work even if we cross the buffer size
+                return
+            } else {
+                readToCopyBuffer()
+            }
+        }
+
+    }
 
     /**
      * Add the given character to the copy sequence. This requires an active copy sequence.
@@ -189,6 +188,30 @@ public interface InputBuffer {
 
     /** Does never read more than needed  */
     public fun read(): Int
+
+    /**
+     * Check that the next character is the expected character. If so, consume it.
+     */
+    public fun tryRead(expected: Char): Boolean = when {
+        peek(expected) -> {
+            skip(1)
+            true
+        }
+
+        else -> false
+    }
+
+    /**
+     * Read a sequence of at least 1 whitespace character.
+     */
+    public fun readWS() {
+        val firstChar = readChar()
+        require (isXmlWhitespace(firstChar)) { "Expected whitespace, but found non-whitespace: '$firstChar'" }
+
+        while (peek().let { it == '\t'.code ||  it == '\r'.code || it == ' '.code || it == '\r'.code }) {
+            skip(1)
+        }
+    }
 
     public fun readChar(): Char {
         val c = read()

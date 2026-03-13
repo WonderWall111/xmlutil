@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -19,8 +19,6 @@
  */
 
 package nl.adaptivity.xmlutil.core.impl
-
-import kotlin.jvm.JvmStatic
 
 internal object DefaultEntityMap {
     public operator fun get(key: String): String? {
@@ -46,10 +44,14 @@ internal object DefaultEntityMap {
 }
 
 internal class EntityMap {
-    private val otherEntities = HashMap<String,String>(8)
+    private val otherEntities = HashMap<String, String>(8)
 
     public operator fun get(key: String): String? {
         return DefaultEntityMap.get(key) ?: otherEntities[key]
+    }
+
+    public operator fun set(key: String, value: String) {
+        otherEntities[key] = value
     }
 
 }

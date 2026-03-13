@@ -55,8 +55,10 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
 
     override var line: Int = 0
 
-    override var lastColumnStart: Int = 0
+    private var lastColumnStart: Int = 0
         set
+
+    override val column: Int get() = offset - lastColumnStart
 
     init { // Read the first buffers on creation, rather than delayed
         var cnt = readUntilFullOrEOF(bufLeft)
@@ -113,21 +115,10 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
     private var copySequenceStart = -1
     private var copyBuilder: StringBuilder? = null
 
-    override fun ensureActiveCopySequence() {
-        if (copySequenceStart < 0) {
-            copySequenceStart = srcBufPos
+    override fun startCopySequence() {
+        ifAssertions {
+            assert(copySequenceStart < 0 && copyBuilder == null) { "Copy sequence already started" }
         }
-    }
-
-    /**
-     * Mark the start of a sequence that will be copied to string later. By default this will
-     * just store the start position. It however also triggers handling of special cases, that
-     * may trigger the use of a StringBuilder to store the sequence:
-     *  - A line ending involving a '\r' (must be exposed as '\n')
-     *  - Buffer swaps
-     */
-    override fun startOrResumeCopySequenceXX() {
-        check(copySequenceStart < 0) { "Copy sequence already started" }
         copySequenceStart = srcBufPos
     }
 
@@ -145,13 +136,7 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         copySequenceStart = -2 // mark as paused
     }
 
-    override fun ensurePausedCopySequence() {
-        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
-        if (copySequenceStart >= 0) b.appendRange(bufLeft, copySequenceStart, srcBufPos)
-        copySequenceStart = -2 // mark as paused
-    }
-
-    override fun finalizeCopySequenceXX(): String {
+    override fun finalizeCopySequence(): String {
         val b = copyBuilder
         val start = copySequenceStart
         copySequenceStart = -1

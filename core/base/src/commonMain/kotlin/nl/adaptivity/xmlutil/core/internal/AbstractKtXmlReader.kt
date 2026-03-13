@@ -25,6 +25,7 @@ import nl.adaptivity.xmlutil.EventType.*
 import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
 import nl.adaptivity.xmlutil.core.createCopySequence
+import nl.adaptivity.xmlutil.core.impl.EntityMap
 import nl.adaptivity.xmlutil.core.impl.NamespaceHolder
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
@@ -40,7 +41,7 @@ import kotlin.jvm.JvmStatic
 public abstract class AbstractKtXmlReader(
     encoding: String?,
     public val relaxed: Boolean = false,
-    public val expandEntities: Boolean = false
+    public val expandEntities: Boolean = false,
 ) : XmlReader {
 
     protected abstract val inputBuffer: InputBuffer
@@ -51,6 +52,9 @@ public abstract class AbstractKtXmlReader(
 
     public override val depth: Int
         get() = namespaceHolder.depth
+
+    @XmlUtilInternal
+    internal val entityMap: EntityMap = EntityMap()
 
     //region Parse state accessors
     override val namespaceDecls: List<Namespace>
@@ -141,6 +145,15 @@ public abstract class AbstractKtXmlReader(
     override var encoding: String? = encoding
         @XmlUtilInternal
         protected set
+
+    public var docTypeName: String? = null
+        private set
+
+    public var docTypePublicId: String? = null
+        private set
+
+    public var docTypeSystemId: String? = null
+        private set
     //endregion Document declaration
 
     //region Name
@@ -171,31 +184,15 @@ public abstract class AbstractKtXmlReader(
     //endregion Parse state accessors
 
     //region Location info
-    protected abstract var line: Int
-    public val column: Int get() = offset - lastColumnStart + 1
-    protected abstract var lastColumnStart: Int
-    protected abstract val offset: Int
-
-    protected fun incCol() {
-//        offset += 1
-    }
-
-    protected fun incLine(offsetAdd: Int = 1) {
-        val newOffset = offset + offsetAdd
-//        offset = newOffset
-        lastColumnStart = newOffset
-        line += 1
-    }
-
     override val extLocationInfo: XmlReader.LocationInfo
-        get() = XmlReader.ExtLocationInfo(col = column, line = line, offset = offset)
+        get() = inputBuffer.locationInfo
 
     public fun getLineNumber(): Int {
-        return line
+        return inputBuffer.line
     }
 
     public fun getColumnNumber(): Int {
-        return column
+        return inputBuffer.column
     }
 
     //endregion Location info
@@ -431,12 +428,9 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    /** Add the entire given string to the output buffer */
-    protected abstract fun push(s: CharSequence)
-
     internal inline fun pushCopySequence(block: CopySequenceMarker.() -> Unit) {
         val x = inputBuffer.createCopySequence(block)
-        push(x)
+        setOutputBuffer(x)
     }
 
     /**
@@ -469,10 +463,7 @@ public abstract class AbstractKtXmlReader(
     protected fun pushErrorComment(): Boolean = when (val e = error){
         null -> false
         else -> {
-            push("At: ")
-            push(extLocationInfo.toString())
-            push(" - ")
-            push(e)
+            setOutputBuffer("At: $extLocationInfo - $e")
 
             this.error = null
             _eventType = COMMENT
@@ -613,10 +604,10 @@ public abstract class AbstractKtXmlReader(
     context(_: CopySequenceMarker)
     protected open fun pushWSDelimAttrValue() {
         while (true) {
-            when (val c = inputBuffer.peekChar()) {
+            when (inputBuffer.peekChar()) {
                 '&' -> pushEntity(true)
                 '>', '\t', '\n', '\r', ' ' -> return
-                '/' if peek(1) == '>'.code -> return
+                '/' if inputBuffer.peek(1, '>') -> return
                 else -> inputBuffer.readToCopyBuffer()
             }
         }
@@ -645,18 +636,11 @@ public abstract class AbstractKtXmlReader(
     }
 
     protected fun readAssert(s: String): Unit = readAssert(s) { c ->
-        "Found unexpected character '$c' while parsing '$s' at offset $offset"
+        "Found unexpected character '$c' while parsing '$s' at ${inputBuffer.locationInfo}"
     }
-
-    /**
-     * Read a character and add it to the output. This must do line ending normalization
-     * and handling.
-     */
-    protected abstract fun readAndPush(): Char
 
     /** Does never read more than needed  */
     protected open fun peek(): Int = inputBuffer.peek()
-    protected open fun peek(pos: Int): Int = inputBuffer.peek(pos)
 
     //endregion
 
@@ -800,8 +784,223 @@ public abstract class AbstractKtXmlReader(
         return
     }
 
-    /** precondition: &lt! consumed  */
+    private fun parseSystemLiteral(): CharSequence {
+        return when (val r = inputBuffer.readChar()) {
+            '\'' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence("'") }
+            '"' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence("\"") }
+            else -> {
+                error("Quoted text must start with a single or double quote. Found: $r")
+                ""
+            }
+        }
+    }
+
+    private fun parsePublicId(): CharSequence {
+        val delim = inputBuffer.readChar()
+        if (delim != '\'' && delim != '"') error("Invalid delimiter for public id: '$delim'. Expected: ' or \"")
+
+        val r = inputBuffer.createCopySequence {
+            var c = inputBuffer.peekChar()
+            while (c != delim) {
+                inputBuffer.skip(1)
+                if (c.code>=PUBID_CHAR.size || !PUBID_CHAR[c.code]) {
+                    error("Invalid character in public id: '${c}'")
+                }
+                inputBuffer.skip(1)
+                c = inputBuffer.peekChar()
+            }
+        }
+        inputBuffer.skip(1) // delimiter
+        return r
+    }
+
     protected fun parseDoctype() {
+        readAssert("<!DOCTYPE")
+
+        inputBuffer.readWS()
+
+        docTypeName = parseName().toString()
+
+        skipWS()
+
+        when (val p = inputBuffer.peek()) {
+            '>'.code -> return
+
+            'S'.code -> {
+                readAssert("SYSTEM")
+                inputBuffer.readWS()
+                docTypeSystemId = parseSystemLiteral().toString()
+                skipWS()
+            }
+
+            'P'.code -> {
+                readAssert("PUBLIC")
+                inputBuffer.readWS()
+                docTypePublicId = parsePublicId().toString()
+                inputBuffer.readWS()
+                docTypeSystemId = parseSystemLiteral().toString()
+                skipWS()
+            }
+
+            '['.code -> Unit // internal subset
+
+            else -> error("Unexpected content in document type declaration: ${p.toChar()}")
+        }
+
+        if (inputBuffer.tryRead('[')) {
+            val peReferences = HashMap<String, PEReference>()
+
+            skipWS()
+            var c = inputBuffer.peekChar()
+            while (c != ']') {
+                when (c) {
+                    ' ', '\t', '\n', '\r' -> inputBuffer.skip(1)
+
+                    '%' -> { // PE Reference
+                        inputBuffer.skip(2)
+                        val name = parseName().toString()
+                        readAssert(';')
+                        requireNotNull(peReferences[name]) {"Reference to unknown parameter entity reference: %$name;"}
+                        // ignore reference for now as we are not validating
+                    }
+
+
+                    '<' -> {
+                        inputBuffer.skip(1)
+                        when (inputBuffer.peekChar()) {
+                            '!' -> { // Comment
+                                inputBuffer.skip(1)
+                                when {
+                                    inputBuffer.peek( "--") -> {
+                                        inputBuffer.skip(2)
+                                        // skip comments in doctype declarations
+                                        while (! inputBuffer.peek("-->")) { inputBuffer.skip(1) }
+                                    }
+
+                                    inputBuffer.peek("ELEMENT") -> { // elementDecl
+                                        inputBuffer.skip(7)
+                                        inputBuffer.readWS()
+                                        // we are not validating, so ignore the element definition
+                                        while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+                                    }
+
+                                    inputBuffer.peek("ATTLIST") -> { // AtttlistDecl
+                                        inputBuffer.skip(7)
+                                        inputBuffer.readWS()
+                                        // ignore attribute lists
+                                        while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+                                    }
+
+                                    inputBuffer.peek("ENTITY") -> { // EntityDecl
+                                        inputBuffer.skip(6)
+                                        inputBuffer.readWS()
+
+                                        val isParameterEntity = when {
+                                            inputBuffer.tryRead('%') -> {
+                                                inputBuffer.readWS()
+                                                true
+                                            }
+                                            else -> false
+                                        }
+                                        val name = parseName().toString()
+                                        inputBuffer.readWS()
+
+                                        val delim = inputBuffer.peekChar()
+                                        if (delim != '\'' && delim != '"') {
+                                            // recognize but ignore external entities
+                                            if (! (inputBuffer.peek("SYSTEM") ||
+                                                        inputBuffer.peek("PUBLIC") ||
+                                                        (! isParameterEntity && inputBuffer.peek("NDATA"))) ) {
+                                                error("Invalid delimiter for entity name: '$delim'. Expected: ' or \"")
+
+                                            }
+                                            while (!inputBuffer.peek('>')) {
+                                                inputBuffer.skip(1)
+                                            }
+                                        } else { // we have a delimiter
+                                            inputBuffer.skip(1)
+                                            var c = inputBuffer.peekChar()
+                                            val value = inputBuffer.createCopySequence {
+                                                while (c != delim) {
+                                                    when (c) {
+                                                        '%' -> {
+                                                            val name = parseName().toString()
+                                                            val ref = requireNotNull(peReferences[name]) {
+                                                                "Reference to unknown parameter entity reference: %$name;"
+                                                            }
+                                                            // See section 4.5 on entity replacement texts
+                                                            TODO("Parameter entity references are not supported yet")
+                                                        }
+
+                                                        '&' -> pushEntity(true) //
+
+                                                        else -> inputBuffer.skip(1)
+                                                    }
+
+
+                                                    c = inputBuffer.peekChar()
+                                                }
+
+                                            }
+                                            readAssert(delim)
+                                            skipWS()
+                                            readAssert('>')
+                                            if (isParameterEntity) {
+                                                peReferences[name] = PEReference(name, value.toString())
+                                            } else {
+                                                recordEntity(name, value.toString())
+                                            }
+                                        }
+                                    }
+
+                                    inputBuffer.peek("NOTATION") -> {
+                                        inputBuffer.skip(8)
+                                        // ignore notations
+                                        while (! inputBuffer.peek('>')) inputBuffer.skip(1)
+                                    }
+
+
+                                }
+                            }
+
+                            '?' -> { // PI
+                                inputBuffer.skip(1)
+                                while (! inputBuffer.peek("?>")) inputBuffer.skip(1)
+                            }
+
+
+
+
+
+                        }
+
+                    }
+
+
+
+
+                    // NotationDecl
+
+
+                    else -> error("Unexpected content in document type declaration: '$c'")
+                }
+                c = inputBuffer.peekChar()
+            }
+
+
+            readAssert(']')
+            skipWS()
+        }
+
+        readAssert('>')
+        return
+        if (! inputBuffer.peek('[')) {}
+
+
+        while (true) {
+
+        }
+
         var nesting = 1
         var quote: Char? = null
 
@@ -874,6 +1073,8 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
+    protected data class PEReference(val name: String, val value: String)
+
     /**
      * Add the entity to the output sequence.
      * result: if the setName parameter is set,
@@ -891,7 +1092,13 @@ public abstract class AbstractKtXmlReader(
         inputBuffer.resumeCopySequence()
     }
 
-    protected abstract fun resolveEntity(entityName: CharSequence): CharSequence?
+    protected fun resolveEntity(entityName: String): CharSequence? {
+        return entityMap[entityName]
+    }
+
+    protected fun recordEntity(entityName: String, value: String) {
+        entityMap[entityName] = value
+    }
 
     private fun Char.isNameChar() = when {
         version == "1.1" -> isNameChar11(this)
@@ -911,8 +1118,25 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
+    context(_: CopySequenceMarker)
+    protected open fun pushName() {
+        if (! isNameStartChar(inputBuffer.readChar())) {
+            error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
+        }
+
+        var c = inputBuffer.peek()
+        while (c >= 0 && c.toChar().isNameChar()) {
+            inputBuffer.readToCopyBuffer()
+            c = inputBuffer.peek()
+        }
+    }
+
     protected open fun parseNCName(): CharSequence {
         return inputBuffer.createCopySequence { pushNCName() }
+    }
+
+    protected open fun parseName(): CharSequence {
+        return inputBuffer.createCopySequence { pushName() }
     }
 
     context(_: CopySequenceMarker)
@@ -1051,20 +1275,21 @@ public abstract class AbstractKtXmlReader(
 
 
     protected fun parsePI() {
-        readAssert('<') // <
-        readAssert('?') // '?'
-        resetOutputBuffer()
-        readTagContentUntil('?')
-    }
+        readAssert("<?")
+        val s = inputBuffer.createCopySequence {
+            pushName()
+            inputBuffer.addDelimitedToCopySequence("?>")
+        }
+        // first check that we end with a whitespace or end of content, otherwise we cannot have a 3 letter name
+        val l = s.length
+        if ((l == 3 || (l >= 4 && isXmlWhitespace(s[3]))) &&
+            s[0].let { it == 'x' || it == 'X' } &&
+            s[1].let { it == 'm' || it == 'M' } &&
+            s[2].let { it == 'l' || it == 'L'}) {
 
-    protected fun readTagContentUntil(delim: Char) {
-        var c: Char
-        do {
-            c = readAndPush()
-        } while (c != delim || peek() != '>'.code)
-        popOutput()
-        readAssert('>') // '>'
-        return
+            error("Processing instructions must not have '[xX][mM][lL]' as name")
+        }
+        setOutputBuffer(s)
     }
 
     protected fun parseUnexpectedOrWS(eventType: EventType) {
@@ -1211,7 +1436,6 @@ public abstract class AbstractKtXmlReader(
             }
 
             DOCDECL -> {
-                readAssert("<!DOCTYPE")
                 parseDoctype()
             }
 
@@ -1237,13 +1461,8 @@ public abstract class AbstractKtXmlReader(
             return
         }
 
-        error?.let { e ->
-            push(e)
+        if (pushErrorComment()) return
 
-            this.error = null
-            _eventType = COMMENT
-            return
-        }
         val lastEvent = _eventType
         val eventType = peekType()
         _eventType = eventType
@@ -1293,13 +1512,7 @@ public abstract class AbstractKtXmlReader(
             _eventType = END_ELEMENT
             return
         }
-        error?.let { e ->
-            push(e)
-
-            this.error = null
-            _eventType = COMMENT
-            return
-        }
+        if (pushErrorComment()) return
 
         val eventType = peekType()
         _eventType = eventType
@@ -1359,17 +1572,17 @@ public abstract class AbstractKtXmlReader(
         return when (peek()) {
             -1 -> END_DOCUMENT
             '&'.code -> ENTITY_REF
-            '<'.code -> when (peek(1)) {
+            '<'.code -> when (inputBuffer.peek(1)) {
                 '/'.code -> END_ELEMENT
                 '?'.code -> when {
                     // order backwards to ensure
-                    inputBuffer.peek(2, "xml") && !isNameCodepoint(peek(5)) ->
+                    inputBuffer.peek(2, "xml") && !isNameCodepoint(inputBuffer.peek(5)) ->
                         START_DOCUMENT
 
                     else -> PROCESSING_INSTRUCTION
                 }
 
-                '!'.code -> when (peek(2)) {
+                '!'.code -> when (inputBuffer.peek(2)) {
                     '-'.code -> COMMENT
                     '['.code -> CDSECT
                     else -> DOCDECL
@@ -1388,6 +1601,15 @@ public abstract class AbstractKtXmlReader(
         internal const val UNEXPECTED_EOF = "Unexpected EOF"
         internal const val ILLEGAL_TYPE = "Wrong event type"
 
+        internal val PUBID_CHAR = BooleanArray(127).also {
+            it[0x20] = true
+            it[0xD] = true
+            it[0xA] = true
+            for (c in 'A'..'Z') it[c.code] = true
+            for (c in 'a'..'z') it[c.code] = true
+            for (c in '0'..'9') it[c.code] = true
+            for (c in "-'()+,./:=?;!*#@\$_%") it[c.code] = true
+        }
 
         @JvmStatic
         protected fun fullname(prefix: String?, localName: String): String = when (prefix) {
