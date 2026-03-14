@@ -23,7 +23,6 @@ package nl.adaptivity.xmlutil.core.internal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
-import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
 import nl.adaptivity.xmlutil.isXmlWhitespace
 
 internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
@@ -42,32 +41,24 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
     override val column: Int
         get() = stack.lastOrNull ()?.pos ?: base.column
 
-    override var copySequenceState: InputBuffer.State = base.copySequenceState
-        private set
+    override val copySequenceState: InputBuffer.State
+        get() = base.copySequenceState
 
     override fun startCopySequence() {
-        assert(copySequenceState == State.INACTIVE)
-        copySequenceState = State.ACTIVE
         base.startCopySequence()
     }
 
     context(_: CopySequenceMarker)
     override fun pauseCopySequence() {
-        assert(copySequenceState == State.ACTIVE)
-        copySequenceState = State.PAUSED
         base.pauseCopySequence()
     }
 
     context(_: CopySequenceMarker)
     override fun resumeCopySequence() {
-        assert(copySequenceState == State.PAUSED)
-        copySequenceState = State.ACTIVE
         base.resumeCopySequence()
     }
 
     override fun finalizeCopySequence(): CharSequence {
-        assert(copySequenceState != State.INACTIVE)
-        copySequenceState = State.INACTIVE
         return base.finalizeCopySequence()
     }
 

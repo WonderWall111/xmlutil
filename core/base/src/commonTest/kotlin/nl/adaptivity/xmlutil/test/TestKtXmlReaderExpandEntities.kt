@@ -103,6 +103,33 @@ class TestKtXmlReaderExpandEntities : TestCommonReader() {
     }
 
     @Test
+    fun testAppendixC_example1() {
+        val xml = """
+            |<!DOCTYPE foo [
+            |<!ENTITY example "<p>An ampersand (&#38;#38;) may be escaped
+            |numerically (&#38;#38;#38;) or with a general entity
+            |(&amp;amp;).</p>" >
+            |]>
+            |<root>&example;<root>
+        """.trimMargin()
+        val reader = KtXmlReader(StringReader(xml), expandEntities = true)
+
+        assertEquals(EventType.START_ELEMENT, reader.nextTag())
+        assertEquals(QName("root"), reader.name)
+
+        assertEquals(EventType.START_ELEMENT, reader.nextTag())
+        assertEquals(QName("p"), reader.name)
+
+        assertEquals(EventType.TEXT, reader.next())
+        assertEquals(
+            "An ampersand (&) may be escaped\n" +
+                    "numerically (&#38;) or with a general entity\n" +
+                    "(&amp;).",
+            reader.text
+        )
+    }
+
+    @Test
     fun testReadDocEntity() {
         val xml = """<!DOCTYPE foo [ <!ENTITY xxe "foobar"> ]>
             |<tag>&xxe;</tag>

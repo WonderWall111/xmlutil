@@ -1228,7 +1228,10 @@ public abstract class AbstractKtXmlReader(
 
             COMMENT -> parseComment()
 
-            ENTITY_REF if (expandEntities) -> pushCopySequence { pushNonWSText('<', true) }
+            ENTITY_REF if (expandEntities) -> {
+                pushCopySequence { pushNonWSText('<', true) }
+                if (get().isEmpty()) return nextImplBody() //allow for tags in entity
+            }
             ENTITY_REF -> pushCopySequence { pushEntity() }
 
             START_ELEMENT -> {

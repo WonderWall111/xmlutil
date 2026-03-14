@@ -201,7 +201,7 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
     context(_: CopySequenceMarker)
     override fun addToCopySequence(char: Char) {
         this.ifAssertions {
-            assert(copySequenceStart >= 0 || copyBuilder != null) {
+            assert(copySequenceState != State.INACTIVE) {
                 "Copy sequence not active (either not started or suspended)"
             }
         }
