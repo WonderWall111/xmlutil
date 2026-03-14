@@ -50,6 +50,8 @@ public interface InputBuffer {
     public val locationInfo: XmlReader.LocationInfo
         get() = XmlReader.ExtLocationInfo(col = column, line = line, offset = offset)
 
+    public val copySequenceState: State
+
     /**
      * Mark the start of a sequence that will be copied to string later. By default
      * this will just store the start position. It however also triggers handling of special cases,
@@ -103,6 +105,26 @@ public interface InputBuffer {
      */
     context(_: CopySequenceMarker)
     public fun addToCopySequence(char: Char)
+
+    context(_: CopySequenceMarker)
+    public fun addCodepointToCopySequence(codepoint: Int) {
+        val c = codepoint
+        if (c < 0) error("UNEXPECTED EOF")
+
+        if (c <= 0xffff) {
+            addToCopySequence(c.toChar())
+            return
+        }
+
+        // This comparison works as surrogates are in the 0xd800-0xdfff range
+        // write high Unicode value as surrogate pair
+        val offset = c - 0x010000
+
+        val high = ((offset ushr 10) + 0xd800).toChar() // high surrogate
+        val low = ((offset and 0x3ff) + 0xdc00).toChar() // low surrogate
+        addToCopySequence(high)
+        addToCopySequence(low)
+    }
 
     context(_: CopySequenceMarker)
     public fun addToCopySequence(seq: CharSequence) {
@@ -213,6 +235,17 @@ public interface InputBuffer {
         }
     }
 
+    /**
+     * Read a sequence of whitespace characters.
+     */
+    public fun skipWS() {
+        var cnt = 0
+        while (peek(cnt).let { it >=0 && isXmlWhitespace(it.toChar())}) {
+            cnt += 1
+        }
+        skip(cnt)
+    }
+
     public fun readChar(): Char {
         val c = read()
         if (c < 0) error("Unexpected EOF")
@@ -224,4 +257,8 @@ public interface InputBuffer {
      */
     context(_: CopySequenceMarker)
     public fun readToCopyBuffer()
+
+    public enum class State {
+        INACTIVE, PAUSED, ACTIVE
+    }
 }

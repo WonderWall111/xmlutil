@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -230,3 +230,17 @@ internal fun Appendable.appendCodepoint(codepoint: Int): Appendable = when {
     else -> append(Char(codepoint.toUShort()))
 }
 
+internal fun addDigitToCodePoint(char: Char, isHex: Boolean, current: Int): Int {
+    when (char) {
+        in '0'..'9' -> return (char.code - '0'.code) + when {
+            isHex -> current shl 4
+            else -> current * 10
+        }
+
+        in 'a'..'f' if isHex -> return (current shl 4) + (char.code - 'a'.code + 10)
+
+        in 'A'..'F' if isHex -> return (current shl 4) + (char.code - 'A'.code + 10)
+
+        else -> throw IllegalArgumentException("Unexpected character in character entity: '$char'")
+    }
+}

@@ -813,6 +813,18 @@ abstract class nl.adaptivity.xmlutil/XmlDelegatingWriter : nl.adaptivity.xmlutil
     open fun text(kotlin/String) // nl.adaptivity.xmlutil/XmlDelegatingWriter.text|text(kotlin.String){}[0]
 }
 
+final class nl.adaptivity.xmlutil.core/DoctypeParser { // nl.adaptivity.xmlutil.core/DoctypeParser|null[0]
+    constructor <init>(nl.adaptivity.xmlutil.core/InputBuffer, kotlin/Boolean) // nl.adaptivity.xmlutil.core/DoctypeParser.<init>|<init>(nl.adaptivity.xmlutil.core.InputBuffer;kotlin.Boolean){}[0]
+
+    final val generalEntities // nl.adaptivity.xmlutil.core/DoctypeParser.generalEntities|{}generalEntities[0]
+        final fun <get-generalEntities>(): kotlin.collections/MutableMap<kotlin/String, nl.adaptivity.xmlutil.core/XmlEntity> // nl.adaptivity.xmlutil.core/DoctypeParser.generalEntities.<get-generalEntities>|<get-generalEntities>(){}[0]
+
+    final fun parse() // nl.adaptivity.xmlutil.core/DoctypeParser.parse|parse(){}[0]
+    final fun parseParameterEntityReference() // nl.adaptivity.xmlutil.core/DoctypeParser.parseParameterEntityReference|parseParameterEntityReference(){}[0]
+
+    final object Companion // nl.adaptivity.xmlutil.core/DoctypeParser.Companion|null[0]
+}
+
 final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil.core.internal/AbstractKtXmlReader { // nl.adaptivity.xmlutil.core/KtXmlReader|null[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean;kotlin.Boolean){}[0]
@@ -1062,6 +1074,21 @@ final class nl.adaptivity.xmlutil/XmlBufferedWriter : nl.adaptivity.xmlutil/XmlW
     final fun startDocument(kotlin/String?, kotlin/String?, kotlin/Boolean?) // nl.adaptivity.xmlutil/XmlBufferedWriter.startDocument|startDocument(kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
     final fun startTag(kotlin/String?, kotlin/String, kotlin/String?) // nl.adaptivity.xmlutil/XmlBufferedWriter.startTag|startTag(kotlin.String?;kotlin.String;kotlin.String?){}[0]
     final fun text(kotlin/String) // nl.adaptivity.xmlutil/XmlBufferedWriter.text|text(kotlin.String){}[0]
+}
+
+open class nl.adaptivity.xmlutil.core/XmlEntity { // nl.adaptivity.xmlutil.core/XmlEntity|null[0]
+    constructor <init>(kotlin/String, kotlin/Boolean, nl.adaptivity.xmlutil/XmlReader.LocationInfo? = ...) // nl.adaptivity.xmlutil.core/XmlEntity.<init>|<init>(kotlin.String;kotlin.Boolean;nl.adaptivity.xmlutil.XmlReader.LocationInfo?){}[0]
+
+    final val isSimple // nl.adaptivity.xmlutil.core/XmlEntity.isSimple|{}isSimple[0]
+        final fun <get-isSimple>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/XmlEntity.isSimple.<get-isSimple>|<get-isSimple>(){}[0]
+    final val location // nl.adaptivity.xmlutil.core/XmlEntity.location|{}location[0]
+        final fun <get-location>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil.core/XmlEntity.location.<get-location>|<get-location>(){}[0]
+    final val replacementValue // nl.adaptivity.xmlutil.core/XmlEntity.replacementValue|{}replacementValue[0]
+        final fun <get-replacementValue>(): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.replacementValue.<get-replacementValue>|<get-replacementValue>(){}[0]
+    open val simpleValue // nl.adaptivity.xmlutil.core/XmlEntity.simpleValue|{}simpleValue[0]
+        open fun <get-simpleValue>(): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.simpleValue.<get-simpleValue>|<get-simpleValue>(){}[0]
+
+    final fun resolveEmbeddedEntities(nl.adaptivity.xmlutil.core.impl/EntityMap): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.resolveEmbeddedEntities|resolveEmbeddedEntities(nl.adaptivity.xmlutil.core.impl.EntityMap){}[0]
 }
 
 open class nl.adaptivity.xmlutil/QName { // nl.adaptivity.xmlutil/QName|null[0]

@@ -23,8 +23,13 @@ package nl.adaptivity.xmlutil.core.internal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
+import nl.adaptivity.xmlutil.isXmlWhitespace
 
 internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
+
+    val isInjecting: Boolean
+        get() = stack.isNotEmpty()
 
     private val stack = mutableListOf<Elem>()
 
@@ -37,31 +42,38 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
     override val column: Int
         get() = stack.lastOrNull ()?.pos ?: base.column
 
-    private var isCopySequencePaused: Boolean = false
+    override var copySequenceState: InputBuffer.State = base.copySequenceState
+        private set
 
     override fun startCopySequence() {
+        assert(copySequenceState == State.INACTIVE)
+        copySequenceState = State.ACTIVE
         base.startCopySequence()
-        if (stack.isNotEmpty()) {
-            context(CopySequenceMarker) { base.pauseCopySequence() }
-        }
     }
 
     context(_: CopySequenceMarker)
     override fun pauseCopySequence() {
-        isCopySequencePaused = true
+        assert(copySequenceState == State.ACTIVE)
+        copySequenceState = State.PAUSED
         base.pauseCopySequence()
     }
 
     context(_: CopySequenceMarker)
     override fun resumeCopySequence() {
-        isCopySequencePaused = false
-        if (stack.isEmpty()) {
-            context(CopySequenceMarker) { base.resumeCopySequence() }
-        }
+        assert(copySequenceState == State.PAUSED)
+        copySequenceState = State.ACTIVE
+        base.resumeCopySequence()
     }
 
     override fun finalizeCopySequence(): CharSequence {
+        assert(copySequenceState != State.INACTIVE)
+        copySequenceState = State.INACTIVE
         return base.finalizeCopySequence()
+    }
+
+    context(_: CopySequenceMarker)
+    override fun addToCopySequence(seq: CharSequence) {
+        base.addToCopySequence(seq)
     }
 
     context(_: CopySequenceMarker)
@@ -116,11 +128,32 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         return base.peek(remainingOffset)
     }
 
+    /**
+     * Specialisation of skipWS that handles injected stacks better.
+     */
+    override fun skipWS() {
+        val lastStack = stack.lastOrNull() ?: return base.skipWS()
+        var i = lastStack.pos
+        val l = lastStack.source.length
+        while (i < l) {
+            val c = lastStack.source[i]
+            if (!isXmlWhitespace(c)) {
+                lastStack.pos = i
+                break
+            }
+            i += 1
+        }
+        if (i >= l) { // if we read the end of the stack, just recurse.
+            stack.removeLast()
+            skipWS() // recurse more whitespace
+        }
+    }
+
     override fun read(): Int {
         val lastStack = stack.lastOrNull() ?: return base.read()
         val pos = lastStack.pos
         val r = lastStack.source[pos].code
-        if (! isCopySequencePaused && r>=0) {
+        if (copySequenceState == State.ACTIVE && r>=0) {
             context(CopySequenceMarker) {
                 base.addToCopySequence(r.toChar())
             }
@@ -131,13 +164,35 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
             newPos < lastStack.source.length -> lastStack.pos = newPos
             else -> stack.removeLast()
         }
-        // pausing doesn't pause the underlying buffer if there is a stack, so it must
-        if (isCopySequencePaused && stack.isEmpty()) {
-            context(CopySequenceMarker) { base.pauseCopySequence() }
-        }
 
         return r
     }
+
+    fun inject(name: String, text: String, entityLocation: XmlReader.LocationInfo?) {
+        if (base.copySequenceState == State.ACTIVE) {
+            context(CopySequenceMarker) {
+                // this ensures any pending is written to the buffer
+                base.pauseCopySequence()
+                base.resumeCopySequence()
+            }
+        }
+        stack.add(Elem(0, name, text, entityLocation))
+    }
+
+    override fun toString(): String {
+        return buildString {
+            append("InjectingInputBuffer(")
+            for (s in stack.reversed()) {
+                append('&').append(s.entityName).append("; - [")
+                appendRange(s.source, s.pos, s.source.length)
+                append("], ")
+            }
+            append("base = $base")
+            append(')')
+        }
+    }
+
+    private typealias State = InputBuffer.State
 
     private class Elem(var pos: Int, val entityName: String, val source: CharSequence, val entityLocationInfo: XmlReader.LocationInfo?)
 }

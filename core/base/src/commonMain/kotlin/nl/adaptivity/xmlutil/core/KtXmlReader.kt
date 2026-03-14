@@ -24,9 +24,8 @@ package nl.adaptivity.xmlutil.core
 
 import nl.adaptivity.xmlutil.EventType.*
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
-import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
-import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
 import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.SwappedInputBuffer
 import kotlin.jvm.JvmStatic
@@ -48,7 +47,7 @@ public class KtXmlReader internal constructor(
     encoding: String?,
     relaxed: Boolean = false,
     expandEntities: Boolean = false,
-) : AbstractKtXmlReader(encoding, relaxed, expandEntities) {
+) : AbstractKtXmlReader(encoding, relaxed, expandEntities, SwappedInputBuffer(reader)) {
 
     public constructor(reader: Reader, relaxed: Boolean = false) :
             this(reader, null, relaxed)
@@ -56,141 +55,35 @@ public class KtXmlReader internal constructor(
     public constructor(reader: Reader, expandEntities: Boolean, relaxed: Boolean = false) :
             this(reader, null, relaxed, expandEntities)
 
-    override val inputBuffer: SwappedInputBuffer = SwappedInputBuffer(reader)
-
-    private var srcBufPos: Int
-        get() = inputBuffer.srcBufPos
-        set(value) {
-            inputBuffer.srcBufPos = value
-        }
-
-    private var srcBufCount: Int
-        get() = inputBuffer.srcBufCount
-        set(value) {
-            inputBuffer.srcBufCount = value
-        }
-
-    //    private val srcBuf = CharArray(8192)
-    private var bufLeft
-        get() = inputBuffer.bufLeft
-        set(value) {
-            inputBuffer.bufLeft = value
-        }
-
-    private var bufRight: CharArray
-        get() = inputBuffer.bufRight
-        set(value) {
-            inputBuffer.bufRight = value
-        }
-
     /** Target buffer for storing incoming text (including aggregated resolved entities)  */
-    private var outputBuf = CharArray(ALT_BUF_SIZE)
-
-    /** Write position   */
-    private var outputBufRight = 0
+    private var outputBuf: CharSequence? = null
 
     override fun get(): String {
-        return outputBuf.concatToString(outputBufLeft, outputBufRight)
-    }
+        return when (val s = outputBuf) {
+            null -> throw XmlException("Missing text when attempting to retrieve it", inputBuffer.locationInfo)
 
-    override fun popOutput() {
-        ifAssertions {
-            assert(outputBufRight>0) {
-                "Pop before buffer"
+            is String -> s
+
+            else -> s.toString().also { t ->
+                outputBuf = t
             }
         }
-        --outputBufRight
     }
 
     override fun resetOutputBuffer() {
-        // Do not reset it for speed reasons
-        // if (outputBuf.size != ALT_BUF_SIZE) {
-        //     outputBuf = CharArray(ALT_BUF_SIZE)
-        // }
-        outputBufRight = 0
+        outputBuf = null
     }
 
     override fun setOutputBuffer(output: CharSequence) {
-        // TODO should be replaced at some point
-        if (output.length > outputBuf.size) growOutputBuf(output.length)
-
-        var i = 0
-        for (c in output) {
-            outputBuf[i++] = c
-        }
-        outputBufRight = output.length
+        check(outputBuf == null) { "Output buffer already set" }
+        outputBuf = output
     }
 
-    override fun pushChar(c: Char) {
-        val newPos = outputBufRight
-
-        // +1 for surrogates; if we don't have enough space in
-        if (newPos >= outputBuf.size) growOutputBuf()
-
-        outputBuf[outputBufRight++] = c
-    }
-
-    /** Does never read more than needed  */
-    override fun peek(): Int {
-        return inputBuffer.peek()
-    }
-
-    override fun read(): Int {
-        return inputBuffer.read()
-    }
-
-    private fun growOutputBuf(minNeeded: Int = outputBufRight) {
-        val newSize = maxOf(outputBuf.size * 2, (minNeeded * 5) / 4)
-        outputBuf = outputBuf.copyOf(newSize)
-    }
-
-    /**
-     * Pessimistic implementation of peek that allows checks across into the "right" buffer
-     */
-    private fun peekAcross(pos: Int): Int {
-        var current = srcBufPos
-        var peekCount = pos
-
-        while (current < srcBufCount) {
-            var chr: Char = getBuf(current)
-            when (chr) {
-                '\r' -> {
-                    chr = '\n' // update the char
-                    if (current + 1 < srcBufCount && getBuf(current + 1) == '\n') {
-                        current += 2
-                    } else {
-                        ++current
-                    }
-                }
-
-                else -> ++current
-            }
-            if (peekCount-- == 0) return chr.code
-        }
-        return -1
-    }
-
-    private fun getBuf(pos: Int): Char {
-        val split = pos - BUF_SIZE
-        return when {
-            split < 0 -> bufLeft[pos]
-            else -> bufRight[split]
-        }
-    }
-
-    private fun setBuf(pos: Int, value: Char) {
-        val split = pos - BUF_SIZE
-        when {
-            split < 0 -> bufLeft[pos] = value
-            else -> bufRight[split] = value
-        }
-    }
-
-
-    private fun getPositionDescription(): String {
+    override fun toString(): String {
         val et = this._eventType ?: return ("<!--Parsing not started yet-->")
 
         return buildString {
+            append("KtXmlReader [")
             append(et.name)
             append(' ')
             when {
@@ -233,11 +126,8 @@ public class KtXmlReader internal constructor(
                 append(inputBuffer.locationInfo).append (" in ")
             }
             append(reader.toString())
+            append(']')
         }
-    }
-
-    override fun toString(): String {
-        return "KtXmlReader [${getPositionDescription()}]"
     }
 
     private companion object {

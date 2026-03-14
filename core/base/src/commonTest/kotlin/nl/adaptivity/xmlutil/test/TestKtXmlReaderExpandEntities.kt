@@ -74,6 +74,35 @@ class TestKtXmlReaderExpandEntities : TestCommonReader() {
     }
 
     @Test
+    fun testSection4_5example() {
+        val xml = """
+            |<!DOCTYPE foo [
+            |<!ENTITY % pub    "&#xc9;ditions Gallimard" >
+            |<!ENTITY   rights "All rights reserved" >
+            |<!ENTITY   book   "La Peste: Albert Camus,
+            |&#xA9; 1947 %pub;. &rights;" >
+            |]>
+            |<root>&book;</root>
+        """.trimMargin()
+        val reader = KtXmlReader(StringReader(xml), expandEntities = true)
+
+        assertEquals(EventType.START_ELEMENT, reader.nextTag())
+        assertEquals(QName("root"), reader.name)
+
+        val entityReplacementValue = reader.entityMap.get("book")
+        assertEquals(
+            "La Peste: Albert Camus,\n© 1947 Éditions Gallimard. &rights;",
+            entityReplacementValue?.replacementValue
+        )
+
+        assertEquals(EventType.TEXT, reader.next())
+        assertEquals(
+            "La Peste: Albert Camus,\n© 1947 Éditions Gallimard. All rights reserved",
+            reader.text
+        )
+    }
+
+    @Test
     fun testReadDocEntity() {
         val xml = """<!DOCTYPE foo [ <!ENTITY xxe "foobar"> ]>
             |<tag>&xxe;</tag>

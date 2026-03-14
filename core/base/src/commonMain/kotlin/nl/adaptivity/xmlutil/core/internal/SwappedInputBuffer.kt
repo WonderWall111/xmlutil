@@ -115,6 +115,13 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
     private var copySequenceStart = -1
     private var copyBuilder: StringBuilder? = null
 
+    override val copySequenceState: State
+        get() = when {
+            copySequenceStart >= 0 -> State.ACTIVE
+            copySequenceStart == -1 -> State.INACTIVE
+            else -> State.PAUSED
+        }
+
     override fun startCopySequence() {
         ifAssertions {
             assert(copySequenceStart < 0 && copyBuilder == null) { "Copy sequence already started" }
@@ -177,6 +184,20 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
+    /**
+     * Helper function that ensures a copy builder. It also ensures that the pending writes are
+     * added to ensure there is no reordering.
+     */
+    private fun ensureCopyBuilder(sizeHint: Int = 16): StringBuilder {
+        val b = copyBuilder ?: StringBuilder(sizeHint).also { copyBuilder = it }
+
+        if (copySequenceStart >= 0 && srcBufPos > copySequenceStart) { // active. Needs temporary pause
+            b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+            copySequenceStart = srcBufPos
+        }
+        return b
+    }
+
     context(_: CopySequenceMarker)
     override fun addToCopySequence(char: Char) {
         this.ifAssertions {
@@ -185,7 +206,8 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
             }
         }
 
-        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        val b = ensureCopyBuilder()
+
         b.append(char)
     }
 
@@ -197,28 +219,9 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
             }
         }
 
-        val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
+        val b = ensureCopyBuilder()
+
         b.append(seq)
-    }
-
-    override fun readSubRange(start: Int, end: Int): CharSequence {
-        val bufStart = start - offsetBase
-        val bufEnd = end - offsetBase
-        if (bufEnd >= srcBufCount) error("End of file in subrange")
-        return buildString {
-            when {
-                bufStart >= BUF_SIZE ->
-                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
-
-                bufEnd <= BUF_SIZE ->
-                    appendRange(bufLeft, bufStart, bufEnd)
-
-                else -> {
-                    appendRange(bufLeft, bufStart, BUF_SIZE)
-                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
-                }
-            }
-        }
     }
 
     context(_: CopySequenceMarker)
@@ -230,7 +233,7 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
             return
         }
 
-        val builder = copyBuilder ?: StringBuilder(end - start).also { copyBuilder = it }
+        val builder = ensureCopyBuilder(end - start)
 
         builder.apply {
             if (copySequenceStart >=0) { // this is guaranteed to be only in the left buffer
@@ -255,6 +258,26 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
 
 
         super.appendSubRangeToSequence(start, end)
+    }
+
+    override fun readSubRange(start: Int, end: Int): CharSequence {
+        val bufStart = start - offsetBase
+        val bufEnd = end - offsetBase
+        if (bufEnd >= srcBufCount) error("End of file in subrange")
+        return buildString {
+            when {
+                bufStart >= BUF_SIZE ->
+                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+
+                bufEnd <= BUF_SIZE ->
+                    appendRange(bufLeft, bufStart, bufEnd)
+
+                else -> {
+                    appendRange(bufLeft, bufStart, BUF_SIZE)
+                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
+                }
+            }
+        }
     }
 
     /** Try to read the next character without increasing the position  */
@@ -409,4 +432,5 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
+    private typealias State = InputBuffer.State
 }

@@ -764,13 +764,32 @@ public final class nl/adaptivity/xmlutil/XmlWriterUtil {
 	public static final fun writeSimpleElement (Lnl/adaptivity/xmlutil/XmlWriter;Ljavax/xml/namespace/QName;Ljava/lang/String;)V
 }
 
+public final class nl/adaptivity/xmlutil/core/DoctypeParser {
+	public static final field Companion Lnl/adaptivity/xmlutil/core/DoctypeParser$Companion;
+	public fun <init> (Lnl/adaptivity/xmlutil/core/InputBuffer;Z)V
+	public final fun getGeneralEntities ()Ljava/util/Map;
+	public final fun parse ()V
+	public final fun parseParameterEntityReference ()V
+}
+
+public final class nl/adaptivity/xmlutil/core/DoctypeParser$Companion {
+}
+
+public final class nl/adaptivity/xmlutil/core/InputBuffer$State : java/lang/Enum {
+	public static final field ACTIVE Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+	public static final field INACTIVE Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+	public static final field PAUSED Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+	public static fun values ()[Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+}
+
 public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/core/internal/AbstractKtXmlReader {
 	public static final field PROCESS_NAMESPACES Z
 	public fun <init> (Ljava/io/Reader;Z)V
 	public synthetic fun <init> (Ljava/io/Reader;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun getInputBuffer ()Lnl/adaptivity/xmlutil/core/InputBuffer;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -812,6 +831,16 @@ public final class nl/adaptivity/xmlutil/core/KtXmlWriter : nl/adaptivity/xmluti
 	public fun startDocument (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
 	public fun startTag (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun text (Ljava/lang/String;)V
+}
+
+public class nl/adaptivity/xmlutil/core/XmlEntity {
+	public fun <init> (Ljava/lang/String;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;)V
+	public synthetic fun <init> (Ljava/lang/String;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLocation ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
+	public final fun getReplacementValue ()Ljava/lang/String;
+	public fun getSimpleValue ()Ljava/lang/String;
+	public final fun isSimple ()Z
+	public final fun resolveEmbeddedEntities (Lnl/adaptivity/xmlutil/core/impl/EntityMap;)Ljava/lang/String;
 }
 
 public final class nl/adaptivity/xmlutil/core/XmlVersion : java/lang/Enum {

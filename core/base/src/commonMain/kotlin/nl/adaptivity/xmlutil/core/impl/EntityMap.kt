@@ -20,21 +20,35 @@
 
 package nl.adaptivity.xmlutil.core.impl
 
+import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.core.XmlEntity
+
 internal object DefaultEntityMap {
-    public operator fun get(key: String): String? {
+    private class DefaultEntity(
+        override val simpleValue: String,
+        literalValue: String
+    ): XmlEntity(literalValue, true)
+
+    val LT: XmlEntity = DefaultEntity("<", "&#60;")
+    val GT: XmlEntity = DefaultEntity(">", "&#62;")
+    val AMP: XmlEntity = DefaultEntity("&", "&#38;")
+    val APOS: XmlEntity = DefaultEntity("'", "&#39")
+    val QUOT: XmlEntity = DefaultEntity("\"", "&#34")
+
+    public operator fun get(key: String): XmlEntity? {
         when (key.length) {
             2 -> when (key) {
-                "gt" -> return ">"
-                "lt" -> return "<"
+                "gt" -> return GT
+                "lt" -> return LT
             }
 
             3 -> when (key) {
-                "amp" -> return "&"
+                "amp" -> return AMP
             }
 
             4 -> when (key) {
-                "apos" -> return "'"
-                "quot" -> return "\""
+                "apos" -> return APOS
+                "quot" -> return QUOT
             }
         }
         // TODO return null
@@ -43,14 +57,15 @@ internal object DefaultEntityMap {
 
 }
 
-internal class EntityMap {
-    private val otherEntities = HashMap<String, String>(8)
+@XmlUtilInternal
+public class EntityMap {
+    private val otherEntities = HashMap<String, XmlEntity>(8)
 
-    public operator fun get(key: String): String? {
+    public operator fun get(key: String): XmlEntity? {
         return DefaultEntityMap.get(key) ?: otherEntities[key]
     }
 
-    public operator fun set(key: String, value: String) {
+    public operator fun set(key: String, value: XmlEntity) {
         otherEntities[key] = value
     }
 
