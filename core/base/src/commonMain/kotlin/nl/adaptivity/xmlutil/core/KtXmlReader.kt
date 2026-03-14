@@ -26,6 +26,8 @@ import nl.adaptivity.xmlutil.EventType.*
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
+import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
 import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.SwappedInputBuffer
 import kotlin.jvm.JvmStatic
@@ -75,7 +77,7 @@ public class KtXmlReader internal constructor(
     }
 
     override fun setOutputBuffer(output: CharSequence) {
-        check(outputBuf == null) { "Output buffer already set" }
+        ifAssertions { assert(outputBuf == null) { "Output buffer already set" } }
         outputBuf = output
     }
 

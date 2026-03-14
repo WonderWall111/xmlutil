@@ -24,15 +24,12 @@ import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.isXmlWhitespace
 
-@XmlUtilInternal
-public object CopySequenceMarker
-
 @IgnorableReturnValue
-internal inline fun InputBuffer.createCopySequence(block: context(CopySequenceMarker) () -> Unit): CharSequence {
+internal inline fun InputBuffer.createCopySequence(block: () -> Unit): CharSequence {
     startCopySequence()
     var r: CharSequence
     try {
-        context(CopySequenceMarker) { block() }
+        block()
     } finally {
         r = finalizeCopySequence()
     }
@@ -61,19 +58,24 @@ public interface InputBuffer {
      */
     public fun startCopySequence()
 
-    context(_: CopySequenceMarker)
+    public fun flushCopySequence() {
+        if (copySequenceState == State.ACTIVE) {
+            pauseCopySequence()
+            resumeCopySequence()
+        }
+    }
+
+    /**
+     * Pause a copy sequence. This means that reading will not add further tokens to the sequence.
+     */
+    public abstract fun pauseCopySequence()
+
     public fun resumeCopySequence()
 
     /**
      * Finish/finalise a copy sequence. This means it cannot be appended to anymore
      */
     public fun finalizeCopySequence(): CharSequence
-
-    /**
-     * Pause a copy sequence. This means that reading will not add further tokens to the sequence.
-     */
-    context(_: CopySequenceMarker)
-    public abstract fun pauseCopySequence()
 
     /**
      * Read tokens into the sequence up to the expected delimiters. The delimiters will
@@ -85,7 +87,6 @@ public interface InputBuffer {
      * @param pauseOnDelimiter Pause the sequence on observation of the delimiter.
      * @param consumeDelimiter If true, the delimiter will be consumed.
      */
-    context(_: CopySequenceMarker)
     public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true) {
         while (true) { // loop over multiple subsequent buffers.
             if (peek(delimiter)) {
@@ -103,10 +104,8 @@ public interface InputBuffer {
      * Add the given character to the copy sequence. This requires an active copy sequence.
      * It will force buffering of the underlying read characters if needed.
      */
-    context(_: CopySequenceMarker)
     public fun addToCopySequence(char: Char)
 
-    context(_: CopySequenceMarker)
     public fun addCodepointToCopySequence(codepoint: Int) {
         val c = codepoint
         if (c < 0) error("UNEXPECTED EOF")
@@ -126,7 +125,6 @@ public interface InputBuffer {
         addToCopySequence(low)
     }
 
-    context(_: CopySequenceMarker)
     public fun addToCopySequence(seq: CharSequence) {
         seq.forEach { addToCopySequence(it) }
     }
@@ -144,7 +142,6 @@ public interface InputBuffer {
      * Read the subrange indicated by the ofsets and append it to the (active or paused) output
      * buffer.
      */
-    context(_: CopySequenceMarker)
     public fun appendSubRangeToSequence(start: Int, end: Int) {
         for (c in readSubRange(start, end)) addToCopySequence(c)
     }
@@ -255,7 +252,6 @@ public interface InputBuffer {
     /**
      * Read the current character to the copy buffer.
      */
-    context(_: CopySequenceMarker)
     public fun readToCopyBuffer()
 
     public enum class State {

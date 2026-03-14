@@ -22,7 +22,10 @@ package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.EventType.*
-import nl.adaptivity.xmlutil.core.*
+import nl.adaptivity.xmlutil.core.DoctypeParser
+import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.XmlEntity
+import nl.adaptivity.xmlutil.core.createCopySequence
 import nl.adaptivity.xmlutil.core.impl.EntityMap
 import nl.adaptivity.xmlutil.core.impl.NamespaceHolder
 import kotlin.jvm.JvmInline
@@ -400,7 +403,6 @@ public abstract class AbstractKtXmlReader(
 
     //region Output
 
-    context(_: CopySequenceMarker)
     private fun pushCodePoint(c: Int) {
         if (c < 0) error("UNEXPECTED EOF")
 
@@ -417,7 +419,7 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    internal inline fun pushCopySequence(block: CopySequenceMarker.() -> Unit) {
+    internal inline fun pushCopySequence(block: () -> Unit) {
         val x = inputBuffer.createCopySequence(block)
         setOutputBuffer(x)
     }
@@ -560,7 +562,6 @@ public abstract class AbstractKtXmlReader(
         inputBuffer.skipWS()
     }
 
-    context(_: CopySequenceMarker)
     protected open fun pushAttributeValue(delimiter: Char) {
         while (true) {
             when (inputBuffer.peekChar()) {
@@ -581,7 +582,6 @@ public abstract class AbstractKtXmlReader(
     }
 
     /** Push attribute delimited by whitespace. Only used in relaxed mode */
-    context(_: CopySequenceMarker)
     protected open fun pushWSDelimAttrValue() {
         while (true) {
             when (inputBuffer.peekChar()) {
@@ -838,7 +838,6 @@ public abstract class AbstractKtXmlReader(
      * result: if the setName parameter is set,
      * the name of the entity is stored in "name"
      */
-    context(_: CopySequenceMarker)
     protected open fun pushEntity(expandEntities: Boolean = this@AbstractKtXmlReader.expandEntities) {
         inputBuffer.pauseCopySequence()
         readAssert('&')
@@ -863,7 +862,6 @@ public abstract class AbstractKtXmlReader(
         else -> isNameChar10(this)
     }
 
-    context(_: CopySequenceMarker)
     protected open fun pushNCName() {
         if (! isNameStartChar(inputBuffer.readChar())) {
             error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
@@ -876,7 +874,6 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    context(_: CopySequenceMarker)
     protected open fun pushName() {
         if (! isNameStartChar(inputBuffer.readChar())) {
             error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
@@ -913,7 +910,6 @@ public abstract class AbstractKtXmlReader(
         return code
     }
 
-    context(_: CopySequenceMarker)
     private fun pushRefEntity(expandEntities: Boolean) {
         val code = parseName().toString()
         readAssert(';')
@@ -941,7 +937,6 @@ public abstract class AbstractKtXmlReader(
         }
     }
 
-    context(_: CopySequenceMarker)
     private fun pushCharEntity() {
         readAssert('#') // #
 
@@ -993,7 +988,6 @@ public abstract class AbstractKtXmlReader(
     }
 
 
-    context(_: CopySequenceMarker)
     protected open fun pushNonWSText(delimiter: Char, expandEntities: Boolean) {
         _isWhitespace = false
         while (true) {
@@ -1014,7 +1008,6 @@ public abstract class AbstractKtXmlReader(
     /**
      * Push the text until the [delimiter] to the output buffer.
      */
-    context(_: CopySequenceMarker)
     protected open fun pushMaybeWSText(delimiter: Char) {
         _isWhitespace = true
 

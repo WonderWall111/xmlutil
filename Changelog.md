@@ -7,6 +7,11 @@ Features:
   is registered.
 - Exceptions will now have the ability to provide more extensive location
   information. This includes adding file name information to the exception.
+- The parser now partially parses internal DTD's and supports entities as
+  per the standard. At this point external DTDs and entities are not
+  supported (this is not a validating parser.). The work includes support
+  of injecting entity parsing results into the parser (i.e. defining
+  entities containing tags).
 
 Changes:
 - Parsing of single characters now allows for xml Whitespace and will collapse the

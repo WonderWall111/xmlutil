@@ -21,7 +21,6 @@
 package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.XmlUtilInternal
-import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
@@ -123,24 +122,32 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
 
     override fun startCopySequence() {
+/*
         ifAssertions {
             assert(copySequenceStart < 0 && copyBuilder == null) { "Copy sequence already started" }
         }
+*/
         copySequenceStart = srcBufPos
     }
 
-    context(_: CopySequenceMarker)
-    override fun resumeCopySequence() {
-        check(copySequenceStart < -1 && copyBuilder != null) { "Copy sequence is not paused" }
-        copySequenceStart = srcBufPos
+    override fun flushCopySequence() {
+        if (copySequenceStart >= 0) {
+            val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+            b.appendRange(bufLeft, copySequenceStart, srcBufPos)
+            copySequenceStart = srcBufPos
+        }
     }
 
-    context(_: CopySequenceMarker)
     override fun pauseCopySequence() {
         check(copySequenceStart>=0) { "Copy sequence not active (either not started or already suspended)" }
         val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
         b.appendRange(bufLeft, copySequenceStart, srcBufPos)
         copySequenceStart = -2 // mark as paused
+    }
+
+    override fun resumeCopySequence() {
+        check(copySequenceStart < -1 && copyBuilder != null) { "Copy sequence is not paused" }
+        copySequenceStart = srcBufPos
     }
 
     override fun finalizeCopySequence(): String {
@@ -161,12 +168,10 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
-    context(_: CopySequenceMarker)
     override fun readToCopyBuffer() {
         if (read() < 0) error("End of stream while adding character to copy buffer")
     }
 
-    context(_: CopySequenceMarker)
     override fun addDelimitedToCopySequence(
         delimiter: String,
         pauseOnDelimiter: Boolean,
@@ -198,7 +203,6 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         return b
     }
 
-    context(_: CopySequenceMarker)
     override fun addToCopySequence(char: Char) {
         this.ifAssertions {
             assert(copySequenceState != State.INACTIVE) {
@@ -211,7 +215,6 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         b.append(char)
     }
 
-    context(_: CopySequenceMarker)
     override fun addToCopySequence(seq: CharSequence) {
         this.ifAssertions {
             assert(copySequenceStart >= 0 || copyBuilder != null) {
@@ -224,7 +227,6 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         b.append(seq)
     }
 
-    context(_: CopySequenceMarker)
     override fun appendSubRangeToSequence(start: Int, end: Int) {
         val bufStart = start - offsetBase
         val bufEnd = end - offsetBase

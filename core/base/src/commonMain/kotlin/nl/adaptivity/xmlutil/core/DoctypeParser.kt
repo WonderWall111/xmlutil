@@ -107,7 +107,6 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
     }
 
-    context(_: CopySequenceMarker)
     private fun parseCharEntity() {
         assertOrSkip("&#")
 
@@ -297,6 +296,6 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
     }
 
     public companion object {
-        private var DEBUG = true
+        private const val DEBUG = false
     }
 }

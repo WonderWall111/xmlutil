@@ -21,7 +21,6 @@
 package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.core.CopySequenceMarker
 import nl.adaptivity.xmlutil.core.InputBuffer
 import nl.adaptivity.xmlutil.isXmlWhitespace
 
@@ -48,12 +47,14 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         base.startCopySequence()
     }
 
-    context(_: CopySequenceMarker)
+    override fun flushCopySequence() {
+        base.flushCopySequence()
+    }
+
     override fun pauseCopySequence() {
         base.pauseCopySequence()
     }
 
-    context(_: CopySequenceMarker)
     override fun resumeCopySequence() {
         base.resumeCopySequence()
     }
@@ -62,17 +63,17 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         return base.finalizeCopySequence()
     }
 
-    context(_: CopySequenceMarker)
+
     override fun addToCopySequence(seq: CharSequence) {
         base.addToCopySequence(seq)
     }
 
-    context(_: CopySequenceMarker)
+
     override fun addToCopySequence(char: Char) {
         base.addToCopySequence(char)
     }
 
-    context(_: CopySequenceMarker)
+
     override fun addDelimitedToCopySequence(
         delimiter: String,
         pauseOnDelimiter: Boolean,
@@ -88,7 +89,6 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         for (i in 0 until count) check(read()>=0) { "Unexpected end of stream" }
     }
 
-    context(_: CopySequenceMarker)
     override fun readToCopyBuffer() {
         val _ = readChar()
     }
@@ -145,9 +145,7 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         val pos = lastStack.pos
         val r = lastStack.source[pos].code
         if (copySequenceState == State.ACTIVE && r>=0) {
-            context(CopySequenceMarker) {
-                base.addToCopySequence(r.toChar())
-            }
+            base.addToCopySequence(r.toChar())
         }
 
         val newPos = pos + 1
@@ -161,11 +159,9 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
 
     fun inject(name: String, text: String, entityLocation: XmlReader.LocationInfo?) {
         if (base.copySequenceState == State.ACTIVE) {
-            context(CopySequenceMarker) {
-                // this ensures any pending is written to the buffer
-                base.pauseCopySequence()
-                base.resumeCopySequence()
-            }
+            // this ensures any pending is written to the buffer
+            base.pauseCopySequence()
+            base.resumeCopySequence()
         }
         stack.add(Elem(0, name, text, entityLocation))
     }
