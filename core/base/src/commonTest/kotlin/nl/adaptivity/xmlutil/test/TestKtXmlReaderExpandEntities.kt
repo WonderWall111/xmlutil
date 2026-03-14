@@ -130,6 +130,30 @@ class TestKtXmlReaderExpandEntities : TestCommonReader() {
     }
 
     @Test
+    fun testAppendixC_example2() {
+        val xml = """
+            |<?xml version='1.1'?>
+            |<!DOCTYPE test [
+            |<!ELEMENT test (#PCDATA) >
+            |<!ENTITY % xx '&#37;zz;'>
+            |<!ENTITY % zz '&#60;!ENTITY tricky "error-prone" >' >
+            |%xx;
+            |]>
+            |<test>This sample shows a &tricky; method.</test>
+        """.trimMargin()
+        val reader = KtXmlReader(StringReader(xml), expandEntities = true)
+
+        assertEquals(EventType.START_ELEMENT, reader.nextTag())
+        assertEquals(QName("test"), reader.name)
+
+        assertEquals(EventType.TEXT, reader.next())
+        assertEquals(
+            "This sample shows a error-prone method.",
+            reader.text
+        )
+    }
+
+    @Test
     fun testReadDocEntity() {
         val xml = """<!DOCTYPE foo [ <!ENTITY xxe "foobar"> ]>
             |<tag>&xxe;</tag>

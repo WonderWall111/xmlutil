@@ -58,7 +58,8 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
         val name = parseName().toString()
         if (! inputBuffer.tryRead(';')) error("Expected ';' after parameter entity reference")
         val ref = requireNotNull(parameterEntities[name]) { "Reference to unknown parameter entity reference: %$name;" }
-        inputBuffer.inject(name, ref.replacementValue, ref.location )
+        // note that the we surround the replacement with spaces.
+        inputBuffer.inject(name, " ${ref.replacementValue} ", ref.location )
         // ignore reference for now as we are not validating
     }
 
@@ -68,6 +69,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
         inputBuffer.readWS()
         // we are not validating, so ignore the element definition
         while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        assertOrSkip('>')
     }
 
     private fun parseEntityDecl() {
@@ -142,7 +144,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
         var c = inputBuffer.peekChar()
         val value = inputBuffer.createCopySequence {
-            while (inputBuffer.isInjecting || c != delim) {
+            while (c != delim) {
                 when (c) {
                     '%' -> {
                         inputBuffer.pauseCopySequence()
@@ -199,12 +201,14 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
         inputBuffer.readWS()
         // ignore attribute lists
         while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        assertOrSkip('>')
     }
 
     private fun parseNotation() {
         assertOrSkip("NOTATION")
         // ignore notations
         while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        assertOrSkip('>')
     }
 
     public fun parse() {
