@@ -1129,6 +1129,11 @@ public abstract class AbstractKtXmlReader(
             State.EOF -> error("Reading past end of file")
         }
 //        assert((offset - srcBufPos) % BUF_SIZE == 0) { "Offset error: ($offset - $srcBufPos) % $BUF_SIZE != 0" }
+        when (val b = inputBuffer) { //unwrap the injection wrapper if possible
+            is InjectingInputBuffer -> {
+                if (! b.isInjecting) inputBuffer = b.base
+            }
+        }
         return when (val et = eventType) {
             ENTITY_REF if (expandEntities) -> TEXT
             else -> et
