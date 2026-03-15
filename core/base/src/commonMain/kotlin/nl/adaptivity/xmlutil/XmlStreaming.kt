@@ -152,8 +152,6 @@ internal expect object XmlStreaming : IXmlStreaming {
     @ExperimentalXmlUtilApi
     override fun newReader(source: Node): XmlReader
 
-    override fun newGenericReader(input: CharSequence, expandEntities: Boolean): XmlReader
-
     override fun newGenericReader(reader: Reader, expandEntities: Boolean): XmlReader
 }
 

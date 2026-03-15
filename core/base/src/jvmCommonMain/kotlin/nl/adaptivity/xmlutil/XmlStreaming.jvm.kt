@@ -25,9 +25,9 @@ package nl.adaptivity.xmlutil
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.KtXmlWriter
 import nl.adaptivity.xmlutil.core.XmlVersion
-import nl.adaptivity.xmlutil.core.impl.CharsequenceReader
 import nl.adaptivity.xmlutil.core.impl.dom.DOMImplementationImpl
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
+import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.Node
@@ -146,9 +146,6 @@ internal actual object XmlStreaming : IXmlStreaming {
         return factory.newReader(input, expandEntities)
     }
 
-    actual override fun newGenericReader(input: CharSequence, expandEntities: Boolean): XmlReader =
-        newGenericReader(CharsequenceReader(input), expandEntities = expandEntities)
-
     fun newGenericReader(input: String, expandEntities: Boolean = false): XmlReader =
         newGenericReader(StringReader(input), expandEntities = expandEntities)
 
@@ -191,7 +188,7 @@ internal actual object XmlStreaming : IXmlStreaming {
         }
 
         override fun newReader(reader: Reader, expandEntities: Boolean): XmlReader {
-            return KtXmlReader(reader, expandEntities)
+            return KtXmlReader(reader, expandEntities = expandEntities)
         }
 
         override fun newReader(inputStream: InputStream, expandEntities: Boolean): XmlReader {
@@ -199,7 +196,14 @@ internal actual object XmlStreaming : IXmlStreaming {
         }
 
         override fun newReader(inputStream: InputStream, encoding: String, expandEntities: Boolean): XmlReader {
-            return KtXmlReader(inputStream, encoding, expandEntities)
+            return KtXmlReader(inputStream, encoding, expandEntities = expandEntities)
+        }
+
+        override fun newReader(
+            input: CharSequence,
+            expandEntities: Boolean
+        ): XmlReader {
+            return KtXmlReader(StringInOutBuffer(input), expandEntities = expandEntities)
         }
     }
 

@@ -26,7 +26,6 @@ import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.core.impl.dom.DOMImplementationImpl
 import nl.adaptivity.xmlutil.core.impl.dom.wrap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
-import nl.adaptivity.xmlutil.core.impl.multiplatform.StringReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom.PlatformNode
@@ -70,9 +69,6 @@ internal actual object XmlStreaming : IXmlStreaming {
 
     actual override fun newReader(reader: Reader, expandEntities: Boolean): XmlReader =
         KtXmlReader(reader, expandEntities)
-
-    actual override fun newGenericReader(input: CharSequence, expandEntities: Boolean): XmlReader =
-        newGenericReader(StringReader(input), expandEntities = expandEntities)
 
     actual override fun newGenericReader(reader: Reader, expandEntities: Boolean): XmlReader =
         KtXmlReader(reader, expandEntities = expandEntities)

@@ -44,7 +44,7 @@ import kotlin.jvm.JvmStatic
  */
 public class KtXmlReader(
     inOutBuffer: InOutBuffer,
-    encoding: String?,
+    encoding: String? = null,
     public val relaxed: Boolean = false,
     public val expandEntities: Boolean = false,
 ) : XmlReader {

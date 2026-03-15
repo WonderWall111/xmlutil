@@ -30,6 +30,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.KtXmlReader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.StringReader
+import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import nl.adaptivity.xmlutil.serialization.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -147,8 +150,15 @@ abstract class XmlTestBase<T>(
     }
 
     @Test
-    open fun testGenericDeserializeXml() {
-        val reader = xmlStreaming.newGenericReader(expectedXML)
+    open fun testGenericDeserializeXmlFromReader() {
+        val r = StringReader(expectedXML)
+        val reader = xmlStreaming.newGenericReader(r)
+        assertEquals(value, baseXmlFormat.decodeFromReader(serializer, reader))
+    }
+
+    @Test
+    open fun testGenericDeserializeXmlFromString() {
+        val reader = KtXmlReader(StringInOutBuffer(expectedXML))
         assertEquals(value, baseXmlFormat.decodeFromReader(serializer, reader))
     }
 

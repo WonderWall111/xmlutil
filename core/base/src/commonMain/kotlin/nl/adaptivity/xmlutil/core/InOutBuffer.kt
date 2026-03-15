@@ -121,14 +121,6 @@ public interface InOutBuffer {
      */
     public fun readSubRange(start: Int, end: Int): CharSequence
 
-    /**
-     * Read the subrange indicated by the ofsets and append it to the (active or paused) output
-     * buffer.
-     */
-    public fun appendSubRangeToSequence(start: Int, end: Int) {
-        for (c in readSubRange(start, end)) addToCopySequence(c)
-    }
-
     /** Try to read the next character without increasing the position  */
     public fun peek(): Int = peek(0)
 

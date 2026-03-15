@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,7 +20,9 @@
 
 package nl.adaptivity.xmlutil
 
+import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
+import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.Node
@@ -70,7 +72,8 @@ public interface IXmlStreaming {
      * @param expandEntities If true, entities are directly expanded (throwing errors if not found)
      * @return A platform independent [XmlReader], generally [nl.adaptivity.xmlutil.core.KtXmlReader]
      */
-    public fun newGenericReader(input: CharSequence, expandEntities: Boolean = false): XmlReader
+    public fun newGenericReader(input: CharSequence, expandEntities: Boolean = false): XmlReader =
+        KtXmlReader(StringInOutBuffer(input), expandEntities = expandEntities)
 
     /**
      * Create a new XML reader with the given input. This reader is generic.
