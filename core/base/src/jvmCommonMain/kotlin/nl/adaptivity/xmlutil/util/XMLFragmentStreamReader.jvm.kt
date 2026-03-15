@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.XmlDelegatingReader
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.util.impl.FragmentNamespaceContext
-import java.io.CharArrayReader
+import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import java.io.Reader
 import java.io.StringReader
 
@@ -34,8 +34,7 @@ import java.io.StringReader
  * xml that a document only has 1 document element.
  *
  *
- * @param reader The reader to read the "fragment" from.
- * @param namespaces A list of namespace/prefix declarations to resolve for the fragment.
+ * @param delegate The underlying xml reader that reads the "wrapped" content.
  */
 @Suppress("DEPRECATION")
 public actual class XMLFragmentStreamReader private constructor(delegate: XmlReader) :
@@ -123,6 +122,30 @@ public actual class XMLFragmentStreamReader private constructor(delegate: XmlRea
             return KtXmlReader(reader=actualInput, relaxed=false)
         }
 
+        private fun getDelegate(
+            source: CharArray,
+            wrapperNamespaceContext: Iterable<Namespace>
+        ): XmlReader {
+            val wrapped = buildString {
+                append("<$WRAPPERPPREFIX:wrapper xmlns:$WRAPPERPPREFIX=\"$WRAPPERNAMESPACE\"")
+                for (ns in wrapperNamespaceContext) {
+                    val prefix = ns.prefix
+                    val uri = ns.namespaceURI
+                    if (XMLConstants.DEFAULT_NS_PREFIX == prefix) {
+                        append(" xmlns")
+                    } else {
+                        append(" xmlns:").append(prefix)
+                    }
+                    append("=\"").append(uri.xmlEncode()).append('"')
+                }
+                append(" >")
+                append(source)
+                append("</$WRAPPERPPREFIX:wrapper>")
+            }
+
+            return KtXmlReader(StringInOutBuffer(wrapped), relaxed=false, expandEntities = true)
+        }
+
         @JvmStatic
         public fun from(reader: Reader, namespaceContext: Iterable<Namespace>): XMLFragmentStreamReader {
             return XMLFragmentStreamReader(reader, namespaceContext)
@@ -135,7 +158,7 @@ public actual class XMLFragmentStreamReader private constructor(delegate: XmlRea
 
         @JvmStatic
         public actual fun from(fragment: ICompactFragment): XMLFragmentStreamReader {
-            return XMLFragmentStreamReader(CharArrayReader(fragment.content), fragment.namespaces)
+            return XMLFragmentStreamReader(getDelegate(fragment.content, fragment.namespaces))
         }
 
     }

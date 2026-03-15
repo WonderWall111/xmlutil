@@ -1287,6 +1287,7 @@ public final class nl/adaptivity/xmlutil/util/ICompactFragmentSerializer : nl/ad
 public final class nl/adaptivity/xmlutil/util/XMLFragmentStreamReader : nl/adaptivity/xmlutil/XmlDelegatingReader, nl/adaptivity/xmlutil/util/XMLFragmentStreamReaderJava {
 	public static final field Companion Lnl/adaptivity/xmlutil/util/XMLFragmentStreamReader$Companion;
 	public fun <init> (Ljava/io/Reader;Ljava/lang/Iterable;)V
+	public synthetic fun <init> (Lnl/adaptivity/xmlutil/XmlReader;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public static final fun from (Ljava/io/Reader;)Lnl/adaptivity/xmlutil/util/XMLFragmentStreamReader;
 	public static final fun from (Ljava/io/Reader;Ljava/lang/Iterable;)Lnl/adaptivity/xmlutil/util/XMLFragmentStreamReader;
 	public static final fun from (Lnl/adaptivity/xmlutil/util/ICompactFragment;)Lnl/adaptivity/xmlutil/util/XMLFragmentStreamReader;

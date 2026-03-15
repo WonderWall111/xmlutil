@@ -38,9 +38,12 @@ public actual class XMLFragmentStreamReader private constructor(delegate: XmlRea
     private var localNamespaceContext: FragmentNamespaceContext =
         FragmentNamespaceContext(null, emptyArray(), emptyArray())
 
-    public constructor(reader: Reader, namespaces: Iterable<Namespace>) : this(getDelegate(reader, namespaces)) {
+    public constructor(reader: Reader, namespaces: Iterable<Namespace>) :
+            this(getDelegate(reader, namespaces)) {
         if (delegate.isStarted && delegate.eventType === EventType.START_ELEMENT) extendNamespace()
     }
+
+    public constructor(source: String, namespaces: Iterable<Namespace>) : this(getDelegate(source, namespaces))
 
     override fun getNamespaceURI(prefix: String): String? {
         if (WRAPPERPPREFIX.contentEquals(prefix)) return null
@@ -113,6 +116,32 @@ public actual class XMLFragmentStreamReader private constructor(delegate: XmlRea
             return xmlStreaming.newGenericReader(actualInput)
         }
 
+        private fun getDelegate(
+            source: CharSequence,
+            wrapperNamespaceContext: Iterable<Namespace>
+        ): XmlReader {
+            // NOTE: this assumes that creating a combined sequence is more efficient than building
+            // a combining sequence
+            val combinedSource = buildString(source.length + 200) {
+                append("<$WRAPPERPPREFIX:wrapper xmlns:$WRAPPERPPREFIX=\"$WRAPPERNAMESPACE\"")
+                for (ns in wrapperNamespaceContext) {
+                    val prefix = ns.prefix
+                    val uri = ns.namespaceURI
+                    if (XMLConstants.DEFAULT_NS_PREFIX == prefix) {
+                        append(" xmlns")
+                    } else {
+                        append(" xmlns:").append(prefix)
+                    }
+                    append("=\"").append(uri.xmlEncode()).append('"')
+                }
+                append(" >")
+                append(source)
+                append("</$WRAPPERPPREFIX:wrapper>")
+            }
+
+            return xmlStreaming.newGenericReader(combinedSource)
+        }
+
         public fun from(reader: Reader, namespaceContext: Iterable<Namespace>): XMLFragmentStreamReader {
             return XMLFragmentStreamReader(reader, namespaceContext)
         }
@@ -122,7 +151,7 @@ public actual class XMLFragmentStreamReader private constructor(delegate: XmlRea
         }
 
         public actual fun from(fragment: ICompactFragment): XMLFragmentStreamReader {
-            return XMLFragmentStreamReader(StringReader(fragment.contentString), fragment.namespaces)
+            return XMLFragmentStreamReader(fragment.contentString, fragment.namespaces)
         }
     }
 

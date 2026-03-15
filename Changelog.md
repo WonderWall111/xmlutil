@@ -30,6 +30,10 @@ Changes:
   better with native node types.
 - The JavaScript implementation no longer contains the IDom interfaces/package.
   This was an implementation package.
+- Parsing of strings by the generic parser now no longer uses a StringReader,
+  but rather handles the strings directly (in a StringInOutBuffer) leading
+  to speed and memory usage improvements (no additional buffering is needed
+  for strings already in memory.
 
 Fixes:
 - Make ElementSerializer work better in an existing document context by
