@@ -629,7 +629,7 @@ public abstract class AbstractKtXmlReader(
             val s = parseNCName().toString()
             if (inputBuffer.peek(':')) {
                 prefix = s
-                inputBuffer.skip(1)
+                inputBuffer.markPeekedAsRead()
                 localName = parseNCName().toString()
             } else {
                 prefix = null
@@ -684,7 +684,7 @@ public abstract class AbstractKtXmlReader(
                         val aPrefix: String?
                         if (inputBuffer.peek(':')) {
                             aPrefix = s
-                            inputBuffer.skip(1)
+                            inputBuffer.markPeekedAsRead()
                             aLocalName = parseNCName().toString()
                         } else {
                             aPrefix = null
@@ -708,7 +708,7 @@ public abstract class AbstractKtXmlReader(
                             val value: String
                             when (val delimiter = inputBuffer.peekChar()) {
                                 '\'', '"' -> {
-                                    inputBuffer.skip(1)
+                                    inputBuffer.markPeekedAsRead()
                                     // This is an attribute, we don't care about whitespace content
                                     value = inputBuffer.createCopySequence { pushAttributeValue(delimiter) }.toString()
                                     readAssert(delimiter)
@@ -775,11 +775,11 @@ public abstract class AbstractKtXmlReader(
                 if (c.code>=PUBID_CHAR.size || !PUBID_CHAR[c.code]) {
                     error("Invalid character in public id: '${c}'")
                 }
-                inputBuffer.skip(1)
+                inputBuffer.markPeekedAsRead()
                 c = inputBuffer.peekChar()
             }
         }
-        inputBuffer.skip(1) // delimiter
+        inputBuffer.markPeekedAsRead() // delimiter
         return r
     }
 

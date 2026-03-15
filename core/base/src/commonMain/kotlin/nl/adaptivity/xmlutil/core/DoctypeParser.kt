@@ -49,7 +49,10 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
         while (inputBuffer.peek(offset).let { it >= 0 && it.toChar().isNameChar() }) {
             offset += 1
         }
-        return inputBuffer.readSubRange(start, start + offset).also { inputBuffer.skip(offset) }
+        return inputBuffer.readSubRange(start, start + offset).also {
+            // safe as newlines are not valid name characters
+            inputBuffer.skip(offset)
+        }
     }
 
     public fun parseParameterEntityReference() {
@@ -99,7 +102,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
             }
             while (!inputBuffer.peek('>')) {
-                inputBuffer.skip(1)
+                inputBuffer.markPeekedAsRead()
             }
         } else {
             parseEntityValue(name, isParameterEntity, delim)
@@ -147,7 +150,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
                 when (c) {
                     '%' -> {
                         inputBuffer.pauseCopySequence()
-                        inputBuffer.skip(1)
+                        inputBuffer.markPeekedAsRead()
                         val name = parseName().toString()
                         if (!inputBuffer.tryRead(';')) error("Expected ';' after parameter entity reference")
                         inputBuffer.resumeCopySequence()
@@ -172,10 +175,10 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
                     '&', '<', '>' -> {
                         isSimple = false
-                        inputBuffer.skip(1)
+                        inputBuffer.markPeekedAsRead()
                     }
 
-                    else -> inputBuffer.skip(1)
+                    else -> inputBuffer.markPeekedAsRead()
                 }
 
 
@@ -199,14 +202,14 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
         inputBuffer.readWS()
         // ignore attribute lists
-        while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        while (!inputBuffer.peek('>')) inputBuffer.markPeekedAsRead()
         assertOrSkip('>')
     }
 
     private fun parseNotation() {
         assertOrSkip("NOTATION")
         // ignore notations
-        while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        while (!inputBuffer.peek('>')) inputBuffer.markPeekedAsRead()
         assertOrSkip('>')
     }
 
@@ -219,16 +222,16 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
 
                 '<' -> {
-                    inputBuffer.skip(1)
+                    inputBuffer.markPeekedAsRead()
                     when (inputBuffer.peekChar()) {
                         '!' -> { // Comment
-                            inputBuffer.skip(1)
+                            inputBuffer.markPeekedAsRead()
                             when {
                                 inputBuffer.peek("--") -> {
                                     inputBuffer.skip(2)
                                     // skip comments in doctype declarations
                                     while (!inputBuffer.peek("-->")) {
-                                        inputBuffer.skip(1)
+                                        inputBuffer.markPeekedAsRead()
                                     }
                                     inputBuffer.skip(3)
                                 }
@@ -264,7 +267,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
     private fun parseProcessingInstruction() {
         assertOrSkip('?')
 
-        while (!inputBuffer.peek("?>")) inputBuffer.skip(1)
+        while (!inputBuffer.peek("?>")) inputBuffer.markPeekedAsRead()
     }
 
     private fun error(message: String): Nothing {
@@ -293,7 +296,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
         if (DEBUG) {
             if (! inputBuffer.peek(expected)) { throw XmlException("Expected '$expected' but found '${inputBuffer.peekChar()}'", inputBuffer.locationInfo) }
         }
-        inputBuffer.skip(1)
+        inputBuffer.markPeekedAsRead()
     }
 
     public companion object {

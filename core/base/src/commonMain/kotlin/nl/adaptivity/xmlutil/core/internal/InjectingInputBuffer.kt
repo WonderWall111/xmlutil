@@ -38,7 +38,7 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         get() = if (stack.isEmpty()) base.line else 1
 
     override val column: Int
-        get() = stack.lastOrNull ()?.pos ?: base.column
+        get() = stack.lastOrNull ()?.run { pos + 1 } ?: base.column
 
     override val copySequenceState: InputBuffer.State
         get() = base.copySequenceState

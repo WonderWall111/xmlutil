@@ -86,12 +86,18 @@ class TestKtXmlReader : TestCommonReader() {
         assertEquals(EventType.START_DOCUMENT, reader.next())
         assertEquals("1.1", reader.version)
         assertEquals(true, reader.standalone)
+        assertEquals(39, reader.getColumnNumber())
+        assertEquals(1, reader.getLineNumber())
 
         assertEquals(EventType.IGNORABLE_WHITESPACE, reader.next())
         assertEquals("\n", reader.text)
+        assertEquals(1, reader.getColumnNumber())
+        assertEquals(2, reader.getLineNumber())
 
         assertEquals(EventType.START_ELEMENT, reader.next())
         assertEquals("foo", reader.localName)
+        assertEquals(6, reader.getColumnNumber())
+        assertEquals(2, reader.getLineNumber())
     }
 
     @Test

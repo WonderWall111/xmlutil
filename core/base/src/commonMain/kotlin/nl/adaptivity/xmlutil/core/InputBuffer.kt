@@ -208,7 +208,7 @@ public interface InputBuffer {
      */
     public fun tryRead(expected: Char): Boolean = when {
         peek(expected) -> {
-            skip(1)
+            markPeekedAsRead()
             true
         }
 
@@ -223,7 +223,7 @@ public interface InputBuffer {
         require (isXmlWhitespace(firstChar)) { "Expected whitespace, but found non-whitespace: '$firstChar'" }
 
         while (peek().let { it == '\t'.code ||  it == '\r'.code || it == ' '.code || it == '\r'.code }) {
-            skip(1)
+            markPeekedAsRead() //needs line ending handling
         }
     }
 
@@ -232,10 +232,20 @@ public interface InputBuffer {
      */
     public fun skipWS() {
         var cnt = 0
-        while (peek(cnt).let { it >=0 && isXmlWhitespace(it.toChar())}) {
-            cnt += 1
+        var c = peek()
+        while (c >= 0) {
+            when (c.toChar()) {
+                '\t', ' ' -> cnt += 1
+                '\n', '\r' -> {
+                    if (cnt > 0) skip(cnt)
+                    cnt = 0
+                    markPeekedAsRead() // does newlines for us
+                }
+                else -> break
+            }
+            c = peek(cnt)
         }
-        skip(cnt)
+        if (cnt > 0) skip(cnt)
     }
 
     public fun readChar(): Char {
@@ -278,7 +288,7 @@ public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: String, paus
                 }
             }
         }
-        skip(1)
+        markPeekedAsRead()
         c = peekChar()
     }
 }

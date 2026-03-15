@@ -52,12 +52,12 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
     override val offset: Int
         get() = offsetBase + srcBufPos
 
-    override var line: Int = 0
+    override var line: Int = 1
 
     private var lastColumnStart: Int = 0
         set
 
-    override val column: Int get() = offset - lastColumnStart
+    override val column: Int get() = offset - lastColumnStart + 1 // first char is 1, not 0
 
     init { // Read the first buffers on creation, rather than delayed
         var cnt = readUntilFullOrEOF(bufLeft)
