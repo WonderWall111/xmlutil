@@ -230,6 +230,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
                                     while (!inputBuffer.peek("-->")) {
                                         inputBuffer.skip(1)
                                     }
+                                    inputBuffer.skip(3)
                                 }
 
                                 inputBuffer.peek("ELEMENT") -> parseElementDecl()
