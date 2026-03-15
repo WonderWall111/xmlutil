@@ -205,6 +205,10 @@ public interface InputBuffer {
      */
     public fun skip(count: Int)
 
+    public fun markPeekedAsRead(): Unit {
+        val _ = read()
+    }
+
     /** Does never read more than needed  */
     public fun read(): Int
 

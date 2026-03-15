@@ -68,7 +68,7 @@ public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolea
 
         inputBuffer.readWS()
         // we are not validating, so ignore the element definition
-        while (!inputBuffer.peek('>')) inputBuffer.skip(1)
+        while (!inputBuffer.peek('>')) inputBuffer.markPeekedAsRead()
         assertOrSkip('>')
     }
 

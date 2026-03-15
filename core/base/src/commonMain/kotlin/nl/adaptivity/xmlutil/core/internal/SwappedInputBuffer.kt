@@ -350,54 +350,83 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         if (newPos >= BUF_SIZE) swapInputBuffer()
     }
 
+    override fun markPeekedAsRead() {
+        fun handleLineEnd(complement: Int, oldPos: Int) {
+            val newPos: Int
+            if (peek(1) == complement) {
+                newPos = oldPos + 2
+                pauseCopySequence()
+                addToCopySequence('\n')
+                resumeCopySequence()
+            } else {
+                newPos = oldPos + 1
+                if (copySequenceState == State.ACTIVE && complement == '\r'.code) {
+                    pauseCopySequence()
+                    addToCopySequence('\n')
+                    resumeCopySequence()
+                }
+            }
+
+            line+=1
+            srcBufPos = newPos
+            lastColumnStart = offset
+        }
+
+        val oldPos = srcBufPos
+        val peeked = if (oldPos < BUF_SIZE) bufLeft[oldPos] else bufRight[oldPos - BUF_SIZE]
+        when (peeked) {
+            '\r' -> handleLineEnd('\n'.code, oldPos)
+            '\n' -> handleLineEnd('\r'.code, oldPos)
+            else -> srcBufPos = oldPos + 1
+        }
+        if (srcBufPos >= BUF_SIZE) swapInputBuffer()
+    }
+
     /** Does never read more than needed  */
     override fun read(): Int {
+        fun handleLineEnd(complement: Int, oldPos: Int) {
+            val inc = if(peek(2) == complement) 2 else 1
+            val newPos = oldPos + inc
+            if (copySequenceState == State.ACTIVE && (inc == 2 || complement == '\n'.code)) {
+                pauseCopySequence()
+                addToCopySequence('\n')
+                srcBufPos = newPos
+                resumeCopySequence()
+            } else {
+                srcBufPos = newPos
+            }
+            lastColumnStart = offsetBase + newPos
+            line += 1
+        }
+
         // In this case we *may* need the right buffer, otherwise not
         // optimize this implementation for the "happy" path
-        val initPos = srcBufPos
-        if (initPos >= srcBufCount) return -1
+        var oldPos = srcBufPos
+        if (oldPos >= srcBufCount) return -1
 
-        if (initPos >= BUF_SIZE) swapInputBuffer() // swap if needed. Note that peek will work
-        // correctly
+        if (oldPos >= BUF_SIZE) {
+            // swap if needed. Note that peek will work
+            // correctly and we can get a little further for line endings.
+            swapInputBuffer()
+            oldPos = srcBufPos // need to update oldPos
+        }
 
-        val r = when (val char = bufLeft[srcBufPos++]) {
+        when (val char = bufLeft[oldPos]) {
             '\r' -> { // as \r is always transformed to \n, this requires a stringBuilder.
-                val n = srcBufPos + 1
-                @Suppress("EmptyRange") // invalid diagnosis
-                if (copySequenceStart in 0..<srcBufPos) {
-                    (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
-                        .appendRange(bufLeft, copySequenceStart, srcBufPos-1)
-                        .append('\n')
-                    copySequenceStart = srcBufPos
-                }
-                if (peek() == '\n'.code) {
-                    srcBufPos = n
-                }
-
-                line += 1
-                lastColumnStart = offset
-                '\n'
+                handleLineEnd('\n'.code, oldPos)
+                return '\n'.code
             }
 
             '\n' -> {
-                if (peek() == '\r'.code) {
-                    val n = srcBufPos + 1
-                    if (copySequenceStart>=0) {
-                        (copyBuilder ?: StringBuilder(16).also { copyBuilder = it })
-                            .appendRange(bufLeft, copySequenceStart, srcBufPos)
-                        copySequenceStart = n
-                    }
-                    srcBufPos = n
-                }
-
-                line += 1
-                lastColumnStart = offset
-                '\n'
+                handleLineEnd('\r'.code, oldPos)
+                return '\n'.code
             }
 
-            else -> char
+            else -> {
+                srcBufPos = oldPos + 1
+                return char.code
+            }
         }
-        return r.code
     }
 
 

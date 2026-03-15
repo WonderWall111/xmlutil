@@ -569,7 +569,7 @@ public abstract class AbstractKtXmlReader(
                 '\t', '\n' -> {
                     inputBuffer.pauseCopySequence()
                     inputBuffer.addToCopySequence(' ')
-                    inputBuffer.skip(1)
+                    inputBuffer.markPeekedAsRead()
                     inputBuffer.resumeCopySequence()
                 }
 

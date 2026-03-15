@@ -89,6 +89,10 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         for (i in 0 until count) check(read()>=0) { "Unexpected end of stream" }
     }
 
+    override fun markPeekedAsRead() {
+        val _ = readChar()
+    }
+
     override fun readToCopyBuffer() {
         val _ = readChar()
     }
