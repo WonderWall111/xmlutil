@@ -26,8 +26,10 @@ import nl.adaptivity.xmlutil.core.XmlEntity
 internal object DefaultEntityMap {
     private class DefaultEntity(
         override val simpleValue: String,
-        literalValue: String
-    ): XmlEntity(literalValue, true)
+        replacementValue: String
+    ) : XmlEntity(replacementValue, false) {
+        override val isSimple get() = true
+    }
 
     val LT: XmlEntity = DefaultEntity("<", "&#60;")
     val GT: XmlEntity = DefaultEntity(">", "&#62;")

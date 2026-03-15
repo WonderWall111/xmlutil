@@ -765,14 +765,10 @@ public final class nl/adaptivity/xmlutil/XmlWriterUtil {
 }
 
 public final class nl/adaptivity/xmlutil/core/DoctypeParser {
-	public static final field Companion Lnl/adaptivity/xmlutil/core/DoctypeParser$Companion;
 	public fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Z)V
 	public final fun getGeneralEntities ()Ljava/util/Map;
 	public final fun parse ()V
 	public final fun parseParameterEntityReference ()V
-}
-
-public final class nl/adaptivity/xmlutil/core/DoctypeParser$Companion {
 }
 
 public final class nl/adaptivity/xmlutil/core/InOutBuffer$State : java/lang/Enum {
@@ -878,12 +874,12 @@ public final class nl/adaptivity/xmlutil/core/KtXmlWriter : nl/adaptivity/xmluti
 }
 
 public class nl/adaptivity/xmlutil/core/XmlEntity {
-	public fun <init> (Ljava/lang/String;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;)V
-	public synthetic fun <init> (Ljava/lang/String;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/CharSequence;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;)V
+	public synthetic fun <init> (Ljava/lang/CharSequence;ZLnl/adaptivity/xmlutil/XmlReader$LocationInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getLocation ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
-	public final fun getReplacementValue ()Ljava/lang/String;
-	public fun getSimpleValue ()Ljava/lang/String;
-	public final fun isSimple ()Z
+	public final fun getReplacementValue ()Ljava/lang/CharSequence;
+	public fun getSimpleValue ()Ljava/lang/CharSequence;
+	public fun isSimple ()Z
 	public final fun resolveEmbeddedEntities (Lnl/adaptivity/xmlutil/core/impl/EntityMap;)Ljava/lang/String;
 }
 

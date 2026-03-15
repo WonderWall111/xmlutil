@@ -299,7 +299,4 @@ public class DoctypeParser(inOutBuffer: InOutBuffer, private val isXML11: Boolea
         inputBuffer.markPeekedAsRead()
     }
 
-    public companion object {
-        private const val DEBUG = false
-    }
 }

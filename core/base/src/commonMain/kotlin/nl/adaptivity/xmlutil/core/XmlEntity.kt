@@ -23,12 +23,31 @@ package nl.adaptivity.xmlutil.core
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.impl.EntityMap
+import nl.adaptivity.xmlutil.core.internal.DEBUG
 import nl.adaptivity.xmlutil.core.internal.addDigitToCodePoint
 import nl.adaptivity.xmlutil.core.internal.appendCodepoint
 
 @ExperimentalXmlUtilApi
-public open class XmlEntity(public val replacementValue: String, public val isSimple: Boolean, public val location: XmlReader.LocationInfo? = null) {
-    public open val simpleValue: String get() = replacementValue
+public open class XmlEntity(
+    public val replacementValue: CharSequence,
+    isSimple: Boolean,
+    public val location: XmlReader.LocationInfo? = null
+) {
+
+    init {
+        if (DEBUG && isSimple) {
+            require(replacementValue.none { it == '<' || it == '>' || it == '&' }) {
+                "Invalid character found in replacement value for simple entity: $replacementValue"
+            }
+        }
+    }
+
+    // This is secondary so that init can use the parameter for checking. Even if this property
+    // is overridden by the default implementations.
+    @Suppress("CanBePrimaryConstructorProperty")
+    public open val isSimple: Boolean = isSimple
+
+    public open val simpleValue: CharSequence get() = replacementValue
 
     public fun resolveEmbeddedEntities(entityMap: EntityMap): String {
         return buildString {

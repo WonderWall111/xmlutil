@@ -244,3 +244,5 @@ internal fun addDigitToCodePoint(char: Char, isHex: Boolean, current: Int): Int 
         else -> throw IllegalArgumentException("Unexpected character in character entity: '$char'")
     }
 }
+
+internal const val DEBUG: Boolean = true

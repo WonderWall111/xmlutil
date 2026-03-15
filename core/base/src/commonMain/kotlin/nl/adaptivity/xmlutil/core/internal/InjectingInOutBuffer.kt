@@ -172,7 +172,7 @@ internal class InjectingInOutBuffer(val base: InOutBuffer): InOutBuffer {
         return r
     }
 
-    fun inject(name: String, text: String, entityLocation: XmlReader.LocationInfo?) {
+    fun inject(name: String, text: CharSequence, entityLocation: XmlReader.LocationInfo?) {
         if (base.copySequenceState == State.ACTIVE) {
             // this ensures any pending is written to the buffer
             base.pauseCopySequence()
