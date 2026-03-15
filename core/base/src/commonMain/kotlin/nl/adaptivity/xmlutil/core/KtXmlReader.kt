@@ -35,7 +35,7 @@ import kotlin.jvm.JvmStatic
 
 @ExperimentalXmlUtilApi
 /**
- * @param inputBuffer A helper buffer to handle parsing/chunking inputs and collating outputs
+ * @param inOutBuffer A helper buffer to handle parsing/chunking inputs and collating outputs
  *          while trying to avoid character copying. It also allows for string/utf8 based inputs.
  * @param encoding The encoding to record, note this doesn't impact the actual parsing (that is handled in the reader)
  * @param relaxed If `true` ignore various syntax and namespace errors
@@ -43,7 +43,7 @@ import kotlin.jvm.JvmStatic
  *              will cause an exception in expanding mode.
  */
 public class KtXmlReader(
-    inputBuffer: InputBuffer,
+    inOutBuffer: InOutBuffer,
     encoding: String?,
     public val relaxed: Boolean = false,
     public val expandEntities: Boolean = false,
@@ -54,7 +54,7 @@ public class KtXmlReader(
         encoding: String?,
         relaxed: Boolean = false,
         expandEntities: Boolean = false
-    ) : this(SwappedInputBuffer(reader), encoding, relaxed, expandEntities)
+    ) : this(SwappedInOutBuffer(reader), encoding, relaxed, expandEntities)
 
     public constructor(reader: Reader, relaxed: Boolean = false) :
             this(reader, null, relaxed)
@@ -63,7 +63,7 @@ public class KtXmlReader(
             this(reader, null, relaxed, expandEntities)
 
 
-    private var inputBuffer: InputBuffer = inputBuffer
+    private var inOutBuffer: InOutBuffer = inOutBuffer
         private set
 
     // must have different name than function.
@@ -205,14 +205,14 @@ public class KtXmlReader(
 
     //region Location info
     override val extLocationInfo: XmlReader.LocationInfo
-        get() = inputBuffer.locationInfo
+        get() = inOutBuffer.locationInfo
 
     public fun getLineNumber(): Int {
-        return inputBuffer.line
+        return inOutBuffer.line
     }
 
     public fun getColumnNumber(): Int {
-        return inputBuffer.column
+        return inOutBuffer.column
     }
 
     //endregion Location info
@@ -427,15 +427,15 @@ public class KtXmlReader(
 
             val high = ((offset ushr 10) + 0xd800).toChar() // high surrogate
             val low = ((offset and 0x3ff) + 0xdc00).toChar() // low surrogate
-            inputBuffer.addToCopySequence(high)
-            inputBuffer.addToCopySequence(low)
+            inOutBuffer.addToCopySequence(high)
+            inOutBuffer.addToCopySequence(low)
         } else {
-            inputBuffer.addToCopySequence(c.toChar())
+            inOutBuffer.addToCopySequence(c.toChar())
         }
     }
 
     internal inline fun pushCopySequence(block: () -> Unit) {
-        val x = inputBuffer.createCopySequence(block)
+        val x = inOutBuffer.createCopySequence(block)
         setOutputBuffer(x)
     }
 
@@ -564,24 +564,24 @@ public class KtXmlReader(
      * Skip reading whitespace
      */
     private fun skipWS() {
-        inputBuffer.skipWS()
+        inOutBuffer.skipWS()
     }
 
     private fun pushAttributeValue(delimiter: Char) {
         while (true) {
-            when (inputBuffer.peekChar()) {
+            when (inOutBuffer.peekChar()) {
                 '&' -> pushEntity(true)
                 '\t', '\n' -> {
-                    inputBuffer.pauseCopySequence()
-                    inputBuffer.addToCopySequence(' ')
-                    inputBuffer.markPeekedAsRead()
-                    inputBuffer.resumeCopySequence()
+                    inOutBuffer.pauseCopySequence()
+                    inOutBuffer.addToCopySequence(' ')
+                    inOutBuffer.markPeekedAsRead()
+                    inOutBuffer.resumeCopySequence()
                 }
 
                 '\r' -> throw AssertionError("Carriage returns should have been normalized out here")
 
                 delimiter -> return
-                else -> inputBuffer.markPeekedAsRead()
+                else -> inOutBuffer.markPeekedAsRead()
             }
         }
     }
@@ -589,11 +589,11 @@ public class KtXmlReader(
     /** Push attribute delimited by whitespace. Only used in relaxed mode */
     private fun pushWSDelimAttrValue() {
         while (true) {
-            when (inputBuffer.peekChar()) {
+            when (inOutBuffer.peekChar()) {
                 '&' -> pushEntity(true)
                 '>', '\t', '\n', '\r', ' ' -> return
-                '/' if inputBuffer.peek(1, '>') -> return
-                else -> inputBuffer.markPeekedAsRead()
+                '/' if inOutBuffer.peek(1, '>') -> return
+                else -> inOutBuffer.markPeekedAsRead()
             }
         }
     }
@@ -602,19 +602,19 @@ public class KtXmlReader(
      * Read the next character and assert it is the expected character.
      */
     private fun readAssert(c: Char) {
-        val a = inputBuffer.read()
+        val a = inOutBuffer.read()
         if (a != c.code) error("expected: '$c' actual: '${a.toChar()}'")
     }
 
     private fun readAssert(s: String, errorMessage: (Char) -> String ) {
         for (c in s) {
-            val d = inputBuffer.read()
+            val d = inOutBuffer.read()
             if (c.code != d) error(errorMessage(c))
         }
     }
 
     private fun readAssert(s: String): Unit = readAssert(s) { c ->
-        "Found unexpected character '$c' while parsing '$s' at ${inputBuffer.locationInfo}"
+        "Found unexpected character '$c' while parsing '$s' at ${inOutBuffer.locationInfo}"
     }
 
     //endregion
@@ -627,14 +627,14 @@ public class KtXmlReader(
         if (xmldecl) {
             prefix = null
             readAssert("xml")
-            val next = inputBuffer.peekChar()
+            val next = inOutBuffer.peekChar()
             require(! next.isNameChar()) { "XML declarations must be prefixed with '<?xml' and must be followed by a non-name-char" }
             localName = "xml"
         } else {
             val s = parseNCName().toString()
-            if (inputBuffer.peek(':')) {
+            if (inOutBuffer.peek(':')) {
                 prefix = s
-                inputBuffer.markPeekedAsRead()
+                inOutBuffer.markPeekedAsRead()
                 localName = parseNCName().toString()
             } else {
                 prefix = null
@@ -644,7 +644,7 @@ public class KtXmlReader(
         clearAttributes()
         while (true) {
             skipWS()
-            when (val c = inputBuffer.peek()) {
+            when (val c = inOutBuffer.peek()) {
                 '?'.code -> {
                     if (!xmldecl) error("? found outside of xml declaration")
                     readAssert('?')
@@ -656,10 +656,10 @@ public class KtXmlReader(
                     if (xmldecl) error("/ found to close xml declaration")
                     isSelfClosing = true
                     readAssert('/')
-                    if (isXmlWhitespace(inputBuffer.peek().toChar())) {
+                    if (isXmlWhitespace(inOutBuffer.peek().toChar())) {
                         error("ERR: Whitespace between empty content tag closing elements")
-                        while (isXmlWhitespace(inputBuffer.peek().toChar())) {
-                            val _ = inputBuffer.read()
+                        while (isXmlWhitespace(inOutBuffer.peek().toChar())) {
+                            val _ = inOutBuffer.read()
                         }
                     }
                     readAssert('>')
@@ -687,9 +687,9 @@ public class KtXmlReader(
                         val s = parseNCName().toString()
                         val aLocalName: String?
                         val aPrefix: String?
-                        if (inputBuffer.peek(':')) {
+                        if (inOutBuffer.peek(':')) {
                             aPrefix = s
-                            inputBuffer.markPeekedAsRead()
+                            inOutBuffer.markPeekedAsRead()
                             aLocalName = parseNCName().toString()
                         } else {
                             aPrefix = null
@@ -702,26 +702,26 @@ public class KtXmlReader(
                             break
                         }
                         skipWS()
-                        if (inputBuffer.peek() != '='.code) {
+                        if (inOutBuffer.peek() != '='.code) {
                             val fullname = fullname(aPrefix, aLocalName)
-                            error("Attr.value missing in $fullname '='. Found: ${inputBuffer.peek().toChar()}")
+                            error("Attr.value missing in $fullname '='. Found: ${inOutBuffer.peek().toChar()}")
 
                             addUnresolvedAttribute(aPrefix, aLocalName, fullname)
                         } else {
                             readAssert('=')
                             skipWS()
                             val value: String
-                            when (val delimiter = inputBuffer.peekChar()) {
+                            when (val delimiter = inOutBuffer.peekChar()) {
                                 '\'', '"' -> {
-                                    inputBuffer.markPeekedAsRead()
+                                    inOutBuffer.markPeekedAsRead()
                                     // This is an attribute, we don't care about whitespace content
-                                    value = inputBuffer.createCopySequence { pushAttributeValue(delimiter) }.toString()
+                                    value = inOutBuffer.createCopySequence { pushAttributeValue(delimiter) }.toString()
                                     readAssert(delimiter)
                                 }
 
                                 else -> {
                                     error("attr value delimiter missing!")
-                                    value = inputBuffer.createCopySequence { pushWSDelimAttrValue() }.toString()
+                                    value = inOutBuffer.createCopySequence { pushWSDelimAttrValue() }.toString()
                                 }
                             }
 
@@ -754,16 +754,16 @@ public class KtXmlReader(
         readAssert("<![CDATA[")
 
         pushCopySequence {
-            inputBuffer.addDelimitedToCopySequence("]]>")
+            inOutBuffer.addDelimitedToCopySequence("]]>")
         }
         return
     }
 
     private fun parseSystemLiteral(): CharSequence {
         // literals can be any character except the delimiter.
-        return when (val r = inputBuffer.readChar()) {
-            '\'' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence('\'') }
-            '"' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence('"') }
+        return when (val r = inOutBuffer.readChar()) {
+            '\'' -> inOutBuffer.createCopySequence { inOutBuffer.addDelimitedToCopySequence('\'') }
+            '"' -> inOutBuffer.createCopySequence { inOutBuffer.addDelimitedToCopySequence('"') }
             else -> {
                 error("Quoted text must start with a single or double quote. Found: $r")
                 ""
@@ -772,47 +772,47 @@ public class KtXmlReader(
     }
 
     private fun parsePublicId(): CharSequence {
-        val delim = inputBuffer.readChar()
+        val delim = inOutBuffer.readChar()
         if (delim != '\'' && delim != '"') error("Invalid delimiter for public id: '$delim'. Expected: ' or \"")
 
-        val r = inputBuffer.createCopySequence {
-            var c = inputBuffer.peekChar()
+        val r = inOutBuffer.createCopySequence {
+            var c = inOutBuffer.peekChar()
             while (c != delim) {
                 if (c.code>=PUBID_CHAR.size || !PUBID_CHAR[c.code]) {
                     error("Invalid character in public id: '${c}'")
                 }
-                inputBuffer.markPeekedAsRead()
-                c = inputBuffer.peekChar()
+                inOutBuffer.markPeekedAsRead()
+                c = inOutBuffer.peekChar()
             }
         }
-        inputBuffer.markPeekedAsRead() // delimiter
+        inOutBuffer.markPeekedAsRead() // delimiter
         return r
     }
 
     private fun parseDoctype() {
         readAssert("<!DOCTYPE")
 
-        inputBuffer.readWS()
+        inOutBuffer.readWS()
 
         docTypeName = parseName().toString()
 
         skipWS()
 
-        when (val p = inputBuffer.peek()) {
+        when (val p = inOutBuffer.peek()) {
             '>'.code -> return
 
             'S'.code -> {
                 readAssert("SYSTEM")
-                inputBuffer.readWS()
+                inOutBuffer.readWS()
                 docTypeSystemId = parseSystemLiteral().toString()
                 skipWS()
             }
 
             'P'.code -> {
                 readAssert("PUBLIC")
-                inputBuffer.readWS()
+                inOutBuffer.readWS()
                 docTypePublicId = parsePublicId().toString()
-                inputBuffer.readWS()
+                inOutBuffer.readWS()
                 docTypeSystemId = parseSystemLiteral().toString()
                 skipWS()
             }
@@ -822,8 +822,8 @@ public class KtXmlReader(
             else -> error("Unexpected content in document type declaration: ${p.toChar()}")
         }
 
-        if (inputBuffer.tryRead('[')) {
-            val docTypeParser = DoctypeParser(inputBuffer, version == "1.1")
+        if (inOutBuffer.tryRead('[')) {
+            val docTypeParser = DoctypeParser(inOutBuffer, version == "1.1")
             docTypeParser.parse()
             for ((name, decl) in docTypeParser.generalEntities) {
                 recordEntity(name, decl)
@@ -844,14 +844,14 @@ public class KtXmlReader(
      * the name of the entity is stored in "name"
      */
     private fun pushEntity(expandEntities: Boolean = this.expandEntities) {
-        inputBuffer.pauseCopySequence()
+        inOutBuffer.pauseCopySequence()
         readAssert('&')
 
         when {
-            inputBuffer.peek('#') -> pushCharEntity()
+            inOutBuffer.peek('#') -> pushCharEntity()
             else -> pushRefEntity(expandEntities)
         }
-        inputBuffer.resumeCopySequence()
+        inOutBuffer.resumeCopySequence()
     }
 
     private fun resolveEntity(entityName: String): XmlEntity? {
@@ -868,49 +868,49 @@ public class KtXmlReader(
     }
 
     private fun pushNCName() {
-        if (! isNameStartChar(inputBuffer.readChar())) {
-            error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
+        if (! isNameStartChar(inOutBuffer.readChar())) {
+            error("NCName must start with a letter or underscore: '${inOutBuffer.peekChar()}'")
         }
 
-        var c = inputBuffer.peek()
+        var c = inOutBuffer.peek()
         while (c >= 0 && c != ':'.code && c.toChar().isNameChar()) {
-            inputBuffer.skip(1) // no newlines in names
-            c = inputBuffer.peek()
+            inOutBuffer.skip(1) // no newlines in names
+            c = inOutBuffer.peek()
         }
     }
 
     private fun pushName() {
-        if (! isNameStartChar(inputBuffer.readChar())) {
-            error("NCName must start with a letter or underscore: '${inputBuffer.peekChar()}'")
+        if (! isNameStartChar(inOutBuffer.readChar())) {
+            error("NCName must start with a letter or underscore: '${inOutBuffer.peekChar()}'")
         }
 
-        var c = inputBuffer.peek()
+        var c = inOutBuffer.peek()
         while (c >= 0 && c.toChar().isNameChar()) {
-            inputBuffer.skip(1)
-            c = inputBuffer.peek()
+            inOutBuffer.skip(1)
+            c = inOutBuffer.peek()
         }
     }
 
     private fun parseNCName(): CharSequence {
-        return inputBuffer.createCopySequence { pushNCName() }
+        return inOutBuffer.createCopySequence { pushNCName() }
     }
 
     private fun parseName(): CharSequence {
-        val startBuffer = inputBuffer.offset
+        val startBuffer = inOutBuffer.offset
 
-        inputBuffer.peekChar().let { first ->
+        inOutBuffer.peekChar().let { first ->
             if (!isNameStartChar(first)) {
-                throw XmlException("Entity reference does not start with name char &${getOutputString()}${first}", inputBuffer.locationInfo)
+                throw XmlException("Entity reference does not start with name char &${getOutputString()}${first}", inOutBuffer.locationInfo)
             }
         }
 
         var offset = 1
-        while (inputBuffer.peek(offset).let { c -> c >= 0 /*&& c != ':'.code*/ && c.toChar().isNameChar() }) {
+        while (inOutBuffer.peek(offset).let { c -> c >= 0 /*&& c != ':'.code*/ && c.toChar().isNameChar() }) {
             offset += 1
         }
 
-        val code = inputBuffer.readSubRange(startBuffer, startBuffer + offset).toString()
-        inputBuffer.skip(offset)
+        val code = inOutBuffer.readSubRange(startBuffer, startBuffer + offset).toString()
+        inOutBuffer.skip(offset)
 
         return code
     }
@@ -930,10 +930,10 @@ public class KtXmlReader(
                 if (expandEntities) exception("Unknown entity \"&$code;\" in entity expanding mode")
             }
 
-            else if result.isSimple -> inputBuffer.addToCopySequence(result.simpleValue)
+            else if result.isSimple -> inOutBuffer.addToCopySequence(result.simpleValue)
 
             else -> {
-                val b = (inputBuffer as? InjectingInputBuffer) ?: InjectingInputBuffer(inputBuffer).also { inputBuffer = it }
+                val b = (inOutBuffer as? InjectingInOutBuffer) ?: InjectingInOutBuffer(inOutBuffer).also { inOutBuffer = it }
 
 //                val injectionText = result.resolveEmbeddedEntities(entityMap)
 
@@ -948,7 +948,7 @@ public class KtXmlReader(
         var isHex: Boolean
         var current: Int
 
-        when (val first = inputBuffer.readChar()) {
+        when (val first = inOutBuffer.readChar()) {
             'x' -> {
                 isHex = true
                 current = 0
@@ -961,15 +961,15 @@ public class KtXmlReader(
 
             else -> {
                 error("Unexpected character in character entity: '$first'")
-                inputBuffer.addToCopySequence("&#")
-                inputBuffer.addToCopySequence(first)
-                inputBuffer.pauseCopySequence() // Peeked elements don't need pushing
+                inOutBuffer.addToCopySequence("&#")
+                inOutBuffer.addToCopySequence(first)
+                inOutBuffer.pauseCopySequence() // Peeked elements don't need pushing
                 return
             }
         }
 
         while (true) {
-            when (val char = inputBuffer.readChar()) {
+            when (val char = inOutBuffer.readChar()) {
                 ';' -> break
 
                 in '0'..'9' -> current = addDigitToCodePoint(char, isHex, current)
@@ -980,14 +980,14 @@ public class KtXmlReader(
 
                 else -> {
                     error("Unexpected character in character entity: '$char'")
-                    inputBuffer.addToCopySequence('&')
-                    inputBuffer.resumeCopySequence() // Peeked elements don't need pushing
+                    inOutBuffer.addToCopySequence('&')
+                    inOutBuffer.resumeCopySequence() // Peeked elements don't need pushing
                     return
                 }
             }
         }
 
-        inputBuffer.addCodepointToCopySequence(current)
+        inOutBuffer.addCodepointToCopySequence(current)
         return
     }
 
@@ -995,7 +995,7 @@ public class KtXmlReader(
     private fun pushNonWSText(delimiter: Char, expandEntities: Boolean) {
         _isWhitespace = false
         while (true) {
-            val c = inputBuffer.peekChar()
+            val c = inOutBuffer.peekChar()
             when (c) {
                 delimiter -> return
                 '&' -> when {
@@ -1003,7 +1003,7 @@ public class KtXmlReader(
                     else -> return
                 }
 
-                else -> inputBuffer.markPeekedAsRead()
+                else -> inOutBuffer.markPeekedAsRead()
             }
         }
     }
@@ -1015,27 +1015,27 @@ public class KtXmlReader(
     private fun pushMaybeWSText(delimiter: Char) {
         _isWhitespace = true
 
-        var c = inputBuffer.peek()
+        var c = inOutBuffer.peek()
         while (c >= 0) {
             when {
                 isXmlWhitespace(c.toChar()) -> {
-                    inputBuffer.markPeekedAsRead()
+                    inOutBuffer.markPeekedAsRead()
                 }
 
                 c == delimiter.code -> return
 
                 else -> return pushNonWSText(delimiter, expandEntities)
             }
-            c = inputBuffer.peek()
+            c = inOutBuffer.peek()
         }
     }
 
 
     private fun parsePI() {
         readAssert("<?")
-        val s = inputBuffer.createCopySequence {
+        val s = inOutBuffer.createCopySequence {
             pushName()
-            inputBuffer.addDelimitedToCopySequence("?>")
+            inOutBuffer.addDelimitedToCopySequence("?>")
         }
         // first check that we end with a whitespace or end of content, otherwise we cannot have a 3 letter name
         val l = s.length
@@ -1126,9 +1126,9 @@ public class KtXmlReader(
             State.EOF -> error("Reading past end of file")
         }
 //        assert((offset - srcBufPos) % BUF_SIZE == 0) { "Offset error: ($offset - $srcBufPos) % $BUF_SIZE != 0" }
-        when (val b = inputBuffer) { //unwrap the injection wrapper if possible
-            is InjectingInputBuffer -> {
-                if (! b.isInjecting) inputBuffer = b.base
+        when (val b = inOutBuffer) { //unwrap the injection wrapper if possible
+            is InjectingInOutBuffer -> {
+                if (! b.isInjecting) inOutBuffer = b.base
             }
         }
         return when (val et = eventType) {
@@ -1297,8 +1297,8 @@ public class KtXmlReader(
         readAssert("<!--")
 
         pushCopySequence {
-            inputBuffer.addDelimitedToCopySequence("--")
-            if (inputBuffer.readChar() != '>') {
+            inOutBuffer.addDelimitedToCopySequence("--")
+            if (inOutBuffer.readChar() != '>') {
                 error("XML Comments may not contain inner --, or be terminated by '--->'")
             }
         }
@@ -1332,20 +1332,20 @@ public class KtXmlReader(
     }
 
     private fun peekType(): EventType {
-        return when (inputBuffer.peek()) {
+        return when (inOutBuffer.peek()) {
             -1 -> END_DOCUMENT
             '&'.code -> ENTITY_REF
-            '<'.code -> when (inputBuffer.peek(1)) {
+            '<'.code -> when (inOutBuffer.peek(1)) {
                 '/'.code -> END_ELEMENT
                 '?'.code -> when {
                     // order backwards to ensure
-                    inputBuffer.peek(2, "xml") && !isNameCodepoint(inputBuffer.peek(5)) ->
+                    inOutBuffer.peek(2, "xml") && !isNameCodepoint(inOutBuffer.peek(5)) ->
                         START_DOCUMENT
 
                     else -> PROCESSING_INSTRUCTION
                 }
 
-                '!'.code -> when (inputBuffer.peek(2)) {
+                '!'.code -> when (inOutBuffer.peek(2)) {
                     '-'.code -> COMMENT
                     '['.code -> CDSECT
                     else -> DOCDECL
@@ -1366,7 +1366,7 @@ public class KtXmlReader(
 
     private fun getOutputString(): String {
         return when (val s = outputBuf) {
-            null -> throw XmlException("Missing text when attempting to retrieve it", inputBuffer.locationInfo)
+            null -> throw XmlException("Missing text when attempting to retrieve it", inOutBuffer.locationInfo)
 
             is String -> s
 
@@ -1434,10 +1434,10 @@ public class KtXmlReader(
                     append(textCpy)
                 }
             }
-            if (inputBuffer.offset >= 0) {
-                append(inputBuffer.locationInfo).append (" in ")
+            if (inOutBuffer.offset >= 0) {
+                append(inOutBuffer.locationInfo).append (" in ")
             }
-            append(inputBuffer.toString())
+            append(inOutBuffer.toString())
             append(']')
         }
     }

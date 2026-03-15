@@ -26,8 +26,8 @@ import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
 import nl.adaptivity.xmlutil.core.internal.*
 
 @ExperimentalXmlUtilApi
-public class DoctypeParser(inputBuffer: InputBuffer, private val isXML11: Boolean) {
-    private val inputBuffer = inputBuffer as? InjectingInputBuffer ?: InjectingInputBuffer(inputBuffer)
+public class DoctypeParser(inOutBuffer: InOutBuffer, private val isXML11: Boolean) {
+    private val inputBuffer = inOutBuffer as? InjectingInOutBuffer ?: InjectingInOutBuffer(inOutBuffer)
 
     private val parameterEntities = mutableMapOf<String, XmlEntity>()
     public val generalEntities: MutableMap<String, XmlEntity> = mutableMapOf()

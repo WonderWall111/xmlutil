@@ -21,10 +21,10 @@
 package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.InOutBuffer
 import nl.adaptivity.xmlutil.isXmlWhitespace
 
-internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
+internal class InjectingInOutBuffer(val base: InOutBuffer): InOutBuffer {
 
     val isInjecting: Boolean
         get() = stack.isNotEmpty()
@@ -40,7 +40,7 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
     override val column: Int
         get() = stack.lastOrNull ()?.run { pos + 1 } ?: base.column
 
-    override val copySequenceState: InputBuffer.State
+    override val copySequenceState: InOutBuffer.State
         get() = base.copySequenceState
 
     override fun startCopySequence() {
@@ -194,7 +194,7 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         }
     }
 
-    private typealias State = InputBuffer.State
+    private typealias State = InOutBuffer.State
 
     private class Elem(var pos: Int, val entityName: String, val source: CharSequence, val entityLocationInfo: XmlReader.LocationInfo?)
 }

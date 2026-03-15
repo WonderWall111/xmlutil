@@ -766,7 +766,7 @@ public final class nl/adaptivity/xmlutil/XmlWriterUtil {
 
 public final class nl/adaptivity/xmlutil/core/DoctypeParser {
 	public static final field Companion Lnl/adaptivity/xmlutil/core/DoctypeParser$Companion;
-	public fun <init> (Lnl/adaptivity/xmlutil/core/InputBuffer;Z)V
+	public fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Z)V
 	public final fun getGeneralEntities ()Ljava/util/Map;
 	public final fun parse ()V
 	public final fun parseParameterEntityReference ()V
@@ -775,16 +775,16 @@ public final class nl/adaptivity/xmlutil/core/DoctypeParser {
 public final class nl/adaptivity/xmlutil/core/DoctypeParser$Companion {
 }
 
-public final class nl/adaptivity/xmlutil/core/InputBuffer$State : java/lang/Enum {
-	public static final field ACTIVE Lnl/adaptivity/xmlutil/core/InputBuffer$State;
-	public static final field INACTIVE Lnl/adaptivity/xmlutil/core/InputBuffer$State;
-	public static final field PAUSED Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+public final class nl/adaptivity/xmlutil/core/InOutBuffer$State : java/lang/Enum {
+	public static final field ACTIVE Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
+	public static final field INACTIVE Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
+	public static final field PAUSED Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lnl/adaptivity/xmlutil/core/InputBuffer$State;
-	public static fun values ()[Lnl/adaptivity/xmlutil/core/InputBuffer$State;
+	public static fun valueOf (Ljava/lang/String;)Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
+	public static fun values ()[Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
 }
 
-public class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/XmlReader {
+public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/XmlReader {
 	public static final field ILLEGAL_TYPE Ljava/lang/String;
 	public static final field PROCESS_NAMESPACES Z
 	public static final field UNEXPECTED_EOF Ljava/lang/String;
@@ -792,16 +792,9 @@ public class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/XmlR
 	public synthetic fun <init> (Ljava/io/Reader;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lnl/adaptivity/xmlutil/core/InputBuffer;Ljava/lang/String;ZZ)V
-	public synthetic fun <init> (Lnl/adaptivity/xmlutil/core/InputBuffer;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	protected final fun addUnresolvedAttribute (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	protected final fun attribute-hc9wHSM (I)I
-	protected final fun clearAttributes ()V
+	public fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
-	protected final fun copyAttributeNotNS (II)V
-	protected final fun error (Ljava/lang/String;)V
-	protected final fun exception (Ljava/lang/String;)Ljava/lang/Void;
-	protected static final fun fullname (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun getAttributeCount ()I
 	public fun getAttributeLocalName (I)Ljava/lang/String;
 	public fun getAttributeNamespace (I)Ljava/lang/String;
@@ -813,142 +806,34 @@ public class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmlutil/XmlR
 	public final fun getDocTypeName ()Ljava/lang/String;
 	public final fun getDocTypePublicId ()Ljava/lang/String;
 	public final fun getDocTypeSystemId ()Ljava/lang/String;
-	protected final fun getElementStack ()Lnl/adaptivity/xmlutil/core/KtXmlReader$ElementStack;
 	public fun getEncoding ()Ljava/lang/String;
-	protected final fun getEntityName ()Ljava/lang/String;
-	protected final fun getError ()Ljava/lang/String;
 	public fun getEventType ()Lnl/adaptivity/xmlutil/EventType;
 	public final fun getExpandEntities ()Z
 	public fun getExtLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
-	protected final fun getInputBuffer ()Lnl/adaptivity/xmlutil/core/InputBuffer;
 	public final fun getLineNumber ()I
 	public fun getLocalName ()Ljava/lang/String;
-	protected final fun getLocalName-Wdoxvj4 (I)Ljava/lang/String;
-	protected final fun getLocalName-X2amM8A (I)Ljava/lang/String;
-	protected final fun getNamespace-Wdoxvj4 (I)Ljava/lang/String;
-	protected final fun getNamespace-X2amM8A (I)Ljava/lang/String;
 	public fun getNamespaceContext ()Lnl/adaptivity/xmlutil/IterableNamespaceContext;
 	public fun getNamespaceDecls ()Ljava/util/List;
-	protected final fun getNamespaceHolder ()Lnl/adaptivity/xmlutil/core/impl/NamespaceHolder;
 	public fun getNamespacePrefix (Ljava/lang/String;)Ljava/lang/String;
 	public fun getNamespaceURI ()Ljava/lang/String;
 	public fun getNamespaceURI (Ljava/lang/String;)Ljava/lang/String;
-	protected final fun getOutputString ()Ljava/lang/String;
 	public fun getPiData ()Ljava/lang/String;
 	public fun getPiTarget ()Ljava/lang/String;
 	public fun getPrefix ()Ljava/lang/String;
-	protected final fun getPrefix-Wdoxvj4 (I)Ljava/lang/String;
-	protected final fun getPrefix-X2amM8A (I)Ljava/lang/String;
 	public final fun getRelaxed ()Z
 	public fun getStandalone ()Ljava/lang/Boolean;
-	protected final fun getState ()Lnl/adaptivity/xmlutil/core/KtXmlReader$State;
 	public fun getText ()Ljava/lang/String;
-	protected final fun getValue-X2amM8A (I)Ljava/lang/String;
 	public fun getVersion ()Ljava/lang/String;
-	protected final fun get_eventType ()Lnl/adaptivity/xmlutil/EventType;
-	protected final fun get_isWhitespace ()Z
 	public fun hasNext ()Z
 	public final fun isEmptyElementTag ()Z
 	public fun isKnownEntity ()Z
-	protected final fun isSelfClosing ()Z
 	public fun isStarted ()Z
-	protected final fun isUnresolvedEntity ()Z
 	public fun isWhitespace ()Z
 	public synthetic fun next ()Ljava/lang/Object;
 	public fun next ()Lnl/adaptivity/xmlutil/EventType;
-	protected final fun nextImplDocStart ()V
 	public fun nextTag ()Lnl/adaptivity/xmlutil/EventType;
-	protected final fun parseCData ()V
-	protected final fun parseDoctype ()V
-	protected fun parseEndTag ()V
-	protected fun parseNCName ()Ljava/lang/CharSequence;
-	protected fun parseName ()Ljava/lang/CharSequence;
-	protected final fun parsePI ()V
-	protected final fun parseStartTag (Z)V
-	protected final fun parseUnexpectedOrWS (Lnl/adaptivity/xmlutil/EventType;)V
-	protected fun pushAttributeValue (C)V
-	protected fun pushEntity (Z)V
-	public static synthetic fun pushEntity$default (Lnl/adaptivity/xmlutil/core/KtXmlReader;ZILjava/lang/Object;)V
-	protected final fun pushErrorComment ()Z
-	protected fun pushMaybeWSText (C)V
-	protected fun pushNCName ()V
-	protected fun pushName ()V
-	protected fun pushNonWSText (CZ)V
-	protected fun pushWSDelimAttrValue ()V
-	protected final fun readAssert (C)V
-	protected final fun readAssert (Ljava/lang/String;)V
-	protected fun readAssert (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	protected final fun recordEntity (Ljava/lang/String;Lnl/adaptivity/xmlutil/core/XmlEntity;)V
 	public fun remove ()V
 	public fun require (Lnl/adaptivity/xmlutil/EventType;Ljava/lang/String;Ljava/lang/String;)V
-	protected final fun resetOutputBuffer ()V
-	protected final fun resolveEntity (Ljava/lang/String;)Lnl/adaptivity/xmlutil/core/XmlEntity;
-	protected fun setAttributeCount (I)V
-	protected final fun setElementStack (Lnl/adaptivity/xmlutil/core/KtXmlReader$ElementStack;)V
-	protected final fun setEntityName (Ljava/lang/String;)V
-	protected final fun setError (Ljava/lang/String;)V
-	protected final fun setLocalName-tlzzZ4Q (ILjava/lang/String;)V
-	protected final fun setLocalName-zO6yCoI (ILjava/lang/String;)V
-	protected final fun setNamespace-tlzzZ4Q (ILjava/lang/String;)V
-	protected final fun setNamespace-zO6yCoI (ILjava/lang/String;)V
-	protected final fun setOutputBuffer (Ljava/lang/CharSequence;)V
-	protected final fun setPrefix-tlzzZ4Q (ILjava/lang/String;)V
-	protected final fun setPrefix-zO6yCoI (ILjava/lang/String;)V
-	protected final fun setSelfClosing (Z)V
-	protected final fun setState (Lnl/adaptivity/xmlutil/core/KtXmlReader$State;)V
-	protected final fun setUnresolvedEntity (Z)V
-	protected final fun setValue-tlzzZ4Q (ILjava/lang/String;)V
-	protected final fun set_eventType (Lnl/adaptivity/xmlutil/EventType;)V
-	protected final fun set_isWhitespace (Z)V
-	protected final fun shrinkAttributeBuffer (I)V
-	protected final fun skipWS ()V
-	public fun toString ()Ljava/lang/String;
-}
-
-protected final class nl/adaptivity/xmlutil/core/KtXmlReader$AttributeDelegate {
-	public static final synthetic fun box-impl (I)Lnl/adaptivity/xmlutil/core/KtXmlReader$AttributeDelegate;
-	public static fun constructor-impl (I)I
-	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (ILjava/lang/Object;)Z
-	public static final fun equals-impl0 (II)Z
-	public final fun getIndex ()I
-	public fun hashCode ()I
-	public static fun hashCode-impl (I)I
-	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (I)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()I
-}
-
-protected final class nl/adaptivity/xmlutil/core/KtXmlReader$ElementDelegate {
-	public static final synthetic fun box-impl (I)Lnl/adaptivity/xmlutil/core/KtXmlReader$ElementDelegate;
-	public static fun constructor-impl (I)I
-	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (ILjava/lang/Object;)Z
-	public static final fun equals-impl0 (II)Z
-	public final fun getIndex ()I
-	public fun hashCode ()I
-	public static fun hashCode-impl (I)I
-	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (I)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()I
-}
-
-protected final class nl/adaptivity/xmlutil/core/KtXmlReader$ElementStack {
-	public fun <init> (Lnl/adaptivity/xmlutil/core/KtXmlReader;)V
-	public final fun ensureCapacity (I)V
-	public final fun get-tPtF754 (I)I
-}
-
-protected final class nl/adaptivity/xmlutil/core/KtXmlReader$PEReference {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/core/KtXmlReader$PEReference;
-	public static synthetic fun copy$default (Lnl/adaptivity/xmlutil/core/KtXmlReader$PEReference;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lnl/adaptivity/xmlutil/core/KtXmlReader$PEReference;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getName ()Ljava/lang/String;
-	public final fun getValue ()Ljava/lang/String;
-	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 

@@ -24,20 +24,8 @@ import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.isXmlWhitespace
 
-@IgnorableReturnValue
-internal inline fun InputBuffer.createCopySequence(block: () -> Unit): CharSequence {
-    startCopySequence()
-    var r: CharSequence
-    try {
-        block()
-    } finally {
-        r = finalizeCopySequence()
-    }
-    return r
-}
-
 @XmlUtilInternal
-public interface InputBuffer {
+public interface InOutBuffer {
     public val offset: Int
 
     public val line: Int
@@ -268,12 +256,18 @@ public interface InputBuffer {
     }
 }
 
+internal inline fun InOutBuffer.createCopySequence(block: () -> Unit): CharSequence {
+    startCopySequence()
+    block()
+    return finalizeCopySequence()
+}
+
 /**
  * @param stopSequenceOnChar Determines whether the sequence parsing should stop when the character
  * is encountered. It also allows for verifying that the character is allowed.
  */
 @XmlUtilInternal
-public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
+public inline fun InOutBuffer.addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
     var c = peekChar()
     val firstDelim = delimiter[0]
     val otherDelimRange = 1 until delimiter.length
@@ -302,7 +296,7 @@ public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: String, paus
  * is encountered. It also allows for verifying that the character is allowed.
  */
 @XmlUtilInternal
-public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: Char, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
+public inline fun InOutBuffer.addDelimitedToCopySequence(delimiter: Char, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
     var c = peekChar()
     while (c != delimiter && !stopSequenceOnChar(c)) {
         markPeekedAsRead()

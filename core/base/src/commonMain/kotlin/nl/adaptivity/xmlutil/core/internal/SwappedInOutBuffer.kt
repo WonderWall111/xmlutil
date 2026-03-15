@@ -21,7 +21,7 @@
 package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.XmlUtilInternal
-import nl.adaptivity.xmlutil.core.InputBuffer
+import nl.adaptivity.xmlutil.core.InOutBuffer
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
 import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
@@ -30,7 +30,7 @@ import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
 private const val BUF_SIZE = 4096
 
 @XmlUtilInternal
-public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
+public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
 
     /** Current position in the buffer */
     internal var srcBufPos: Int = 0
@@ -447,5 +447,5 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         }
     }
 
-    private typealias State = InputBuffer.State
+    private typealias State = InOutBuffer.State
 }
