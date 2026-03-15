@@ -50,6 +50,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import java.time.format.DateTimeFormatter
@@ -264,6 +265,12 @@ class ProjectPlugin @Inject constructor(
                             mavenPublication {
                                 version = xmlutilVersion
                                 project.logger.info("Setting multiplatform maven publication ($artifactId) version to $xmlutilVersion")
+                            }
+                            if (this is KotlinMetadataTarget && projectConfiguration.allWarningsAsErrors.get()) {
+                                project.logger.info("allWarningsAsErrors is disabled for target $name")
+                                compilerOptions {
+                                    allWarningsAsErrors = false
+                                }
                             }
                         }
 
