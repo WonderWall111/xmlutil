@@ -29,9 +29,16 @@ import kotlin.jvm.JvmOverloads
  */
 public open class XmlException : IOException {
 
-    public val locationInfo: XmlReader.LocationInfo?
+    public var locationInfo: XmlReader.LocationInfo?
+        private set
 
     public val rawMessage: String? get() = super.message
+
+    @XmlUtilInternal
+    public fun setFileLocation(fileName: String) {
+        val locationInfo = locationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
+        if (locationInfo !== locationInfo) this.locationInfo = locationInfo
+    }
 
     @JvmOverloads
     public constructor(locationInfo: XmlReader.LocationInfo? = null) {
@@ -71,4 +78,18 @@ public open class XmlException : IOException {
 
     override val message: String?
         get() = "${locationInfo ?: "Unknown position"} - ${rawMessage}"
+
+
+    @XmlUtilInternal
+    public class FileNameLocationInfo(public val fileName: String): XmlReader.LocationInfo {
+        override fun toString(): String {
+            return "file $fileName@<unknown>"
+        }
+
+        override fun withFileName(fileName: String): XmlReader.LocationInfo = when {
+            fileName == this.fileName -> this
+            else -> FileNameLocationInfo(fileName)
+        }
+    }
+
 }

@@ -731,7 +731,7 @@ public class KtXmlReader(
 
                     else -> {
                         val fullName = fullname(prefix, localName)
-                        error("unexpected character in tag($fullName): '${c.toChar()}'")
+                        error("unexpected character in tag name($fullName): '${c.toChar()}'")
                         readAssert(c.toChar())
                     }
                 }
@@ -799,7 +799,10 @@ public class KtXmlReader(
         skipWS()
 
         when (val p = inOutBuffer.peek()) {
-            '>'.code -> return
+            '>'.code -> {
+                readAssert('>')
+                return
+            }
 
             'S'.code -> {
                 readAssert("SYSTEM")

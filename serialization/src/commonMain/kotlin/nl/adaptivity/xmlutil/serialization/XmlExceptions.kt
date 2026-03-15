@@ -21,6 +21,7 @@
 package nl.adaptivity.xmlutil.serialization
 
 import kotlinx.serialization.SerializationException
+import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlUtilInternal
 
@@ -36,7 +37,7 @@ public open class XmlSerialException(
 
     @XmlUtilInternal
     public fun setFileLocation(fileName: String) {
-        val locationInfo = extLocationInfo?.withFileName(fileName) ?: FileNameLocationInfo(fileName)
+        val locationInfo = extLocationInfo?.withFileName(fileName) ?: XmlException.FileNameLocationInfo(fileName)
         if (extLocationInfo !== locationInfo) extLocationInfo = locationInfo
     }
 
@@ -50,17 +51,6 @@ public open class XmlSerialException(
             null -> rawMessage
             else ->"Serialization exception at [$extLocationInfo]: $rawMessage"
         }
-}
-
-private class FileNameLocationInfo(val fileName: String): XmlReader.LocationInfo {
-    override fun toString(): String {
-        return "file $fileName@<unknown>"
-    }
-
-    override fun withFileName(fileName: String): XmlReader.LocationInfo = when {
-        fileName == this.fileName -> this
-        else -> FileNameLocationInfo(fileName)
-    }
 }
 
 public class XmlParsingException(

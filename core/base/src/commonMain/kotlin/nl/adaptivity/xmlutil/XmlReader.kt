@@ -693,4 +693,13 @@ public fun XmlReader.isElement(
 /**
  * Write the current event to the writer. This will **not** move the reader.
  */
-public fun XmlReader.writeCurrent(writer: XmlWriter): Unit = eventType.writeEvent(writer, this)
+public fun XmlReader.writeCurrent(writer: XmlWriter): Unit {
+    try {
+        eventType.writeEvent(writer, this)
+    } catch (e: XmlException) {
+        if (e.locationInfo == null) throw XmlException(this.extLocationInfo, e)
+        else throw e
+    } catch (e: Exception) {
+        throw XmlException(this.extLocationInfo, e)
+    }
+}
