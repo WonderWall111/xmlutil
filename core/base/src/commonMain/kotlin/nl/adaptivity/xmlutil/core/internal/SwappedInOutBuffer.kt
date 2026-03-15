@@ -79,16 +79,17 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     private fun swapInputBuffer() {
-        if (copySequenceStart >= 0) { // make the copy sequence still work
+        if (copySequenceStart in 0..<BUF_SIZE) {
+            // Store the "left" copy sequence into a buffer and start it at the beginning of the
+            // right (new left) buffer
             val b = copyBuilder ?: StringBuilder(16).also { copyBuilder = it }
             val p = srcBufPos
-            if (p<= BUF_SIZE) {
-                b.appendRange(bufLeft, copySequenceStart, p)
-            } else {
-                b.appendRange(bufLeft, copySequenceStart, BUF_SIZE)
-                b.appendRange(bufRight, 0, (p - BUF_SIZE))
-            }
+            b.appendRange(bufLeft, copySequenceStart, p.coerceAtMost(BUF_SIZE))
+
             copySequenceStart = 0
+        } else if (copySequenceStart >= BUF_SIZE) {
+            // If somehow the sequence is beyond the left buffer, adjust it for the swap
+            copySequenceStart -= BUF_SIZE
         }
         val rightBufCount = srcBufCount - BUF_SIZE
         if (rightBufCount < 0) error("End of stream while swapping inputs")
@@ -139,14 +140,14 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     override fun pauseCopySequence() {
-        check(copySequenceStart>=0) { "Copy sequence not active (either not started or already suspended)" }
+        check(copySequenceState == State.ACTIVE) { "Copy sequence not active (either not started or already suspended)" }
         val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
         b.appendRange(bufLeft, copySequenceStart, srcBufPos)
         copySequenceStart = -2 // mark as paused
     }
 
     override fun resumeCopySequence() {
-        check(copySequenceStart < -1 && copyBuilder != null) { "Copy sequence is not paused" }
+        check(copySequenceState == State.PAUSED) { "Copy sequence is not paused" }
         copySequenceStart = srcBufPos
     }
 
@@ -302,10 +303,14 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     override fun markPeekedAsRead() {
         fun handleLineEnd(complement: Int, oldPos: Int) {
             if (peek(1) == complement) {
-                pauseCopySequence()
-                addToCopySequence('\n')
-                srcBufPos = oldPos + 2
-                resumeCopySequence()
+                if (copySequenceState == State.ACTIVE) {
+                    pauseCopySequence()
+                    srcBufPos = oldPos + 2
+                    addToCopySequence('\n')
+                    resumeCopySequence()
+                } else {
+                    srcBufPos = oldPos + 2
+                }
             } else {
                 if (copySequenceState == State.ACTIVE && complement == '\n'.code) {
                     pauseCopySequence()
@@ -395,8 +400,9 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
         return buildString {
             append("SwappedInputBuffer(")
             append("Next = '")
-                .append(bufLeft.concatToString(srcBufPos, (srcBufPos + 10).coerceAtMost(srcBufCount).coerceAtMost(BUF_SIZE)))
-                .append("', output buffer = ")
+            if (srcBufPos <BUF_SIZE) appendRange(bufLeft, srcBufPos, (srcBufPos + 10).coerceAtMost(srcBufCount))
+            else appendRange(bufRight, srcBufPos-BUF_SIZE, ((srcBufPos + 10).coerceAtMost(srcBufCount) - BUF_SIZE).coerceAtMost(BUF_SIZE))
+            append("', output buffer = ")
             val b = copyBuilder
 
 
@@ -406,7 +412,8 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
             } else {
                 append('\'')
                 if (b!=null) append(b)
-                if (copySequenceStart>=0) appendRange(bufLeft, copySequenceStart, srcBufPos)
+                if (copySequenceStart>=0) appendRange(bufLeft, copySequenceStart, srcBufPos.coerceAtMost(BUF_SIZE))
+                if (srcBufPos>=BUF_SIZE) appendRange(bufRight, 0, (srcBufPos - BUF_SIZE).coerceAtMost(BUF_SIZE))
                 append("')")
             }
         }
