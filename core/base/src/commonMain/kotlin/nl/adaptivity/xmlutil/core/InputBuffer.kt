@@ -88,16 +88,7 @@ public interface InputBuffer {
      * @param consumeDelimiter If true, the delimiter will be consumed.
      */
     public fun addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true) {
-        while (true) { // loop over multiple subsequent buffers.
-            if (peek(delimiter)) {
-                if (pauseOnDelimiter) pauseCopySequence()
-                if (consumeDelimiter) skip(delimiter.length) // this should work even if we cross the buffer size
-                return
-            } else {
-                readToCopyBuffer()
-            }
-        }
-
+        addDelimitedToCopySequence(delimiter, pauseOnDelimiter, consumeDelimiter) { false }
     }
 
     /**
@@ -260,5 +251,34 @@ public interface InputBuffer {
 
     public enum class State {
         INACTIVE, PAUSED, ACTIVE
+    }
+}
+
+/**
+ * @param stopSequenceOnChar Determines whether the sequence parsing should stop when the character
+ * is encountered. It also allows for verifying that the character is allowed.
+ */
+@XmlUtilInternal
+public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: String, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
+    var c = peekChar()
+    val firstDelim = delimiter[0]
+    val otherDelimRange = 1 until delimiter.length
+    while (true) {
+        when(c) {
+            firstDelim if (otherDelimRange.all { peek(it) == delimiter[it].code }) -> {
+                if (pauseOnDelimiter) pauseCopySequence()
+                if (consumeDelimiter) skip(delimiter.length)
+                return
+            }
+            else -> {
+                if (stopSequenceOnChar(c)) {
+                    if (pauseOnDelimiter) pauseCopySequence()
+                    if (consumeDelimiter) skip(delimiter.length)
+                    return
+                }
+            }
+        }
+        skip(1)
+        c = peekChar()
     }
 }
