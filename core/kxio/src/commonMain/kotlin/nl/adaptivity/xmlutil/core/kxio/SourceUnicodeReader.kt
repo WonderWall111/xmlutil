@@ -36,26 +36,37 @@ internal class SourceUnicodeReader(val source: Source) : Reader() {
     private var pendingLowSurrogate: Char = '\u0000'
 
     init {
-        reloadBuffer()
-        if (inputBufferEnd>=3 &&
+        // Ensure that at least 3 bytes are read if they exist to be able to detect the byte
+        // order mark.
+        while (inputBufferEnd < 3 && !source.exhausted()) {
+            reloadBuffer()
+        }
+
+        if (inputBufferEnd >= 3 &&
             inputBuffer[0] == 0xEF.toByte() &&
             inputBuffer[1] == 0xBB.toByte() &&
-            inputBuffer[2] == 0xBF.toByte()) {
-            inputBufferOffset+=3 //skip byteorder mark
+            inputBuffer[2] == 0xBF.toByte()
+        ) {
+            inputBufferOffset += 3 //skip byteorder mark
         }
     }
 
     private fun reloadBuffer() {
-        if (! source.exhausted()) {
+        if (!source.exhausted()) {
             if (inputBufferOffset < inputBufferEnd) {
                 inputBuffer.copyInto(inputBuffer, 0, inputBufferOffset, inputBufferEnd)
                 inputBufferEnd -= inputBufferOffset
                 inputBufferOffset = 0
             }
-            val readCount = source.readAtMostTo(inputBuffer, inputBufferOffset, (inputBuffer.size - inputBufferOffset))
-            if (readCount < 0) {
+
+            val readCount: Int = source.readAtMostTo(inputBuffer, inputBufferOffset, (inputBuffer.size - inputBufferOffset))
+            if (readCount < 0) return
+            if (readCount == 0) { // hack to ensure at least a single byte is always read
+                inputBuffer[inputBufferOffset] = source.readByte()
+                inputBufferEnd = inputBufferOffset + 1
                 return
             }
+
             inputBufferEnd = inputBufferOffset + readCount
         }
     }
