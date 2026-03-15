@@ -245,4 +245,4 @@ internal fun addDigitToCodePoint(char: Char, isHex: Boolean, current: Int): Int 
     }
 }
 
-internal const val DEBUG: Boolean = true
+internal const val DEBUG: Boolean = false
