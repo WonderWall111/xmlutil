@@ -22,6 +22,7 @@ package nl.adaptivity.xmlutil.core.kxio
 
 import kotlinx.io.Buffer
 import kotlinx.io.writeString
+import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -44,12 +45,22 @@ class TestReadSource {
 
     @Test
     fun testKtXmlReaderFromBuffer() {
-        val source = Buffer().apply { writeString("<SimpleData>bar</SimpleData>"); flush() }
+        val source = Buffer().apply { writeString("\ufeff<baz:SimpleData xmlns:baz='http://example.org/foo'>bar</baz:SimpleData>"); flush() }
         val r = SourceUnicodeReader(source)
         val kt = KtXmlReader(r)
         var cnt = 0
         while (kt.hasNext()) {
-            val _ = kt.next()
+            val e = kt.next()
+            if (e == EventType.START_ELEMENT) {
+                assertEquals("http://example.org/foo", kt.namespaceURI)
+                assertEquals("SimpleData", kt.localName)
+                assertEquals("baz", kt.prefix)
+
+                val decls = kt.namespaceDecls
+                assertEquals(1, decls.size)
+                assertEquals("baz", decls[0].prefix)
+                assertEquals("http://example.org/foo", decls[0].namespaceURI)
+            }
             ++cnt
         }
         assertEquals(5, cnt)
