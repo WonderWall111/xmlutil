@@ -30,7 +30,6 @@ import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
 import nl.adaptivity.xmlutil.core.impl.multiplatform.ifAssertions
 import nl.adaptivity.xmlutil.core.internal.AbstractKtXmlReader
 import nl.adaptivity.xmlutil.core.internal.SwappedInputBuffer
-import kotlin.jvm.JvmStatic
 
 private const val BUF_SIZE = 4096
 private const val ALT_BUF_SIZE = 512
@@ -134,22 +133,6 @@ public class KtXmlReader internal constructor(
 
     private companion object {
         const val PROCESS_NAMESPACES = true
-
-
-        @JvmStatic
-        protected fun Reader.readUntilFullOrEOF(buffer: CharArray): Int {
-            val bufSize = buffer.size
-            var totalRead: Int = read(buffer, 0, bufSize)
-            if (totalRead < 0) return -1
-            while (totalRead < bufSize) {
-                val lastRead = read(buffer, totalRead, bufSize - totalRead)
-                if (lastRead < 0) return totalRead
-                totalRead += lastRead
-            }
-            return totalRead
-        }
-
     }
-
 
 }

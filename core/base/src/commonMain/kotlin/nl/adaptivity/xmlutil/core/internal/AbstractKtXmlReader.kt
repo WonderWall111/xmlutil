@@ -576,7 +576,7 @@ public abstract class AbstractKtXmlReader(
                 '\r' -> throw AssertionError("Carriage returns should have been normalized out here")
 
                 delimiter -> return
-                else -> inputBuffer.readToCopyBuffer()
+                else -> inputBuffer.markPeekedAsRead()
             }
         }
     }
@@ -588,7 +588,7 @@ public abstract class AbstractKtXmlReader(
                 '&' -> pushEntity(true)
                 '>', '\t', '\n', '\r', ' ' -> return
                 '/' if inputBuffer.peek(1, '>') -> return
-                else -> inputBuffer.readToCopyBuffer()
+                else -> inputBuffer.markPeekedAsRead()
             }
         }
     }
@@ -755,9 +755,10 @@ public abstract class AbstractKtXmlReader(
     }
 
     private fun parseSystemLiteral(): CharSequence {
+        // literals can be any character except the delimiter.
         return when (val r = inputBuffer.readChar()) {
-            '\'' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence("'") }
-            '"' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence("\"") }
+            '\'' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence('\'') }
+            '"' -> inputBuffer.createCopySequence { inputBuffer.addDelimitedToCopySequence('"') }
             else -> {
                 error("Quoted text must start with a single or double quote. Found: $r")
                 ""
@@ -868,7 +869,7 @@ public abstract class AbstractKtXmlReader(
 
         var c = inputBuffer.peek()
         while (c >= 0 && c != ':'.code && c.toChar().isNameChar()) {
-            inputBuffer.readToCopyBuffer()
+            inputBuffer.skip(1) // no newlines in names
             c = inputBuffer.peek()
         }
     }
@@ -880,7 +881,7 @@ public abstract class AbstractKtXmlReader(
 
         var c = inputBuffer.peek()
         while (c >= 0 && c.toChar().isNameChar()) {
-            inputBuffer.readToCopyBuffer()
+            inputBuffer.skip(1)
             c = inputBuffer.peek()
         }
     }
@@ -998,7 +999,7 @@ public abstract class AbstractKtXmlReader(
                     else -> return
                 }
 
-                else -> inputBuffer.readToCopyBuffer()
+                else -> inputBuffer.markPeekedAsRead()
             }
         }
     }
@@ -1014,7 +1015,7 @@ public abstract class AbstractKtXmlReader(
         while (c >= 0) {
             when {
                 isXmlWhitespace(c.toChar()) -> {
-                    inputBuffer.readToCopyBuffer()
+                    inputBuffer.markPeekedAsRead()
                 }
 
                 c == delimiter.code -> return

@@ -85,6 +85,17 @@ internal class InjectingInputBuffer(val base: InputBuffer): InputBuffer {
         }
     }
 
+    override fun addDelimitedToCopySequence(
+        delimiter: Char,
+        pauseOnDelimiter: Boolean,
+        consumeDelimiter: Boolean
+    ) {
+        when {
+            stack.isEmpty() -> base.addDelimitedToCopySequence(delimiter, pauseOnDelimiter, consumeDelimiter)
+            else -> super.addDelimitedToCopySequence(delimiter, pauseOnDelimiter, consumeDelimiter)
+        }
+    }
+
     override fun skip(count: Int) {
         for (i in 0 until count) check(read()>=0) { "Unexpected end of stream" }
     }

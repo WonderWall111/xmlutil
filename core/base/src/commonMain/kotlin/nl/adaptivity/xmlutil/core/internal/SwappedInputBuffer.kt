@@ -172,23 +172,6 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
         if (read() < 0) error("End of stream while adding character to copy buffer")
     }
 
-    override fun addDelimitedToCopySequence(
-        delimiter: String,
-        pauseOnDelimiter: Boolean,
-        consumeDelimiter: Boolean
-    ) {
-        require(copySequenceStart>=0) { "Copy sequence not active (either not started or suspended)" }
-        while (true) { // loop over multiple subsequent buffers.
-            if (peek(delimiter)) {
-                if (pauseOnDelimiter) pauseCopySequence()
-                if (consumeDelimiter) srcBufPos += delimiter.length // this should work even if we cross the buffer size
-                return
-            } else {
-                readToCopyBuffer()
-            }
-        }
-    }
-
     /**
      * Helper function that ensures a copy builder. It also ensures that the pending writes are
      * added to ensure there is no reordering.
@@ -345,30 +328,31 @@ public class SwappedInputBuffer(public val reader: Reader): InputBuffer {
 
     override fun skip(count: Int) {
         val newPos = srcBufPos + count
-        if (newPos >= srcBufCount) error("End of file while skipping")
+        // allow skipping just past the last character.
+        if (newPos > srcBufCount) error("End of file while skipping")
         srcBufPos = newPos
         if (newPos >= BUF_SIZE) swapInputBuffer()
     }
 
     override fun markPeekedAsRead() {
         fun handleLineEnd(complement: Int, oldPos: Int) {
-            val newPos: Int
             if (peek(1) == complement) {
-                newPos = oldPos + 2
                 pauseCopySequence()
                 addToCopySequence('\n')
+                srcBufPos = oldPos + 2
                 resumeCopySequence()
             } else {
-                newPos = oldPos + 1
-                if (copySequenceState == State.ACTIVE && complement == '\r'.code) {
+                if (copySequenceState == State.ACTIVE && complement == '\n'.code) {
                     pauseCopySequence()
                     addToCopySequence('\n')
+                    srcBufPos = oldPos + 1
                     resumeCopySequence()
+                } else {
+                    srcBufPos = oldPos + 1
                 }
             }
 
-            line+=1
-            srcBufPos = newPos
+            line += 1
             lastColumnStart = offset
         }
 

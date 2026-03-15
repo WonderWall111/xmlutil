@@ -91,6 +91,10 @@ public interface InputBuffer {
         addDelimitedToCopySequence(delimiter, pauseOnDelimiter, consumeDelimiter) { false }
     }
 
+    public fun addDelimitedToCopySequence(delimiter: Char, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true) {
+        addDelimitedToCopySequence(delimiter, pauseOnDelimiter, consumeDelimiter) { false }
+    }
+
     /**
      * Add the given character to the copy sequence. This requires an active copy sequence.
      * It will force buffering of the underlying read characters if needed.
@@ -291,4 +295,20 @@ public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: String, paus
         markPeekedAsRead()
         c = peekChar()
     }
+}
+
+/**
+ * @param stopSequenceOnChar Determines whether the sequence parsing should stop when the character
+ * is encountered. It also allows for verifying that the character is allowed.
+ */
+@XmlUtilInternal
+public inline fun InputBuffer.addDelimitedToCopySequence(delimiter: Char, pauseOnDelimiter: Boolean = true, consumeDelimiter: Boolean = true, stopSequenceOnChar: (Char) -> Boolean) {
+    var c = peekChar()
+    while (c != delimiter && !stopSequenceOnChar(c)) {
+        markPeekedAsRead()
+        c = peekChar()
+    }
+    if (pauseOnDelimiter) pauseCopySequence()
+    if (consumeDelimiter) markPeekedAsRead()
+    return
 }
