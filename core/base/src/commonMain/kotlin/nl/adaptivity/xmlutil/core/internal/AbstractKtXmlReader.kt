@@ -772,7 +772,6 @@ public abstract class AbstractKtXmlReader(
         val r = inputBuffer.createCopySequence {
             var c = inputBuffer.peekChar()
             while (c != delim) {
-                inputBuffer.skip(1)
                 if (c.code>=PUBID_CHAR.size || !PUBID_CHAR[c.code]) {
                     error("Invalid character in public id: '${c}'")
                 }
