@@ -545,7 +545,7 @@ public class KtXmlWriter(
 
         for (c in text) {
             when (c) {
-                ' ', '\t', '\r', '\n' -> {}
+                ' ', '\t', '\r', '\n', '\u0085', '\u2028' -> {}
                 else -> throw IllegalArgumentException("\"$text\" is not ignorable whitespace")
             }
         }

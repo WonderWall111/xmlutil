@@ -20,6 +20,10 @@ Changes:
   only applies if there are 2 or more characters and this would collapse to an
   empty string). The old behaviour only allowed a single character without
   surrounding whitespace.
+- Standards compliant line ending handling. \n\r is not collapsed as a single
+  line end anymore. Characters #x85 and #2028 are now handled as line end (unless
+  preceded by \r)
+  
 - Update kotlinx.io support to 0.9.0, atomicfu to 0.31.0, kotlinx.serialization
   to 1.10.0, kotlinx.benchmark to 0.4.16, kotlin to 2.3.10, junit to 5.14.3.
 - Always expand entities in attribute values (causing an exception if the entity

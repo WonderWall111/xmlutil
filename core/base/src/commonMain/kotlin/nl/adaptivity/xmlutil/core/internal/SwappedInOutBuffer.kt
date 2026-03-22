@@ -240,17 +240,20 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
         return peekCommon(srcBufPos + offset)
     }
 
+    private fun rawPeek(bufPos: Int):Int = when {
+        bufPos >= srcBufCount -> -1
+        bufPos >= BUF_SIZE -> bufRight[bufPos - BUF_SIZE].code
+        else -> bufLeft[bufPos].code
+    }
+
     private fun peekCommon(bufPos: Int): Int {
         // end of buffer. This implies bufPos < 2 * BUF_SIZE
         if (bufPos >= srcBufCount) return -1
-        val c = when {
-            bufPos >= BUF_SIZE -> bufRight[bufPos - BUF_SIZE]
-            else -> bufLeft[bufPos]
-        }
+        val c = rawPeek(bufPos)
 
         return when (c) {
-            '\r' -> '\n'.code
-            else -> c.code
+            '\r'.code, 0x85, 0x2028 -> '\n'.code
+            else -> c
         }
     }
 
@@ -301,58 +304,51 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     override fun markPeekedAsRead() {
-        fun handleLineEnd(complement: Int, oldPos: Int) {
-            if (peek(1) == complement) {
-                if (copySequenceState == State.ACTIVE) {
-                    pauseCopySequence()
-                    srcBufPos = oldPos + 2
-                    addToCopySequence('\n')
-                    resumeCopySequence()
-                } else {
-                    srcBufPos = oldPos + 2
-                }
-            } else {
-                if (copySequenceState == State.ACTIVE && complement == '\n'.code) {
-                    pauseCopySequence()
-                    addToCopySequence('\n')
-                    srcBufPos = oldPos + 1
-                    resumeCopySequence()
-                } else {
-                    srcBufPos = oldPos + 1
-                }
-            }
-
-            line += 1
-            lastColumnStart = offset
-        }
 
         val oldPos = srcBufPos
-        val peeked = if (oldPos < BUF_SIZE) bufLeft[oldPos] else bufRight[oldPos - BUF_SIZE]
+        val peeked = rawPeek (oldPos).toChar()
         when (peeked) {
-            '\r' -> handleLineEnd('\n'.code, oldPos)
-            '\n' -> handleLineEnd('\r'.code, oldPos)
+            '\r' -> handle2CharLineEnd(oldPos)
+            '\u0085', '\u2028' -> {
+                bufLeft[oldPos] = '\n'
+                handleLineEnd(oldPos + 1)
+            }
+
+            '\n' -> handleLineEnd(oldPos + 1)
+
             else -> srcBufPos = oldPos + 1
         }
         if (srcBufPos >= BUF_SIZE) swapInputBuffer()
     }
 
+    private fun handleLineEnd(newPos: Int) {
+        if (copySequenceState == State.ACTIVE && rawPeek(srcBufPos) != '\n'.code) {
+            pauseCopySequence()
+            addToCopySequence('\n')
+            srcBufPos = newPos
+            resumeCopySequence()
+        } else {
+            srcBufPos = newPos
+        }
+        lastColumnStart = offsetBase + newPos
+        line += 1
+    }
+
+    private fun handle2CharLineEnd(oldPos: Int) {
+        val nextChar = peek(1)
+        val inc = when (nextChar) {
+            0xA, 0x85 -> 2
+
+            else -> {
+                bufLeft[oldPos] = '\n'
+                1
+            }
+        }
+        handleLineEnd(oldPos + inc)
+    }
+
     /** Does never read more than needed  */
     override fun read(): Int {
-        fun handleLineEnd(complement: Int, oldPos: Int) {
-            val inc = if(peek(2) == complement) 2 else 1
-            val newPos = oldPos + inc
-            if (copySequenceState == State.ACTIVE && (inc == 2 || complement == '\n'.code)) {
-                pauseCopySequence()
-                addToCopySequence('\n')
-                srcBufPos = newPos
-                resumeCopySequence()
-            } else {
-                srcBufPos = newPos
-            }
-            lastColumnStart = offsetBase + newPos
-            line += 1
-        }
-
         // In this case we *may* need the right buffer, otherwise not
         // optimize this implementation for the "happy" path
         var oldPos = srcBufPos
@@ -367,12 +363,19 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
 
         when (val char = bufLeft[oldPos]) {
             '\r' -> { // as \r is always transformed to \n, this requires a stringBuilder.
-                handleLineEnd('\n'.code, oldPos)
+                handle2CharLineEnd(oldPos)
+                return '\n'.code
+            }
+
+            '\u0085',
+            '\u2028' -> {
+                bufLeft[srcBufPos] = '\n'
+                handleLineEnd(oldPos + 1)
                 return '\n'.code
             }
 
             '\n' -> {
-                handleLineEnd('\r'.code, oldPos)
+                handleLineEnd(oldPos + 1)
                 return '\n'.code
             }
 
@@ -382,7 +385,6 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
             }
         }
     }
-
 
     private fun readUntilFullOrEOF(buffer: CharArray): Int {
         val bufSize = buffer.size

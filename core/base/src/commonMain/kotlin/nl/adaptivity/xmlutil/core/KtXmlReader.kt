@@ -578,8 +578,6 @@ public class KtXmlReader(
                     inOutBuffer.resumeCopySequence()
                 }
 
-                '\r' -> throw AssertionError("Carriage returns should have been normalized out here")
-
                 delimiter -> return
                 else -> inOutBuffer.markPeekedAsRead()
             }

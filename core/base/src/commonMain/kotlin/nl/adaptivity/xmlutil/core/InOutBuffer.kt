@@ -206,7 +206,7 @@ public interface InOutBuffer {
         val firstChar = readChar()
         require (isXmlWhitespace(firstChar)) { "Expected whitespace, but found non-whitespace: '$firstChar'" }
 
-        while (peek().let { it == '\t'.code ||  it == '\r'.code || it == ' '.code || it == '\r'.code }) {
+        while (peek().let { it == '\t'.code || it == '\r'.code || it == ' '.code || it == '\n'.code || it == 0x85 || it == 0x2028 }) {
             markPeekedAsRead() //needs line ending handling
         }
     }
@@ -220,7 +220,7 @@ public interface InOutBuffer {
         while (c >= 0) {
             when (c.toChar()) {
                 '\t', ' ' -> cnt += 1
-                '\n', '\r' -> {
+                '\n', '\r', '\u0085', '\u2028' -> {
                     if (cnt > 0) skip(cnt)
                     cnt = 0
                     markPeekedAsRead() // does newlines for us

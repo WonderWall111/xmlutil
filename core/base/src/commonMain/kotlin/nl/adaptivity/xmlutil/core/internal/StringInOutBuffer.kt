@@ -162,8 +162,10 @@ public class StringInOutBuffer(public val input: CharSequence): InOutBuffer {
     private fun peekCommon(bufPos: Int): Int {
         return if (bufPos >= input.length) -1
         else {
-            val c = input[bufPos]
-            if (c == '\r') '\n'.code else c.code
+            when (val c = input[bufPos]) {
+                '\r', '\u0085', '\u2028' -> '\n'.code
+                else -> c.code
+            }
         }
     }
 
@@ -201,53 +203,39 @@ public class StringInOutBuffer(public val input: CharSequence): InOutBuffer {
     }
 
     override fun markPeekedAsRead() {
-        fun handleLineEnd(complement: Int, oldPos: Int) {
-            if (peek(1) == complement) {
-                pauseCopySequence()
-                addToCopySequence('\n')
-                offset = oldPos + 2
-                resumeCopySequence()
-            } else {
-                if (copySequenceState == State.ACTIVE && complement == '\n'.code) {
-                    pauseCopySequence()
-                    addToCopySequence('\n')
-                    offset = oldPos + 1
-                    resumeCopySequence()
-                } else {
-                    offset = oldPos + 1
-                }
-            }
-
-            line += 1
-            lastColumnStart = offset
-        }
 
         val oldPos = offset
         val peeked = input[oldPos]
         when (peeked) {
-            '\r' -> handleLineEnd('\n'.code, oldPos)
-            '\n' -> handleLineEnd('\r'.code, oldPos)
+            '\r' -> handle2CharLineEnd(oldPos)
+            '\n', '\u0085', '\u2028' -> handleLineEnd(oldPos + 1)
             else -> offset = oldPos + 1
         }
     }
 
+    private fun handleLineEnd(newPos: Int) {
+        // this cannot use peek as peek normalized (so the test will not work)
+        if (copySequenceState == State.ACTIVE && input[offset] != '\n') {
+            pauseCopySequence()
+            addToCopySequence('\n')
+            offset = newPos
+            resumeCopySequence()
+        } else {
+            offset = newPos
+        }
+        lastColumnStart = newPos
+        line += 1
+    }
+
+    private fun handle2CharLineEnd(oldPos: Int) {
+        val nextChar = peek(1)
+        val inc = if(nextChar == 0xA || nextChar == 0x85) 2 else 1
+        handleLineEnd(oldPos + inc)
+    }
+
+
     /** Does never read more than needed  */
     override fun read(): Int {
-        fun handleLineEnd(complement: Int, oldPos: Int) {
-            val inc = if(peek(2) == complement) 2 else 1
-            val newPos = oldPos + inc
-            if (copySequenceState == State.ACTIVE && (inc == 2 || complement == '\n'.code)) {
-                pauseCopySequence()
-                addToCopySequence('\n')
-                offset = newPos
-                resumeCopySequence()
-            } else {
-                offset = newPos
-            }
-            lastColumnStart = offsetBase + newPos
-            line += 1
-        }
-
         // In this case we *may* need the right buffer, otherwise not
         // optimize this implementation for the "happy" path
         val oldPos = offset
@@ -255,12 +243,19 @@ public class StringInOutBuffer(public val input: CharSequence): InOutBuffer {
 
         when (val char = input[oldPos]) {
             '\r' -> { // as \r is always transformed to \n, this requires a stringBuilder.
-                handleLineEnd('\n'.code, oldPos)
+                handle2CharLineEnd(oldPos)
+                return '\n'.code
+            }
+
+            '\u0085',
+            '\u2028' -> {
+                handleLineEnd(oldPos + 1)
                 return '\n'.code
             }
 
             '\n' -> {
-                handleLineEnd('\r'.code, oldPos)
+                offset = oldPos + 1
+                lastColumnStart = oldPos + 1
                 return '\n'.code
             }
 
