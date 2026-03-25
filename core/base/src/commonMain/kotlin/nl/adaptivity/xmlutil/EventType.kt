@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,6 +21,7 @@
 package nl.adaptivity.xmlutil
 
 import nl.adaptivity.xmlutil.XmlEvent.*
+import nl.adaptivity.xmlutil.core.KtXmlReader
 
 /** Enum representing the type of an xml node/event. */
 public enum class EventType {
@@ -141,8 +142,44 @@ public enum class EventType {
     DOCDECL {
         override val isIgnorable: Boolean get() = true
 
-        override fun createEvent(reader: XmlReader): TextEvent = reader.run {
-            TextEvent(extLocationInfo, DOCDECL, text)
+        override fun createEvent(reader: XmlReader): DocumentDeclEvent = reader.run {
+            if (reader is KtXmlReader) {
+                val docTypeName = requireNotNull(reader.docTypeName) { "Document type name is required if a documen type is specified" }
+                return@run DocumentDeclEvent(reader.extLocationInfo, docTypeName, reader.docTypePublicId, reader.docTypeSystemId)
+            } else {
+                val t = text
+                var i = t.indexOfAny(charArrayOf(' ', '\t', '\n', '\r'))
+                val docTypeName = t.substring(0, i)
+                var publicId: String? = null
+                var systemId: String? = null
+                while (i < t.length && t[i] in " \t\n\r") i += 1
+                val systemOrPublicStart = t.getOrNull(i)
+                if (systemOrPublicStart == 'P') {
+                    require(t.regionMatches(i+1, "UBLIC", 0, 5)) { "Expected PUBLIC" }
+                    i += 6
+                    while (i < t.length && t[i] in " \t\n\r") i += 1
+                    var delim = t[i]
+                    if (delim != '\'' && delim != '"') throw XmlException("Expected ' or \" as delimiter")
+                    var end = t.indexOf(delim, i+1)
+                    publicId = t.substring(i + 1, end)
+
+                    i = end + 1
+                    while (i < t.length && t[i] in " \t\n\r") i += 1
+                    delim = t[i]
+                    if (delim != '\'' && delim != '"') throw XmlException("Expected ' or \" as delimiter")
+                    end = t.indexOf(delim, i+1)
+                    systemId = t.substring(i + 1, end)
+                } else if (systemOrPublicStart=='S') {
+                    require(t.regionMatches(i+1, "SYSTEM", 0, 5)) { "Expected PUBLIC" }
+                    i += 6
+                    while (i < t.length && t[i] in " \t\n\r") i += 1
+                    var delim = t[i]
+                    if (delim != '\'' && delim != '"') throw XmlException("Expected ' or \" as delimiter")
+                    var end = t.indexOf(delim, i+1)
+                    systemId = t.substring(i + 1, end)
+                }
+                return DocumentDeclEvent(reader.extLocationInfo, docTypeName, publicId, systemId)
+            }
         }
 
         override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) {

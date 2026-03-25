@@ -368,6 +368,15 @@ public final class nl/adaptivity/xmlutil/XmlEvent$Companion {
 	public final fun from (Lnl/adaptivity/xmlutil/XmlReader;)Lnl/adaptivity/xmlutil/XmlEvent;
 }
 
+public final class nl/adaptivity/xmlutil/XmlEvent$DocumentDeclEvent : nl/adaptivity/xmlutil/XmlEvent {
+	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getDocTypeName ()Ljava/lang/String;
+	public final fun getDocTypePublicId ()Ljava/lang/String;
+	public final fun getDocTypeSystemId ()Ljava/lang/String;
+	public fun getEventType ()Lnl/adaptivity/xmlutil/EventType;
+	public fun writeTo (Lnl/adaptivity/xmlutil/XmlWriter;)V
+}
+
 public final class nl/adaptivity/xmlutil/XmlEvent$EndDocumentEvent : nl/adaptivity/xmlutil/XmlEvent {
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;)V
