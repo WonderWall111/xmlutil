@@ -765,7 +765,7 @@ private suspend fun SequenceScope<DynamicNode>.addSchemaDocTest(
 @OptIn(ExperimentalTypeInference::class)
 internal fun buildDynamicContainer(
     displayName: String,
-    @BuilderInference block: suspend SequenceScope<DynamicNode>.() -> Unit
+    block: suspend SequenceScope<DynamicNode>.() -> Unit
 ): DynamicContainer {
     return DynamicContainer.dynamicContainer(displayName, sequence(block).asIterable())
 }
@@ -777,7 +777,7 @@ internal suspend fun SequenceScope<DynamicTest>.dynamicTest(displayName: String,
 @OptIn(ExperimentalTypeInference::class)
 internal suspend fun SequenceScope<DynamicContainer>.dynamicContainer(
     displayName: String,
-    @BuilderInference block: suspend SequenceScope<DynamicNode>.() -> Unit
+    block: suspend SequenceScope<DynamicNode>.() -> Unit
 ) {
     yield(DynamicContainer.dynamicContainer(displayName, sequence(block).asIterable()))
 }
