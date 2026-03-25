@@ -1071,6 +1071,8 @@ public class KtXmlReader(
             IGNORABLE_WHITESPACE,
             COMMENT -> throw UnsupportedOperationException("Comments/WS are always allowed - they may start the document tough")
 
+            PROCESSING_INSTRUCTION -> throw UnsupportedOperationException("Processing instructions are always allowed")
+
             TEXT -> {
                 pushCopySequence { pushMaybeWSText('<') }
                 when {
@@ -1089,18 +1091,11 @@ public class KtXmlReader(
                 parseDoctype()
             }
 
-            END_DOCUMENT -> {
-                error("End of document before end of document element")
-            }
+            END_DOCUMENT -> error("End of document before end of document element")
 
             ENTITY_REF -> {
                 error("Entity reference outside document body")
                 pushCopySequence { pushEntity() }
-            }
-
-            PROCESSING_INSTRUCTION -> {
-                error("Processing instruction inside document body")
-                parsePI()
             }
         }
     }
@@ -1257,6 +1252,8 @@ public class KtXmlReader(
             }
 
             CDSECT -> parseCData()
+
+            PROCESSING_INSTRUCTION -> parsePI()
 
             else -> parseUnexpectedOrWS(eventType)
 
