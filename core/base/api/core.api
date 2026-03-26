@@ -183,6 +183,7 @@ public final class nl/adaptivity/xmlutil/XmlBufferReader : nl/adaptivity/xmlutil
 	public fun getPiTarget ()Ljava/lang/String;
 	public fun getPrefix ()Ljava/lang/String;
 	public fun getStandalone ()Ljava/lang/Boolean;
+	public fun getStartLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public fun getText ()Ljava/lang/String;
 	public fun getVersion ()Ljava/lang/String;
 	public fun hasNext ()Z
@@ -275,6 +276,7 @@ public class nl/adaptivity/xmlutil/XmlDelegatingReader : nl/adaptivity/xmlutil/X
 	public fun getPiTarget ()Ljava/lang/String;
 	public fun getPrefix ()Ljava/lang/String;
 	public fun getStandalone ()Ljava/lang/Boolean;
+	public fun getStartLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public fun getText ()Ljava/lang/String;
 	public fun getVersion ()Ljava/lang/String;
 	public fun hasNext ()Z
@@ -511,6 +513,7 @@ public abstract interface class nl/adaptivity/xmlutil/XmlReader : java/io/Closea
 	public abstract fun getPiTarget ()Ljava/lang/String;
 	public abstract fun getPrefix ()Ljava/lang/String;
 	public abstract fun getStandalone ()Ljava/lang/Boolean;
+	public fun getStartLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public abstract fun getText ()Ljava/lang/String;
 	public abstract fun getVersion ()Ljava/lang/String;
 	public abstract fun hasNext ()Z
@@ -534,6 +537,7 @@ public final class nl/adaptivity/xmlutil/XmlReader$DefaultImpls {
 	public static fun getAttributeName (Lnl/adaptivity/xmlutil/XmlReader;I)Ljavax/xml/namespace/QName;
 	public static fun getAttributeValue (Lnl/adaptivity/xmlutil/XmlReader;Ljavax/xml/namespace/QName;)Ljava/lang/String;
 	public static fun getName (Lnl/adaptivity/xmlutil/XmlReader;)Ljavax/xml/namespace/QName;
+	public static fun getStartLocationInfo (Lnl/adaptivity/xmlutil/XmlReader;)Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public static fun isCharacters (Lnl/adaptivity/xmlutil/XmlReader;)Z
 	public static fun isEndElement (Lnl/adaptivity/xmlutil/XmlReader;)Z
 	public static fun isStartElement (Lnl/adaptivity/xmlutil/XmlReader;)Z
@@ -551,6 +555,9 @@ public final class nl/adaptivity/xmlutil/XmlReader$ExtLocationInfo : nl/adaptivi
 	public fun <init> (IIILjava/lang/String;)V
 	public synthetic fun <init> (IIILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCol ()I
+	public final fun getFileName ()Ljava/lang/String;
+	public final fun getLine ()I
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 	public synthetic fun withFileName (Ljava/lang/String;)Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
@@ -827,6 +834,7 @@ public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmluti
 	public fun getPrefix ()Ljava/lang/String;
 	public final fun getRelaxed ()Z
 	public fun getStandalone ()Ljava/lang/Boolean;
+	public fun getStartLocationInfo ()Lnl/adaptivity/xmlutil/XmlReader$LocationInfo;
 	public fun getText ()Ljava/lang/String;
 	public fun getVersion ()Ljava/lang/String;
 	public fun hasNext ()Z

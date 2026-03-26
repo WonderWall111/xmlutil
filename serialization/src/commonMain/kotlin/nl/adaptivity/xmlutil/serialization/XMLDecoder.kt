@@ -489,6 +489,9 @@ internal open class XmlDecoderBase internal constructor(
         override val extLocationInfo: XmlReader.LocationInfo?,
         private val stringValue: String
     ) : XmlReader {
+        override val startLocationInfo: XmlReader.LocationInfo?
+            get() = extLocationInfo
+
         private var pos = -1
 
         override val depth: Int get() = if (pos == 0) 0 else -1

@@ -39,6 +39,7 @@ import kotlin.jvm.JvmOverloads
 public interface XmlReader : Closeable, Iterator<EventType> {
 
     /** Get the next tag. This must call next, not use the underlying stream.  */
+    @IgnorableReturnValue
     public fun nextTag(): EventType {
         var event = next()
         while (event !== EventType.START_ELEMENT && event !== EventType.END_ELEMENT) {
@@ -203,6 +204,12 @@ public interface XmlReader : Closeable, Iterator<EventType> {
     /** Retrieve the namespaces declared at the current level. */
     public val namespaceDecls: List<Namespace>
 
+    /**
+     * Location info for the start of the currently "active" event, rather than the end of it. If
+     * not explicitly supported will return null.
+     */
+    public val startLocationInfo: LocationInfo? get() = null
+
     /** Enhanced location info that allows a reader to provide more detail than just a string */
     public val extLocationInfo: LocationInfo?
 
@@ -267,7 +274,12 @@ public interface XmlReader : Closeable, Iterator<EventType> {
     /**
      * Extended location info that actually provides column, line, and or file/string offset information.
      */
-    public class ExtLocationInfo(private val col: Int, private val line: Int, private val offset: Int, private val fileName: String? = null) : LocationInfo {
+    public class ExtLocationInfo(
+        @ExperimentalXmlUtilApi public val col: Int,
+        @ExperimentalXmlUtilApi public val line: Int,
+        private val offset: Int,
+        @ExperimentalXmlUtilApi public val fileName: String? = null
+    ) : LocationInfo {
         @XmlUtilInternal
         public override fun withFileName(fileName: String): ExtLocationInfo = when {
             this.fileName == fileName -> this

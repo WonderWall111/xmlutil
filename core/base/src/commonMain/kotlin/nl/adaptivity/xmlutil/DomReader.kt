@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -124,6 +124,8 @@ internal class DomReader(val delegate: Node, val expandEntities: Boolean) : XmlR
                     })
 
         }
+
+    override val startLocationInfo: XmlReader.LocationInfo get() = extLocationInfo
 
     override val extLocationInfo: XmlReader.LocationInfo
         get() {

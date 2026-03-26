@@ -204,6 +204,9 @@ public class KtXmlReader(
     //endregion Parse state accessors
 
     //region Location info
+    override var startLocationInfo: XmlReader.LocationInfo = inOutBuffer.locationInfo
+        private set
+
     override val extLocationInfo: XmlReader.LocationInfo
         get() = inOutBuffer.locationInfo
 
@@ -1106,6 +1109,8 @@ public class KtXmlReader(
     }
 
     override fun next(): EventType {
+        startLocationInfo = inOutBuffer.locationInfo
+
         _isWhitespace = true
 
         // reset the output buffer
@@ -1137,13 +1142,14 @@ public class KtXmlReader(
         return _eventType != END_DOCUMENT
     }
 
+    @IgnorableReturnValue
     override fun nextTag(): EventType {
         var et: EventType
         do {
             et = next()
         } while (et.isIgnorable || (et == TEXT && _isWhitespace))
 
-        if (et != END_ELEMENT && et != START_ELEMENT) exception("unexpected type")
+        if (et != END_ELEMENT && et != START_ELEMENT) exception("unexpected type: $et")
         return et
     }
 
