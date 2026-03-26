@@ -1,6 +1,5 @@
 [versions]
 apiVersion = "2.3"
-binaryValidator = "0.18.1"
 dateTime = "0.7.1"
 dokka = "2.1.0"
 javaVersion = "8"
@@ -38,7 +37,6 @@ kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "a
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
 [plugins]
-binaryValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryValidator" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmh" }
 benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "benchmark" }

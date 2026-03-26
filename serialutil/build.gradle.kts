@@ -27,6 +27,7 @@ import net.devrieze.gradle.ext.isKlibValidationEnabled
 import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     id("projectPlugin")
@@ -36,7 +37,6 @@ plugins {
     signing
     alias(libs.plugins.dokka)
     idea
-    alias(libs.plugins.binaryValidator)
 }
 
 base {
@@ -51,6 +51,25 @@ config {
 
 kotlin {
     applyDefaultXmlUtilHierarchyTemplate()
+
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        enabled = true
+
+        klib {
+            enabled = isKlibValidationEnabled()
+        }
+
+        filters {
+            exclude {
+                annotatedWith.add("nl.adaptivity.xmlutil.XmlUtilInternal")
+                byNames.apply {
+                    add("nl.adaptivity.serialutil.impl.**")
+                }
+            }
+        }
+    }
+
     jvm()
 
     js {
@@ -99,18 +118,6 @@ kotlin {
 }
 
 addNativeTargets()
-
-apiValidation {
-    @Suppress("OPT_IN_USAGE")
-    klib {
-        enabled = isKlibValidationEnabled()
-        strictValidation = false
-    }
-    ignoredPackages.apply {
-        add("nl.adaptivity.serialutil.impl")
-    }
-
-}
 
 doPublish()
 

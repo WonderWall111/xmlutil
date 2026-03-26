@@ -36,7 +36,6 @@ plugins {
     signing
     alias(libs.plugins.dokka)
     idea
-//    alias(libs.plugins.binaryValidator)
 }
 
 base {

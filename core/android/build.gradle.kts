@@ -21,6 +21,7 @@
 import net.devrieze.gradle.ext.doPublish
 import net.devrieze.gradle.ext.envAndroid
 import org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     id("projectPlugin")
@@ -29,7 +30,6 @@ plugins {
     signing
     alias(libs.plugins.dokka)
     idea
-    alias(libs.plugins.binaryValidator)
 }
 
 base {
@@ -46,6 +46,18 @@ val autoModuleName = "net.devrieze.xmlutil.core.android"
 
 kotlin {
     explicitApi()
+
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        enabled = true
+
+        filters {
+            exclude {
+                annotatedWith.add("nl.adaptivity.xmlutil.XmlUtilInternal")
+            }
+        }
+    }
+
 
     target {
         attributes {
@@ -74,15 +86,6 @@ dependencies {
 
     testRuntimeOnly(libs.junit5.engine)
     testRuntimeOnly(libs.kxml2)
-}
-
-apiValidation {
-    nonPublicMarkers.add("nl.adaptivity.xmlutil.XmlUtilInternal")
-    ignoredPackages.apply {
-        add("nl.adaptivity.xmlutil.core.internal")
-        add("nl.adaptivity.xmlutil.core.impl")
-        add("nl.adaptivity.xmlutil.util.impl")
-    }
 }
 
 publishing {

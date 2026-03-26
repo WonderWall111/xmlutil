@@ -28,6 +28,7 @@ import net.devrieze.gradle.ext.isKlibValidationEnabled
 import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
@@ -39,7 +40,6 @@ plugins {
     signing
     alias(libs.plugins.dokka)
     idea
-    alias(libs.plugins.binaryValidator)
 }
 
 base {
@@ -49,6 +49,25 @@ base {
 kotlin {
     applyDefaultXmlUtilHierarchyTemplate()
     explicitApi()
+
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        enabled = true
+
+        klib {
+            enabled = isKlibValidationEnabled()
+        }
+
+        filters {
+            exclude {
+                annotatedWith.add("nl.adaptivity.xmlutil.XmlUtilInternal")
+                annotatedWith.add("nl.adaptivity.xmlutil.serialization.WillBePrivate")
+                byNames.apply {
+                    add("nl.adaptivity.xmlutil.serialization.impl.**")
+                }
+            }
+        }
+    }
 
     jvm {
 
@@ -178,22 +197,6 @@ dependencies {
     attributesSchema {
         attribute(KotlinPlatformType.attribute)
     }
-}
-
-apiValidation {
-    @Suppress("OPT_IN_USAGE")
-    klib {
-        enabled = isKlibValidationEnabled()
-        strictValidation = false
-    }
-    nonPublicMarkers.apply {
-        add("nl.adaptivity.xmlutil.serialization.WillBePrivate")
-        add("nl.adaptivity.xmlutil.XmlUtilInternal")
-    }
-    ignoredPackages.apply {
-        add("nl.adaptivity.xmlutil.serialization.impl")
-    }
-
 }
 
 doPublish()

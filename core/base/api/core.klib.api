@@ -599,11 +599,11 @@ abstract interface nl.adaptivity.xmlutil/IXmlStreaming { // nl.adaptivity.xmluti
     abstract val platformDOMImplementation // nl.adaptivity.xmlutil/IXmlStreaming.platformDOMImplementation|{}platformDOMImplementation[0]
         abstract fun <get-platformDOMImplementation>(): nl.adaptivity.xmlutil.dom/PlatformDOMImplementation // nl.adaptivity.xmlutil/IXmlStreaming.platformDOMImplementation.<get-platformDOMImplementation>|<get-platformDOMImplementation>(){}[0]
 
-    abstract fun newGenericReader(kotlin/CharSequence, kotlin/Boolean = ...): nl.adaptivity.xmlutil/XmlReader // nl.adaptivity.xmlutil/IXmlStreaming.newGenericReader|newGenericReader(kotlin.CharSequence;kotlin.Boolean){}[0]
     abstract fun newGenericReader(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...): nl.adaptivity.xmlutil/XmlReader // nl.adaptivity.xmlutil/IXmlStreaming.newGenericReader|newGenericReader(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     abstract fun newReader(kotlin/CharSequence, kotlin/Boolean = ...): nl.adaptivity.xmlutil/XmlReader // nl.adaptivity.xmlutil/IXmlStreaming.newReader|newReader(kotlin.CharSequence;kotlin.Boolean){}[0]
     abstract fun newReader(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...): nl.adaptivity.xmlutil/XmlReader // nl.adaptivity.xmlutil/IXmlStreaming.newReader|newReader(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     abstract fun newWriter(): nl.adaptivity.xmlutil/DomWriter // nl.adaptivity.xmlutil/IXmlStreaming.newWriter|newWriter(){}[0]
+    open fun newGenericReader(kotlin/CharSequence, kotlin/Boolean = ...): nl.adaptivity.xmlutil/XmlReader // nl.adaptivity.xmlutil/IXmlStreaming.newGenericReader|newGenericReader(kotlin.CharSequence;kotlin.Boolean){}[0]
     open fun setFactory(nl.adaptivity.xmlutil/XmlStreamingFactory?) // nl.adaptivity.xmlutil/IXmlStreaming.setFactory|setFactory(nl.adaptivity.xmlutil.XmlStreamingFactory?){}[0]
 
     // Targets: [native, wasmJs, wasmWasi]
@@ -686,6 +686,8 @@ abstract interface nl.adaptivity.xmlutil/XmlReader : kotlin.collections/Iterator
         abstract fun <get-version>(): kotlin/String? // nl.adaptivity.xmlutil/XmlReader.version.<get-version>|<get-version>(){}[0]
     open val name // nl.adaptivity.xmlutil/XmlReader.name|{}name[0]
         open fun <get-name>(): nl.adaptivity.xmlutil/QName // nl.adaptivity.xmlutil/XmlReader.name.<get-name>|<get-name>(){}[0]
+    open val startLocationInfo // nl.adaptivity.xmlutil/XmlReader.startLocationInfo|{}startLocationInfo[0]
+        open fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil/XmlReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
 
     abstract fun close() // nl.adaptivity.xmlutil/XmlReader.close|close(){}[0]
     abstract fun getAttributeLocalName(kotlin/Int): kotlin/String // nl.adaptivity.xmlutil/XmlReader.getAttributeLocalName|getAttributeLocalName(kotlin.Int){}[0]
@@ -717,6 +719,13 @@ abstract interface nl.adaptivity.xmlutil/XmlReader : kotlin.collections/Iterator
 
     final class ExtLocationInfo : nl.adaptivity.xmlutil/XmlReader.LocationInfo { // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo|null[0]
         constructor <init>(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/String? = ...) // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.String?){}[0]
+
+        final val col // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.col|{}col[0]
+            final fun <get-col>(): kotlin/Int // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.col.<get-col>|<get-col>(){}[0]
+        final val fileName // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.fileName|{}fileName[0]
+            final fun <get-fileName>(): kotlin/String? // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.fileName.<get-fileName>|<get-fileName>(){}[0]
+        final val line // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.line|{}line[0]
+            final fun <get-line>(): kotlin/Int // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.line.<get-line>|<get-line>(){}[0]
 
         final fun equals(kotlin/Any?): kotlin/Boolean // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // nl.adaptivity.xmlutil/XmlReader.ExtLocationInfo.hashCode|hashCode(){}[0]
@@ -814,21 +823,84 @@ abstract class nl.adaptivity.xmlutil/XmlDelegatingWriter : nl.adaptivity.xmlutil
 }
 
 final class nl.adaptivity.xmlutil.core/DoctypeParser { // nl.adaptivity.xmlutil.core/DoctypeParser|null[0]
-    constructor <init>(nl.adaptivity.xmlutil.core/InputBuffer, kotlin/Boolean) // nl.adaptivity.xmlutil.core/DoctypeParser.<init>|<init>(nl.adaptivity.xmlutil.core.InputBuffer;kotlin.Boolean){}[0]
+    constructor <init>(nl.adaptivity.xmlutil.core/InOutBuffer, kotlin/Boolean) // nl.adaptivity.xmlutil.core/DoctypeParser.<init>|<init>(nl.adaptivity.xmlutil.core.InOutBuffer;kotlin.Boolean){}[0]
 
     final val generalEntities // nl.adaptivity.xmlutil.core/DoctypeParser.generalEntities|{}generalEntities[0]
         final fun <get-generalEntities>(): kotlin.collections/MutableMap<kotlin/String, nl.adaptivity.xmlutil.core/XmlEntity> // nl.adaptivity.xmlutil.core/DoctypeParser.generalEntities.<get-generalEntities>|<get-generalEntities>(){}[0]
 
     final fun parse() // nl.adaptivity.xmlutil.core/DoctypeParser.parse|parse(){}[0]
     final fun parseParameterEntityReference() // nl.adaptivity.xmlutil.core/DoctypeParser.parseParameterEntityReference|parseParameterEntityReference(){}[0]
-
-    final object Companion // nl.adaptivity.xmlutil.core/DoctypeParser.Companion|null[0]
 }
 
-final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil.core.internal/AbstractKtXmlReader { // nl.adaptivity.xmlutil.core/KtXmlReader|null[0]
+final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil/XmlReader { // nl.adaptivity.xmlutil.core/KtXmlReader|null[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean;kotlin.Boolean){}[0]
+    constructor <init>(nl.adaptivity.xmlutil.core/InOutBuffer, kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.InOutBuffer;kotlin.String?;kotlin.Boolean;kotlin.Boolean){}[0]
 
+    final val depth // nl.adaptivity.xmlutil.core/KtXmlReader.depth|{}depth[0]
+        final fun <get-depth>(): kotlin/Int // nl.adaptivity.xmlutil.core/KtXmlReader.depth.<get-depth>|<get-depth>(){}[0]
+    final val eventType // nl.adaptivity.xmlutil.core/KtXmlReader.eventType|{}eventType[0]
+        final fun <get-eventType>(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil.core/KtXmlReader.eventType.<get-eventType>|<get-eventType>(){}[0]
+    final val expandEntities // nl.adaptivity.xmlutil.core/KtXmlReader.expandEntities|{}expandEntities[0]
+        final fun <get-expandEntities>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.expandEntities.<get-expandEntities>|<get-expandEntities>(){}[0]
+    final val extLocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.extLocationInfo|{}extLocationInfo[0]
+        final fun <get-extLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.extLocationInfo.<get-extLocationInfo>|<get-extLocationInfo>(){}[0]
+    final val isKnownEntity // nl.adaptivity.xmlutil.core/KtXmlReader.isKnownEntity|{}isKnownEntity[0]
+        final fun <get-isKnownEntity>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.isKnownEntity.<get-isKnownEntity>|<get-isKnownEntity>(){}[0]
+    final val isStarted // nl.adaptivity.xmlutil.core/KtXmlReader.isStarted|{}isStarted[0]
+        final fun <get-isStarted>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.isStarted.<get-isStarted>|<get-isStarted>(){}[0]
+    final val localName // nl.adaptivity.xmlutil.core/KtXmlReader.localName|{}localName[0]
+        final fun <get-localName>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.localName.<get-localName>|<get-localName>(){}[0]
+    final val namespaceContext // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceContext|{}namespaceContext[0]
+        final fun <get-namespaceContext>(): nl.adaptivity.xmlutil/IterableNamespaceContext // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceContext.<get-namespaceContext>|<get-namespaceContext>(){}[0]
+    final val namespaceDecls // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceDecls|{}namespaceDecls[0]
+        final fun <get-namespaceDecls>(): kotlin.collections/List<nl.adaptivity.xmlutil/Namespace> // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceDecls.<get-namespaceDecls>|<get-namespaceDecls>(){}[0]
+    final val namespaceURI // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceURI|{}namespaceURI[0]
+        final fun <get-namespaceURI>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.namespaceURI.<get-namespaceURI>|<get-namespaceURI>(){}[0]
+    final val piData // nl.adaptivity.xmlutil.core/KtXmlReader.piData|{}piData[0]
+        final fun <get-piData>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.piData.<get-piData>|<get-piData>(){}[0]
+    final val piTarget // nl.adaptivity.xmlutil.core/KtXmlReader.piTarget|{}piTarget[0]
+        final fun <get-piTarget>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.piTarget.<get-piTarget>|<get-piTarget>(){}[0]
+    final val prefix // nl.adaptivity.xmlutil.core/KtXmlReader.prefix|{}prefix[0]
+        final fun <get-prefix>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.prefix.<get-prefix>|<get-prefix>(){}[0]
+    final val relaxed // nl.adaptivity.xmlutil.core/KtXmlReader.relaxed|{}relaxed[0]
+        final fun <get-relaxed>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.relaxed.<get-relaxed>|<get-relaxed>(){}[0]
+    final val text // nl.adaptivity.xmlutil.core/KtXmlReader.text|{}text[0]
+        final fun <get-text>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.text.<get-text>|<get-text>(){}[0]
+
+    final var attributeCount // nl.adaptivity.xmlutil.core/KtXmlReader.attributeCount|{}attributeCount[0]
+        final fun <get-attributeCount>(): kotlin/Int // nl.adaptivity.xmlutil.core/KtXmlReader.attributeCount.<get-attributeCount>|<get-attributeCount>(){}[0]
+    final var docTypeName // nl.adaptivity.xmlutil.core/KtXmlReader.docTypeName|{}docTypeName[0]
+        final fun <get-docTypeName>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.docTypeName.<get-docTypeName>|<get-docTypeName>(){}[0]
+    final var docTypePublicId // nl.adaptivity.xmlutil.core/KtXmlReader.docTypePublicId|{}docTypePublicId[0]
+        final fun <get-docTypePublicId>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.docTypePublicId.<get-docTypePublicId>|<get-docTypePublicId>(){}[0]
+    final var docTypeSystemId // nl.adaptivity.xmlutil.core/KtXmlReader.docTypeSystemId|{}docTypeSystemId[0]
+        final fun <get-docTypeSystemId>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.docTypeSystemId.<get-docTypeSystemId>|<get-docTypeSystemId>(){}[0]
+    final var encoding // nl.adaptivity.xmlutil.core/KtXmlReader.encoding|{}encoding[0]
+        final fun <get-encoding>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.encoding.<get-encoding>|<get-encoding>(){}[0]
+    final var standalone // nl.adaptivity.xmlutil.core/KtXmlReader.standalone|{}standalone[0]
+        final fun <get-standalone>(): kotlin/Boolean? // nl.adaptivity.xmlutil.core/KtXmlReader.standalone.<get-standalone>|<get-standalone>(){}[0]
+    final var startLocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo|{}startLocationInfo[0]
+        final fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
+    final var version // nl.adaptivity.xmlutil.core/KtXmlReader.version|{}version[0]
+        final fun <get-version>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.version.<get-version>|<get-version>(){}[0]
+
+    final fun close() // nl.adaptivity.xmlutil.core/KtXmlReader.close|close(){}[0]
+    final fun getAttributeLocalName(kotlin/Int): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.getAttributeLocalName|getAttributeLocalName(kotlin.Int){}[0]
+    final fun getAttributeNamespace(kotlin/Int): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.getAttributeNamespace|getAttributeNamespace(kotlin.Int){}[0]
+    final fun getAttributePrefix(kotlin/Int): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.getAttributePrefix|getAttributePrefix(kotlin.Int){}[0]
+    final fun getAttributeValue(kotlin/Int): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.getAttributeValue|getAttributeValue(kotlin.Int){}[0]
+    final fun getAttributeValue(kotlin/String?, kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.getAttributeValue|getAttributeValue(kotlin.String?;kotlin.String){}[0]
+    final fun getColumnNumber(): kotlin/Int // nl.adaptivity.xmlutil.core/KtXmlReader.getColumnNumber|getColumnNumber(){}[0]
+    final fun getLineNumber(): kotlin/Int // nl.adaptivity.xmlutil.core/KtXmlReader.getLineNumber|getLineNumber(){}[0]
+    final fun getNamespacePrefix(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.getNamespacePrefix|getNamespacePrefix(kotlin.String){}[0]
+    final fun getNamespaceURI(kotlin/String): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.getNamespaceURI|getNamespaceURI(kotlin.String){}[0]
+    final fun hasNext(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.hasNext|hasNext(){}[0]
+    final fun isEmptyElementTag(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.isEmptyElementTag|isEmptyElementTag(){}[0]
+    final fun isWhitespace(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.isWhitespace|isWhitespace(){}[0]
+    final fun next(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil.core/KtXmlReader.next|next(){}[0]
+    final fun nextTag(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil.core/KtXmlReader.nextTag|nextTag(){}[0]
+    final fun require(nl.adaptivity.xmlutil/EventType, kotlin/String?, kotlin/String?) // nl.adaptivity.xmlutil.core/KtXmlReader.require|require(nl.adaptivity.xmlutil.EventType;kotlin.String?;kotlin.String?){}[0]
     final fun toString(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.toString|toString(){}[0]
 }
 
@@ -909,6 +981,8 @@ final class nl.adaptivity.xmlutil.util/CompactFragment : nl.adaptivity.xmlutil.u
 }
 
 final class nl.adaptivity.xmlutil.util/XMLFragmentStreamReader : nl.adaptivity.xmlutil/XmlDelegatingReader { // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader|null[0]
+    constructor <init>(kotlin/String, kotlin.collections/Iterable<nl.adaptivity.xmlutil/Namespace>) // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader.<init>|<init>(kotlin.String;kotlin.collections.Iterable<nl.adaptivity.xmlutil.Namespace>){}[0]
+
     final val namespaceContext // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader.namespaceContext|{}namespaceContext[0]
         final fun <get-namespaceContext>(): nl.adaptivity.xmlutil/IterableNamespaceContext // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader.namespaceContext.<get-namespaceContext>|<get-namespaceContext>(){}[0]
 
@@ -936,9 +1010,6 @@ final class nl.adaptivity.xmlutil.util/XMLFragmentStreamReader : nl.adaptivity.x
 
     // Targets: [native, wasmJs, wasmWasi]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin.collections/Iterable<nl.adaptivity.xmlutil/Namespace>) // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.collections.Iterable<nl.adaptivity.xmlutil.Namespace>){}[0]
-
-    // Targets: [js]
-    constructor <init>(kotlin/String, kotlin.collections/Iterable<nl.adaptivity.xmlutil/Namespace>) // nl.adaptivity.xmlutil.util/XMLFragmentStreamReader.<init>|<init>(kotlin.String;kotlin.collections.Iterable<nl.adaptivity.xmlutil.Namespace>){}[0]
 }
 
 final class nl.adaptivity.xmlutil/DomWriter : nl.adaptivity.xmlutil/XmlWriter { // nl.adaptivity.xmlutil/DomWriter|null[0]
@@ -1017,6 +1088,8 @@ final class nl.adaptivity.xmlutil/XmlBufferReader : nl.adaptivity.xmlutil/XmlRea
         final fun <get-piTarget>(): kotlin/String // nl.adaptivity.xmlutil/XmlBufferReader.piTarget.<get-piTarget>|<get-piTarget>(){}[0]
     final val prefix // nl.adaptivity.xmlutil/XmlBufferReader.prefix|{}prefix[0]
         final fun <get-prefix>(): kotlin/String // nl.adaptivity.xmlutil/XmlBufferReader.prefix.<get-prefix>|<get-prefix>(){}[0]
+    final val startLocationInfo // nl.adaptivity.xmlutil/XmlBufferReader.startLocationInfo|{}startLocationInfo[0]
+        final fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil/XmlBufferReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
     final val text // nl.adaptivity.xmlutil/XmlBufferReader.text|{}text[0]
         final fun <get-text>(): kotlin/String // nl.adaptivity.xmlutil/XmlBufferReader.text.<get-text>|<get-text>(){}[0]
 
@@ -1077,16 +1150,16 @@ final class nl.adaptivity.xmlutil/XmlBufferedWriter : nl.adaptivity.xmlutil/XmlW
 }
 
 open class nl.adaptivity.xmlutil.core/XmlEntity { // nl.adaptivity.xmlutil.core/XmlEntity|null[0]
-    constructor <init>(kotlin/String, kotlin/Boolean, nl.adaptivity.xmlutil/XmlReader.LocationInfo? = ...) // nl.adaptivity.xmlutil.core/XmlEntity.<init>|<init>(kotlin.String;kotlin.Boolean;nl.adaptivity.xmlutil.XmlReader.LocationInfo?){}[0]
+    constructor <init>(kotlin/CharSequence, kotlin/Boolean, nl.adaptivity.xmlutil/XmlReader.LocationInfo? = ...) // nl.adaptivity.xmlutil.core/XmlEntity.<init>|<init>(kotlin.CharSequence;kotlin.Boolean;nl.adaptivity.xmlutil.XmlReader.LocationInfo?){}[0]
 
-    final val isSimple // nl.adaptivity.xmlutil.core/XmlEntity.isSimple|{}isSimple[0]
-        final fun <get-isSimple>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/XmlEntity.isSimple.<get-isSimple>|<get-isSimple>(){}[0]
     final val location // nl.adaptivity.xmlutil.core/XmlEntity.location|{}location[0]
         final fun <get-location>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil.core/XmlEntity.location.<get-location>|<get-location>(){}[0]
     final val replacementValue // nl.adaptivity.xmlutil.core/XmlEntity.replacementValue|{}replacementValue[0]
-        final fun <get-replacementValue>(): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.replacementValue.<get-replacementValue>|<get-replacementValue>(){}[0]
+        final fun <get-replacementValue>(): kotlin/CharSequence // nl.adaptivity.xmlutil.core/XmlEntity.replacementValue.<get-replacementValue>|<get-replacementValue>(){}[0]
+    open val isSimple // nl.adaptivity.xmlutil.core/XmlEntity.isSimple|{}isSimple[0]
+        open fun <get-isSimple>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/XmlEntity.isSimple.<get-isSimple>|<get-isSimple>(){}[0]
     open val simpleValue // nl.adaptivity.xmlutil.core/XmlEntity.simpleValue|{}simpleValue[0]
-        open fun <get-simpleValue>(): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.simpleValue.<get-simpleValue>|<get-simpleValue>(){}[0]
+        open fun <get-simpleValue>(): kotlin/CharSequence // nl.adaptivity.xmlutil.core/XmlEntity.simpleValue.<get-simpleValue>|<get-simpleValue>(){}[0]
 
     final fun resolveEmbeddedEntities(nl.adaptivity.xmlutil.core.impl/EntityMap): kotlin/String // nl.adaptivity.xmlutil.core/XmlEntity.resolveEmbeddedEntities|resolveEmbeddedEntities(nl.adaptivity.xmlutil.core.impl.EntityMap){}[0]
 }
@@ -1149,6 +1222,8 @@ open class nl.adaptivity.xmlutil/XmlDelegatingReader : nl.adaptivity.xmlutil/Xml
         open fun <get-prefix>(): kotlin/String // nl.adaptivity.xmlutil/XmlDelegatingReader.prefix.<get-prefix>|<get-prefix>(){}[0]
     open val standalone // nl.adaptivity.xmlutil/XmlDelegatingReader.standalone|{}standalone[0]
         open fun <get-standalone>(): kotlin/Boolean? // nl.adaptivity.xmlutil/XmlDelegatingReader.standalone.<get-standalone>|<get-standalone>(){}[0]
+    open val startLocationInfo // nl.adaptivity.xmlutil/XmlDelegatingReader.startLocationInfo|{}startLocationInfo[0]
+        open fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil/XmlDelegatingReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
     open val text // nl.adaptivity.xmlutil/XmlDelegatingReader.text|{}text[0]
         open fun <get-text>(): kotlin/String // nl.adaptivity.xmlutil/XmlDelegatingReader.text.<get-text>|<get-text>(){}[0]
     open val version // nl.adaptivity.xmlutil/XmlDelegatingReader.version|{}version[0]
@@ -1189,12 +1264,13 @@ open class nl.adaptivity.xmlutil/XmlException : nl.adaptivity.xmlutil.core.impl.
     constructor <init>(nl.adaptivity.xmlutil/XmlReader.LocationInfo? = ...) // nl.adaptivity.xmlutil/XmlException.<init>|<init>(nl.adaptivity.xmlutil.XmlReader.LocationInfo?){}[0]
     constructor <init>(nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/Throwable) // nl.adaptivity.xmlutil/XmlException.<init>|<init>(nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.Throwable){}[0]
 
-    final val locationInfo // nl.adaptivity.xmlutil/XmlException.locationInfo|{}locationInfo[0]
-        final fun <get-locationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil/XmlException.locationInfo.<get-locationInfo>|<get-locationInfo>(){}[0]
     final val rawMessage // nl.adaptivity.xmlutil/XmlException.rawMessage|{}rawMessage[0]
         final fun <get-rawMessage>(): kotlin/String? // nl.adaptivity.xmlutil/XmlException.rawMessage.<get-rawMessage>|<get-rawMessage>(){}[0]
     open val message // nl.adaptivity.xmlutil/XmlException.message|{}message[0]
         open fun <get-message>(): kotlin/String? // nl.adaptivity.xmlutil/XmlException.message.<get-message>|<get-message>(){}[0]
+
+    final var locationInfo // nl.adaptivity.xmlutil/XmlException.locationInfo|{}locationInfo[0]
+        final fun <get-locationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo? // nl.adaptivity.xmlutil/XmlException.locationInfo.<get-locationInfo>|<get-locationInfo>(){}[0]
 }
 
 sealed class nl.adaptivity.xmlutil/XmlEvent { // nl.adaptivity.xmlutil/XmlEvent|null[0]
@@ -1247,6 +1323,21 @@ sealed class nl.adaptivity.xmlutil/XmlEvent { // nl.adaptivity.xmlutil/XmlEvent|
         final fun hashCode(): kotlin/Int // nl.adaptivity.xmlutil/XmlEvent.Attribute.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // nl.adaptivity.xmlutil/XmlEvent.Attribute.toString|toString(){}[0]
         final fun writeTo(nl.adaptivity.xmlutil/XmlWriter) // nl.adaptivity.xmlutil/XmlEvent.Attribute.writeTo|writeTo(nl.adaptivity.xmlutil.XmlWriter){}[0]
+    }
+
+    final class DocumentDeclEvent : nl.adaptivity.xmlutil/XmlEvent { // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent|null[0]
+        constructor <init>(nl.adaptivity.xmlutil/XmlReader.LocationInfo?, kotlin/String, kotlin/String?, kotlin/String?) // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.<init>|<init>(nl.adaptivity.xmlutil.XmlReader.LocationInfo?;kotlin.String;kotlin.String?;kotlin.String?){}[0]
+
+        final val docTypeName // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypeName|{}docTypeName[0]
+            final fun <get-docTypeName>(): kotlin/String // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypeName.<get-docTypeName>|<get-docTypeName>(){}[0]
+        final val docTypePublicId // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypePublicId|{}docTypePublicId[0]
+            final fun <get-docTypePublicId>(): kotlin/String? // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypePublicId.<get-docTypePublicId>|<get-docTypePublicId>(){}[0]
+        final val docTypeSystemId // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypeSystemId|{}docTypeSystemId[0]
+            final fun <get-docTypeSystemId>(): kotlin/String? // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.docTypeSystemId.<get-docTypeSystemId>|<get-docTypeSystemId>(){}[0]
+        final val eventType // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.eventType|{}eventType[0]
+            final fun <get-eventType>(): nl.adaptivity.xmlutil/EventType // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.eventType.<get-eventType>|<get-eventType>(){}[0]
+
+        final fun writeTo(nl.adaptivity.xmlutil/XmlWriter) // nl.adaptivity.xmlutil/XmlEvent.DocumentDeclEvent.writeTo|writeTo(nl.adaptivity.xmlutil.XmlWriter){}[0]
     }
 
     final class EndDocumentEvent : nl.adaptivity.xmlutil/XmlEvent { // nl.adaptivity.xmlutil/XmlEvent.EndDocumentEvent|null[0]

@@ -21,13 +21,14 @@
 import net.devrieze.gradle.ext.addNativeTargets
 import net.devrieze.gradle.ext.applyDefaultXmlUtilHierarchyTemplate
 import net.devrieze.gradle.ext.doPublish
+import net.devrieze.gradle.ext.isKlibValidationEnabled
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     alias(libs.plugins.dokka)
     id("projectPlugin")
     kotlin("multiplatform")
     `maven-publish`
-    alias(libs.plugins.binaryValidator)
     signing
     idea
 }
@@ -47,6 +48,21 @@ val autoModuleName = "net.devrieze.xmlutil.core.kxio"
 kotlin {
     explicitApi()
     applyDefaultXmlUtilHierarchyTemplate()
+
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation {
+        enabled = true
+
+        klib {
+            enabled = isKlibValidationEnabled()
+        }
+
+        filters {
+            exclude {
+                annotatedWith.add("nl.adaptivity.xmlutil.XmlUtilInternal")
+            }
+        }
+    }
 
     jvm()
     js {
