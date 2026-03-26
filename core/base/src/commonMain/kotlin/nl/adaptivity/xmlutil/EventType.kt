@@ -187,12 +187,8 @@ public enum class EventType {
             }
         }
 
-        override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) {
-            writer.docdecl(textEvent.text)
-        }
-
         override fun writeEvent(writer: XmlWriter, reader: XmlReader) {
-            writer.docdecl(reader.text)
+            createEvent(reader).writeTo(writer)
         }
     },
 
