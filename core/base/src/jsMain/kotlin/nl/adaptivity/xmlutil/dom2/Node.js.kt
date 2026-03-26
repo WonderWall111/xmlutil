@@ -23,7 +23,7 @@
 package nl.adaptivity.xmlutil.dom2
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.core.impl.dom.wrap
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.wrap
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
 @Serializable(with = NodeSerializer::class)

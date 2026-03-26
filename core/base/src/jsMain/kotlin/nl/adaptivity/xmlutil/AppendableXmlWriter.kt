@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,7 +20,7 @@
 
 package nl.adaptivity.xmlutil
 
-import nl.adaptivity.xmlutil.core.impl.dom.unWrap
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.unWrap
 import org.w3c.dom.parsing.XMLSerializer
 
 internal class AppendableXmlWriter(private val target: Appendable, private val delegate: DomWriter) :

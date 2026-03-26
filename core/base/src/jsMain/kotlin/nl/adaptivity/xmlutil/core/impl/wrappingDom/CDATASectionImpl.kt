@@ -18,9 +18,9 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom2.Comment as Comment2
-import org.w3c.dom.Comment as DOMComment
+import nl.adaptivity.xmlutil.dom2.CDATASection as CDATASection2
+import org.w3c.dom.CDATASection as DOMCDATASection
 
-internal class CommentImpl(delegate: DOMComment) : CharacterDataImpl<DOMComment>(delegate), Comment2
+internal class CDATASectionImpl(delegate: DOMCDATASection) : TextImpl(delegate), CDATASection2

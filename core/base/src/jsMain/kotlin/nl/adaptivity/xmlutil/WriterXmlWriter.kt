@@ -21,8 +21,8 @@
 package nl.adaptivity.xmlutil
 
 import nl.adaptivity.xmlutil.core.XmlVersion
-import nl.adaptivity.xmlutil.core.impl.dom.unWrap
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.unWrap
 import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.parsing.XMLSerializer
 

@@ -20,7 +20,7 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-import nl.adaptivity.xmlutil.core.impl.dom.wrap
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.wrap
 import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 

@@ -17,11 +17,19 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-package nl.adaptivity.xmlutil.core.impl.dom
+import nl.adaptivity.xmlutil.dom2.ProcessingInstruction as ProcessingInstruction2
+import org.w3c.dom.ProcessingInstruction as DomProcessingInstruction
 
-import nl.adaptivity.xmlutil.dom2.DocumentFragment as DocumentFragment2
-import org.w3c.dom.DocumentFragment as DOMDocumentFragment
+internal class ProcessingInstructionImpl(delegate: DomProcessingInstruction) :
+    NodeImpl<DomProcessingInstruction>(delegate), ProcessingInstruction2 {
 
-internal class DocumentFragmentImpl(delegate: DOMDocumentFragment) :
-    NodeImpl<DOMDocumentFragment>(delegate), DocumentFragment2
+    override fun setData(data: String) {
+        delegate.data = data
+    }
+
+    override fun getData(): String = delegate.data
+
+    override fun getTarget(): String = delegate.target
+}

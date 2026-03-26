@@ -164,7 +164,7 @@ internal abstract class AbstractNodeImpl<N : PlatformNode>(delegate: N) : Node {
 
         other as AbstractNodeImpl<*>
 
-        return delegate == other.delegate
+        return delegate === other.delegate
     }
 
     override fun hashCode(): Int {

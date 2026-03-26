@@ -18,25 +18,10 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom2.NodeList
-import nl.adaptivity.xmlutil.dom2.NodeListIterator
-import org.w3c.dom.Node as DomNode
+import nl.adaptivity.xmlutil.dom2.DocumentFragment as DocumentFragment2
+import org.w3c.dom.DocumentFragment as DOMDocumentFragment
 
-internal class WrappingNodeList(val delegate: Any) : NodeList {
-    override fun getLength(): Int = delegate.asDynamic().length
-
-    override fun get(index: Int): NodeImpl<DomNode> {
-        return item(index)
-    }
-
-    override fun iterator(): Iterator<NodeImpl<DomNode>> {
-        return NodeListIterator(this)
-    }
-
-    override fun item(index: Int): NodeImpl<DomNode> {
-        val node: DomNode = delegate.asDynamic().item(index) as DomNode? ?: throw IndexOutOfBoundsException("$index")
-        return node.wrap()
-    }
-}
+internal class DocumentFragmentImpl(delegate: DOMDocumentFragment) :
+    NodeImpl<DOMDocumentFragment>(delegate), DocumentFragment2

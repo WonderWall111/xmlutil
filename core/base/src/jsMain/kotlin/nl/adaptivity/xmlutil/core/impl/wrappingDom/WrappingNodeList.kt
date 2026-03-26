@@ -17,19 +17,26 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.dom2.ProcessingInstruction as ProcessingInstruction2
-import org.w3c.dom.ProcessingInstruction as DomProcessingInstruction
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-internal class ProcessingInstructionImpl(delegate: DomProcessingInstruction) :
-    NodeImpl<DomProcessingInstruction>(delegate), ProcessingInstruction2 {
+import nl.adaptivity.xmlutil.dom2.NodeList
+import nl.adaptivity.xmlutil.dom2.NodeListIterator
+import org.w3c.dom.Node as DomNode
 
-    override fun setData(data: String) {
-        delegate.data = data
+internal class WrappingNodeList(val delegate: Any) : NodeList {
+    override fun getLength(): Int = delegate.asDynamic().length
+
+    override fun get(index: Int): NodeImpl<DomNode> {
+        return item(index)
     }
 
-    override fun getData(): String = delegate.data
+    override fun iterator(): Iterator<NodeImpl<DomNode>> {
+        return NodeListIterator(this)
+    }
 
-    override fun getTarget(): String = delegate.target
+    override fun item(index: Int): NodeImpl<DomNode> {
+        val node: DomNode = delegate.asDynamic().item(index) as DomNode? ?: throw IndexOutOfBoundsException("$index")
+        return node.wrap()
+    }
 }
