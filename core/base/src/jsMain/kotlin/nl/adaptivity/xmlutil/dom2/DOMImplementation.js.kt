@@ -27,15 +27,14 @@ import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 public actual interface DOMImplementation: PlatformDOMImplementation {
     public actual val supportsWhitespaceAtToplevel: Boolean
     public actual override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentType
-    override fun createDocument(
+
+
+    actual override fun createDocument(
         namespace: String?,
         qualifiedName: String?,
         documentType: PlatformDocumentType?
-    ): Document {
-        return createDocument(namespace, qualifiedName, documentType?.wrap() as DocumentType?)
-    }
+    ): Document
 
-    public actual fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): Document
     public actual fun hasFeature(feature: String, version: String?): Boolean
     public actual fun hasFeature(feature: SupportedFeatures, version: DOMVersion?): Boolean
     public actual fun getFeature(feature: String, version: String): Any?

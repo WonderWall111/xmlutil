@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -26,4 +26,6 @@ import nl.adaptivity.xmlutil.dom2.Node
 
 public expect interface PlatformDocument : PlatformNode
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
 public expect fun Document.adoptNode(node: PlatformNode): Node

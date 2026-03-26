@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,15 +22,13 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentFragment
-import nl.adaptivity.xmlutil.core.impl.idom.INode
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
 import nl.adaptivity.xmlutil.dom.DOMException
 import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.DocumentFragment
 import nl.adaptivity.xmlutil.dom2.NodeType
 import nl.adaptivity.xmlutil.dom2.parentNode
 
-internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : NodeImpl(), IDocumentFragment {
+internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : NodeImpl(), DocumentFragment {
     override fun getOwnerDocument(): DocumentImpl = ownerDocument
 
     override fun setOwnerDocument(ownerDocument: DocumentImpl) {
@@ -44,15 +42,15 @@ internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : N
     @Suppress("PropertyName")
     internal val _childNodes: NodeListImpl = NodeListImpl()
 
-    override fun getChildNodes(): INodeList = _childNodes
+    override fun getChildNodes(): INodeListImpl = _childNodes
 
     override fun getNodetype(): NodeType = NodeType.DOCUMENT_FRAGMENT_NODE
 
     override fun getNodeName(): String = "#document-fragment"
 
-    override fun getFirstChild(): INode? = _childNodes.elements.firstOrNull()
+    override fun getFirstChild(): NodeImpl? = _childNodes.elements.firstOrNull()
 
-    override fun getLastChild(): INode? = _childNodes.elements.lastOrNull()
+    override fun getLastChild(): NodeImpl? = _childNodes.elements.lastOrNull()
 
     override fun getTextContent(): String = buildString {
         for (n in getChildNodes()) {
@@ -66,7 +64,7 @@ internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : N
     }
 
     @IgnorableReturnValue
-    override fun appendChild(node: PlatformNode): INode {
+    override fun appendChild(node: PlatformNode): NodeImpl {
         if (node === this) throw DOMException.hierarchyRequestErr("Node cannot be added to itself")
         val n = checkNode(node)
         when (n) {
@@ -86,7 +84,7 @@ internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : N
     }
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): INode {
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): NodeImpl {
         val old = checkNode(oldChild)
         val oldIdx = _childNodes.elements.indexOf(old)
         if (oldIdx < 0) throw DOMException.notFoundErr("Old child not found")
@@ -111,7 +109,7 @@ internal class DocumentFragmentImpl(private var ownerDocument: DocumentImpl) : N
     }
 
     @IgnorableReturnValue
-    override fun removeChild(node: PlatformNode): INode {
+    override fun removeChild(node: PlatformNode): NodeImpl {
         val c = checkNode(node)
 
         if (!_childNodes.elements.remove(c)) throw DOMException.notFoundErr("Node not found")

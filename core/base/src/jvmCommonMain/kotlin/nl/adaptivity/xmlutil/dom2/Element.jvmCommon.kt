@@ -23,6 +23,7 @@
 package nl.adaptivity.xmlutil.dom2
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformElement
 
 @Serializable(with = ElementSerializer::class)
@@ -32,7 +33,9 @@ public actual interface Element : Node, PlatformElement {
     public actual override fun getLocalName(): String
     public actual override fun getTagName(): String
     public actual override fun getAttributes(): NamedNodeMap
+    @Suppress("WRONG_TYPE_FOR_JAVA_OVERRIDE") // we don't return empty value if missing
     public actual override fun getAttribute(qualifiedName: String): String?
+    @Suppress("WRONG_TYPE_FOR_JAVA_OVERRIDE") // we don't return empty value if missing
     public actual override fun getAttributeNS(namespace: String?, localName: String): String?
     public actual override fun setAttribute(qualifiedName: String, value: String)
     public actual override fun setAttributeNS(namespace: String?, cName: String, value: String)
@@ -42,9 +45,9 @@ public actual interface Element : Node, PlatformElement {
     public actual override fun hasAttributeNS(namespace: String?, localName: String): Boolean
     public actual override fun getAttributeNode(qualifiedName: String): Attr?
     public actual override fun getAttributeNodeNS(namespace: String?, localName: String): Attr?
-    public actual fun setAttributeNode(attr: Attr): Attr?
-    public actual fun setAttributeNodeNS(attr: Attr): Attr?
-    public actual fun removeAttributeNode(attr: Attr): Attr
+    public actual override fun setAttributeNode(attr: PlatformAttr): Attr?
+    public actual override fun setAttributeNodeNS(attr: PlatformAttr): Attr?
+    public actual override fun removeAttributeNode(attr: PlatformAttr): Attr
     public actual override fun getElementsByTagName(qualifiedName: String): NodeList
     public actual override fun getElementsByTagNameNS(
         namespace: String?,

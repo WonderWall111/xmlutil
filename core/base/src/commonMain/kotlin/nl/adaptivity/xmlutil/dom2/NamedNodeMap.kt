@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,7 +22,10 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface NamedNodeMap : Iterable<Attr> {
+import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformNamedNodeMap
+
+public expect interface NamedNodeMap : PlatformNamedNodeMap, Iterable<Attr> {
 
     /**
      * The size function works with collection interfaces rather than the traditional getLength interface.
@@ -40,9 +43,9 @@ public expect interface NamedNodeMap : Iterable<Attr> {
 
     public fun getNamedItemNS(namespace: String?, localName: String): Attr?
 
-    public fun setNamedItem(attr: Attr): Attr?
+    public fun setNamedItem(attr: PlatformAttr): Attr?
 
-    public fun setNamedItemNS(attr: Attr): Attr?
+    public fun setNamedItemNS(attr: PlatformAttr): Attr?
 
     public fun removeNamedItem(qualifiedName: String): Attr?
 

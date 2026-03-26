@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,22 +20,27 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.*
 import nl.adaptivity.xmlutil.dom2.Node
 
-internal abstract class NodeImpl() : INode {
+internal abstract class NodeImpl() : Node {
     abstract override fun getOwnerDocument(): DocumentImpl
     abstract fun setOwnerDocument(ownerDocument: DocumentImpl)
 
     private var parentNode: NodeImpl? = null
 
-    override fun getParentNode(): INode? = parentNode
+    abstract override fun getChildNodes(): INodeListImpl
+
+    override fun getParentNode(): NodeImpl? = parentNode
+
+    override fun getParentElement(): ElementImpl? {
+        return parentNode as? ElementImpl
+    }
 
     fun setParentNode(node: Node?) {
         parentNode = node?.let { checkNode(it) }
     }
 
-    override fun getPreviousSibling(): INode? {
+    override fun getPreviousSibling(): NodeImpl? {
         val siblings = (getParentNode() ?: return null).getChildNodes()
         if (siblings.item(0) == this || siblings.size <= 1) return null
         for (idx in 1 until siblings.size) {
@@ -46,7 +51,7 @@ internal abstract class NodeImpl() : INode {
         return null
     }
 
-    override fun getNextSibling(): INode? {
+    override fun getNextSibling(): NodeImpl? {
         val siblings = (getParentNode() ?: return null).getChildNodes()
         if (siblings.item(siblings.size - 1) == this || siblings.size <= 1) return null
         for (idx in 0 until (siblings.size - 1)) {
@@ -59,15 +64,15 @@ internal abstract class NodeImpl() : INode {
 
 }
 
-internal fun Appendable.appendTextContent(node: INode) {
+internal fun Appendable.appendTextContent(node: NodeImpl) {
     when (node) {
-        is IDocumentFragment,
-        is IElement -> for (n in node.getChildNodes()) {
+        is DocumentFragmentImpl,
+        is ElementImpl -> for (n in node.getChildNodes()) {
             appendTextContent(n)
         }
 
-        is IAttr -> append(node.getValue())
+        is AttrImpl -> append(node.getValue())
 
-        is ICharacterData -> append(node.getData())
+        is CharacterDataImpl -> append(node.getData())
     }
 }

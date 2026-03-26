@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,6 +20,21 @@
 
 package nl.adaptivity.xmlutil.dom2
 
+import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformNamedNodeMap
 
-public actual typealias NamedNodeMap = PlatformNamedNodeMap
+public actual interface NamedNodeMap : PlatformNamedNodeMap {
+    actual override fun item(index: Int): Attr?
+
+    actual override fun getNamedItem(qualifiedName: String): Attr?
+
+    actual override fun getNamedItemNS(namespace: String?, localName: String): Attr?
+
+    actual override fun setNamedItem(attr: PlatformAttr): Attr?
+
+    actual override fun setNamedItemNS(attr: PlatformAttr): Attr?
+
+    actual override fun removeNamedItem(qualifiedName: String): Attr?
+
+    actual override fun removeNamedItemNS(namespace: String?, localName: String): Attr?
+}

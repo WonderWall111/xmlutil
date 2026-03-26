@@ -20,12 +20,11 @@
 
 @file:MustUseReturnValues
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformCharacterData
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.CharacterData
-import nl.adaptivity.xmlutil.dom2.Node
 
 internal abstract class CharacterDataImpl<N : PlatformCharacterData>(delegate: N) : AbstractNodeImpl<N>(delegate),
     CharacterData {
@@ -61,7 +60,7 @@ internal abstract class CharacterDataImpl<N : PlatformCharacterData>(delegate: N
     override fun getLastChild(): Nothing? = null
 
     @IgnorableReturnValue
-    override fun appendChild(node: Node): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
@@ -69,22 +68,10 @@ internal abstract class CharacterDataImpl<N : PlatformCharacterData>(delegate: N
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
-    override fun appendChild(newChild: PlatformNode): Nothing =
-        throw UnsupportedOperationException("No children in character data")
-
-    @IgnorableReturnValue
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
-        throw UnsupportedOperationException("No children in character data")
-
-    @IgnorableReturnValue
     override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
-    override fun removeChild(node: Node): Nothing =
-        throw UnsupportedOperationException("No children in character data")
-
-    @IgnorableReturnValue
-    override fun removeChild(oldChild: PlatformNode): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character data")
 }

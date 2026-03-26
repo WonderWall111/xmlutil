@@ -34,8 +34,8 @@ public actual interface Document : Node, PlatformDocument {
     public actual fun getDoctype(): DocumentType?
     public actual fun getDocumentElement(): Element?
     public actual fun getInputEncoding(): String?
-    public actual fun importNode(node: Node, deep: Boolean): Node
-    public actual fun adoptNode(node: Node): Node
+    public actual override fun importNode(node: PlatformNode, deep: Boolean): Node
+    public actual override fun adoptNode(node: PlatformNode): Node
     public actual override fun createAttribute(localName: String): Attr
     public actual override fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
     public actual override fun createElement(localName: String): Element

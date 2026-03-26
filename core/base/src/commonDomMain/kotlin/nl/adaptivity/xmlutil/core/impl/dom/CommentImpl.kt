@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,12 +20,12 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IComment
 import nl.adaptivity.xmlutil.dom.PlatformComment
+import nl.adaptivity.xmlutil.dom2.Comment
 import nl.adaptivity.xmlutil.dom2.NodeType
 
 internal class CommentImpl(ownerDocument: DocumentImpl, data: String) : CharacterDataImpl(ownerDocument, data),
-    IComment {
+    Comment {
 
     constructor(ownerDocument: DocumentImpl, original: PlatformComment) : this(ownerDocument, original.getData())
 

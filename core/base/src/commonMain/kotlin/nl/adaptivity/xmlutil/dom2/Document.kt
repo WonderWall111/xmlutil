@@ -23,13 +23,14 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.localPart
 import nl.adaptivity.xmlutil.namespaceURI
 import nl.adaptivity.xmlutil.prefix
 import nl.adaptivity.xmlutil.dom2.Element as Element2
 
-public expect interface Document : Node {
+public expect interface Document : Node, PlatformDocument {
 
     public fun getImplementation(): DOMImplementation
 
@@ -39,9 +40,9 @@ public expect interface Document : Node {
 
     public fun getInputEncoding(): String?
 
-    public fun importNode(node: Node, deep: Boolean /*= false*/): Node
+    public fun importNode(node: PlatformNode, deep: Boolean /*= false*/): Node
 
-    public fun adoptNode(node: Node): Node
+    public fun adoptNode(node: PlatformNode): Node
 
     public fun createAttribute(localName: String): Attr
 
@@ -75,13 +76,16 @@ public val Document.documentElement: Element2? get() = getDocumentElement()
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public val Document.inputEncoding: String? get() = getInputEncoding()
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
 public expect fun Document.importNode(node: PlatformNode, deep: Boolean): Node
 
 /**
  * Helper extension for cross platform use. Some implementations have member implementations.
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-public fun Document.importNode(node: Node): Node = importNode(node, false)
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
+public fun Document.importNode(nodeX: Node): Node = importNode(node = nodeX as PlatformNode, false)
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline val Document.characterSet: String? get() = getInputEncoding()

@@ -20,7 +20,7 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.dom2.Node
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.CharacterData as CharacterData2
 import org.w3c.dom.CharacterData as DOMCharacterData
 
@@ -59,15 +59,15 @@ internal abstract class CharacterDataImpl<N : DOMCharacterData>(delegate: N) : N
     }
 
     @IgnorableReturnValue
-    override fun appendChild(node: Node): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character nodes")
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character nodes")
 
     @IgnorableReturnValue
-    override fun removeChild(node: Node): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character nodes")
 
     override fun getFirstChild(): Nothing? = null

@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
 @Serializable(NodeSerializer::class)
-public expect interface Node {
+public expect interface Node : PlatformNode {
     public fun getNodetype(): NodeType
     public fun getNodeName(): String
     public fun getOwnerDocument(): Document
@@ -45,19 +45,25 @@ public expect interface Node {
     public fun lookupNamespaceURI(prefix: String): String?
 
     @IgnorableReturnValue
-    public fun appendChild(node: Node): Node
+    public fun appendChild(node: PlatformNode): Node
 
     @IgnorableReturnValue
-    public fun replaceChild(newChild: Node, oldChild: Node): Node
+    public fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
 
     @IgnorableReturnValue
-    public fun removeChild(node: Node): Node
+    public fun removeChild(node: PlatformNode): Node
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
 @IgnorableReturnValue
 public expect fun Node.appendChild(node: PlatformNode): Node
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
 @IgnorableReturnValue
 public expect fun Node.replaceChild(newChild: PlatformNode, oldChild: Node): Node
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Deprecated("Use member instead", level = DeprecationLevel.HIDDEN)
 @IgnorableReturnValue
 public expect fun Node.removeChild(node: PlatformNode): Node
 

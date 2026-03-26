@@ -20,9 +20,9 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.Attr
 import nl.adaptivity.xmlutil.dom2.Element
-import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.Attr as DomAttr
 import org.w3c.dom.Node as DomNode
 
@@ -64,13 +64,13 @@ internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), Attr {
     override val ownerElement: ElementImpl?
         get() = delegate.ownerElement?.wrap()
 
-    override fun appendChild(node: Node): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
-    override fun removeChild(node: Node): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
     override fun getFirstChild(): Nothing? = null

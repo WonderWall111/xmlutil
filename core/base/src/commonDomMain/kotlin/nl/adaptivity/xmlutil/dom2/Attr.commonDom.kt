@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,4 +22,6 @@ package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformAttr
 
-public actual typealias Attr = PlatformAttr
+public actual interface Attr : Node, PlatformAttr {
+    actual override fun getOwnerElement(): Element?
+}

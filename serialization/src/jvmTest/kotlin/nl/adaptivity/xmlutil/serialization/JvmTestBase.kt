@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025.
+ * Copyright (c) 2021-2026.
  *
  * This file is part of xmlutil.
  *
@@ -28,7 +28,6 @@ import kotlinx.serialization.modules.SerializersModule
 import nl.adaptivity.xmlutil.DomWriter
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.dom2.Document
-import nl.adaptivity.xmlutil.dom2.importNode
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.impl.createDocument
 import nl.adaptivity.xmlutil.xmlStreaming

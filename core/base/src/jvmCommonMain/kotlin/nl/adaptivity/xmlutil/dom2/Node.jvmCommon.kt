@@ -23,9 +23,8 @@
 package nl.adaptivity.xmlutil.dom2
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.core.impl.dom.wrap
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.wrap
 import nl.adaptivity.xmlutil.dom.PlatformNode
-import nl.adaptivity.xmlutil.dom.adoptNode
 
 @Serializable(with = NodeSerializer::class)
 public actual interface Node: PlatformNode {
@@ -45,22 +44,13 @@ public actual interface Node: PlatformNode {
     public actual override fun lookupNamespaceURI(prefix: String): String?
 
     @IgnorableReturnValue
-    override fun appendChild(newChild: PlatformNode): Node
+    public actual override fun appendChild(node: PlatformNode): Node
 
     @IgnorableReturnValue
-    public actual fun appendChild(node: Node): Node
+    public actual override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
-
-    @IgnorableReturnValue
-    public actual fun replaceChild(newChild: Node, oldChild: Node): Node
-
-    @IgnorableReturnValue
-    override fun removeChild(oldChild: PlatformNode): Node
-
-    @IgnorableReturnValue
-    public actual fun removeChild(node: Node): Node
+    public actual override fun removeChild(node: PlatformNode): Node
 }
 
 @IgnorableReturnValue

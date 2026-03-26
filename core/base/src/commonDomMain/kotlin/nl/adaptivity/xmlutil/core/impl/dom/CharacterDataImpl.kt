@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,13 +22,13 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.ICharacterData
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
+import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.CharacterData
 
 internal abstract class CharacterDataImpl(
     private var ownerDocument: DocumentImpl,
     private var data: String
-) : NodeImpl(), ICharacterData {
+) : NodeImpl(), CharacterData {
     override fun getOwnerDocument(): DocumentImpl = ownerDocument
 
     override fun setOwnerDocument(ownerDocument: DocumentImpl) {
@@ -46,7 +46,19 @@ internal abstract class CharacterDataImpl(
 
     final override fun getFirstChild(): Nothing? = null
     final override fun getLastChild(): Nothing? = null
-    final override fun getChildNodes(): INodeList = EmptyNodeList
+    final override fun getChildNodes(): INodeListImpl = EmptyNodeList
+
+    override fun appendChild(node: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Cannot append child to a character data node")
+    }
+
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Character data nodes do not have children")
+    }
+
+    override fun removeChild(node: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Character data nodes do not have children")
+    }
 
     override fun getTextContent(): String? = getData()
 
@@ -83,8 +95,14 @@ internal abstract class CharacterDataImpl(
     }
 }
 
-internal object EmptyNodeList : INodeList {
+internal object EmptyNodeList : INodeListImpl {
     override val size: Int get() = 0
 
     override fun item(index: Int): Nothing? = null
+
+    override fun get(index: Int): Nothing? = item(index)
+
+    override fun iterator(): Iterator<Nothing> {
+        return emptyList<Nothing>().iterator()
+    }
 }

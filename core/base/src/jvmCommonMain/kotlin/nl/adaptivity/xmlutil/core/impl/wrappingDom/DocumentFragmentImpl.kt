@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -18,8 +18,13 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.idom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom.PlatformText
+import nl.adaptivity.xmlutil.dom.PlatformDocumentFragment
+import nl.adaptivity.xmlutil.dom2.DocumentFragment
 
-public interface IText : ICharacterData, PlatformText
+internal class DocumentFragmentImpl(delegate: PlatformDocumentFragment) :
+    AbstractNodeImpl<PlatformDocumentFragment>(delegate), DocumentFragment {
+
+    override fun getAttributes(): Nothing? = null
+}

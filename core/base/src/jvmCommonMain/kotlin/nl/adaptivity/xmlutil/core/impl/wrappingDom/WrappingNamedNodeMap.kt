@@ -18,11 +18,11 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
+import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformNamedNodeMap
 import nl.adaptivity.xmlutil.dom.PlatformNode
-import nl.adaptivity.xmlutil.dom2.Attr
 import nl.adaptivity.xmlutil.dom2.NamedNodeMap
 
 internal class WrappingNamedNodeMap(val delegate: PlatformNamedNodeMap) : NamedNodeMap {
@@ -44,7 +44,7 @@ internal class WrappingNamedNodeMap(val delegate: PlatformNamedNodeMap) : NamedN
         return delegate.setNamedItem(attr.unWrap())?.wrapAttr()
     }
 
-    override fun setNamedItem(attr: Attr): AttrImpl? {
+    override fun setNamedItem(attr: PlatformAttr): AttrImpl? {
         return delegate.setNamedItem(attr.unWrap())?.wrapAttr()
     }
 
@@ -52,7 +52,7 @@ internal class WrappingNamedNodeMap(val delegate: PlatformNamedNodeMap) : NamedN
         return delegate.setNamedItemNS(attr.unWrap())?.wrapAttr()
     }
 
-    override fun setNamedItemNS(attr: Attr): AttrImpl? {
+    override fun setNamedItemNS(attr: PlatformAttr): AttrImpl? {
         return delegate.setNamedItemNS(attr.unWrap())?.wrapAttr()
     }
 

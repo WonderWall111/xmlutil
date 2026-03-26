@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,6 +21,25 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 
-public actual typealias DOMImplementation = PlatformDOMImplementation
+public actual interface DOMImplementation : PlatformDOMImplementation {
+    actual override fun createDocumentType(
+        qualifiedName: String,
+        publicId: String,
+        systemId: String
+    ): DocumentType
+
+    override fun createDocument(
+        namespace: String?,
+        qualifiedName: String
+    ): Document
+
+    public actual override fun createDocument(
+        namespace: String?,
+        qualifiedName: String?,
+        documentType: PlatformDocumentType?
+    ): Document
+
+}
 

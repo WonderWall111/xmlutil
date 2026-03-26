@@ -22,7 +22,9 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface ProcessingInstruction : Node {
+import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
+
+public expect interface ProcessingInstruction : Node, PlatformProcessingInstruction {
     public fun getTarget(): String
 
     public fun getData(): String

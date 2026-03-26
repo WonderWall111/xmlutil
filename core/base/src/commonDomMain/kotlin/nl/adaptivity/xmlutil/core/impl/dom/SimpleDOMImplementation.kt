@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,22 +20,23 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IDOMImplementation
-import nl.adaptivity.xmlutil.core.impl.idom.IDocument
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentType
 import nl.adaptivity.xmlutil.dom.DOMException
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom2.DOMImplementation
+import nl.adaptivity.xmlutil.dom2.DOMVersion
+import nl.adaptivity.xmlutil.dom2.SupportedFeatures
 
-internal object SimpleDOMImplementation : IDOMImplementation {
+internal object SimpleDOMImplementation : DOMImplementation {
     override val supportsWhitespaceAtToplevel: Boolean get() = true
 
-    override fun createDocument(namespace: String?, qualifiedName: String): IDocument =
+    override fun createDocument(namespace: String?, qualifiedName: String): DocumentImpl =
         createDocument(namespace, qualifiedName, null)
 
-    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): IDocumentType {
+    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentTypeImpl {
         return DocumentTypeImpl(DocumentImpl(null), qualifiedName, publicId, systemId)
     }
 
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: IDocumentType?): IDocument {
+    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): DocumentImpl {
         return DocumentImpl(documentType).also { doc ->
             (documentType as DocumentTypeImpl?)?.setOwnerDocument(doc)
             if (!qualifiedName.isNullOrBlank()) {
@@ -49,6 +50,20 @@ internal object SimpleDOMImplementation : IDOMImplementation {
                 throw DOMException.namespaceErr("Creating documents with a namespace but no qualified name is not possible")
             }
         }
+    }
+
+    override fun hasFeature(feature: String, version: String?): Boolean {
+        val feature = SupportedFeatures.entries.firstOrNull { it.strName == feature } ?: return false
+        val version = DOMVersion.entries.firstOrNull { it.strName == version }
+        return hasFeature(feature, version)
+    }
+
+    override fun hasFeature(
+        feature: SupportedFeatures,
+        version: DOMVersion?
+    ): Boolean {
+        if (version != null) return feature.isSupportedVersion(version)
+        return true
     }
 
     override fun getFeature(feature: String, version: String): Any? {

@@ -23,11 +23,12 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 
 public actual interface DOMImplementation: PlatformDOMImplementation {
     public actual val supportsWhitespaceAtToplevel: Boolean
     public actual override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentType
-    public actual fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): Document
+    public actual override fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): Document
 
     public actual override fun hasFeature(feature: String, version: String?): Boolean
     public actual fun hasFeature(feature: SupportedFeatures, version: DOMVersion?): Boolean

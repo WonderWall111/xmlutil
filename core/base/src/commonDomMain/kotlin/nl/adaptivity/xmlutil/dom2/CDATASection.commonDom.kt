@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,4 +22,4 @@ package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformCDATASection
 
-public actual typealias CDATASection = PlatformCDATASection
+public actual interface CDATASection : Text, PlatformCDATASection

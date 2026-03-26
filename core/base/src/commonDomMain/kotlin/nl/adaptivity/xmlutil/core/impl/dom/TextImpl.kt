@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,12 +20,12 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IText
 import nl.adaptivity.xmlutil.dom.PlatformText
 import nl.adaptivity.xmlutil.dom2.NodeType
+import nl.adaptivity.xmlutil.dom2.Text
 
 internal open class TextImpl(ownerDocument: DocumentImpl, data: String)
-    : CharacterDataImpl(ownerDocument, data), IText {
+    : CharacterDataImpl(ownerDocument, data), Text {
 
     constructor(ownerDocument: DocumentImpl, original: PlatformText) : this(ownerDocument, original.getData())
 

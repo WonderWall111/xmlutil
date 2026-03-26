@@ -20,7 +20,7 @@
 
 @file:MustUseReturnValues
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.*
 import nl.adaptivity.xmlutil.dom2.Attr
@@ -129,28 +129,13 @@ internal abstract class AbstractNodeImpl<N : PlatformNode>(delegate: N) : Node {
     }
 
     @IgnorableReturnValue
-    override fun appendChild(node: Node): Node {
-        return delegate.appendChild(node.unWrap()).wrap()
-    }
-
-    @IgnorableReturnValue
-    override fun replaceChild(newChild: Node, oldChild: Node): Node {
-        return delegate.replaceChild(newChild.unWrap(), oldChild.unWrap()).wrap()
-    }
-
-    @IgnorableReturnValue
-    override fun removeChild(node: Node): Node {
-        return delegate.removeChild(node.unWrap()).wrap()
-    }
-
-    @IgnorableReturnValue
     open fun appendChild(node: AbstractNodeImpl<*>): AbstractNodeImpl<*> {
         return delegate.appendChild(node.unWrap()).wrap()
     }
 
     @IgnorableReturnValue
-    override fun appendChild(newChild: PlatformNode): AbstractNodeImpl<*> {
-        return delegate.appendChild(newChild.unWrap()).wrap()
+    override fun appendChild(node: PlatformNode): AbstractNodeImpl<*> {
+        return delegate.appendChild(node.unWrap()).wrap()
     }
 
     @IgnorableReturnValue
@@ -169,8 +154,8 @@ internal abstract class AbstractNodeImpl<N : PlatformNode>(delegate: N) : Node {
     }
 
     @IgnorableReturnValue
-    override fun removeChild(oldChild: PlatformNode): AbstractNodeImpl<*> {
-        return delegate.removeChild(oldChild.unWrap()).wrap()
+    override fun removeChild(node: PlatformNode): AbstractNodeImpl<*> {
+        return delegate.removeChild(node.unWrap()).wrap()
     }
 
     override fun equals(other: Any?): Boolean {

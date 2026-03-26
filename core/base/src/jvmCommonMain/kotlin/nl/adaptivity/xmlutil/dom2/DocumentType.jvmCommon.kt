@@ -23,6 +23,7 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom.PlatformNode
 
 public actual interface DocumentType : Node, PlatformDocumentType {
     public actual override fun getName(): String
@@ -31,13 +32,13 @@ public actual interface DocumentType : Node, PlatformDocumentType {
     override fun getOwnerDocument(): Document
 
     @IgnorableReturnValue
-    public actual override fun appendChild(node: Node): Nothing
+    public actual override fun appendChild(node: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    public actual override fun replaceChild(newChild: Node, oldChild: Node): Nothing
+    public actual override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    public actual override fun removeChild(node: Node): Nothing
+    public actual override fun removeChild(node: PlatformNode): Nothing
 
     public actual override fun getFirstChild(): Nothing?
     public actual override fun getLastChild(): Nothing?

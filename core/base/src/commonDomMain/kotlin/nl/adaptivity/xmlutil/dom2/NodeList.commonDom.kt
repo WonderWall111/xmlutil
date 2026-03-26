@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,6 +20,11 @@
 
 package nl.adaptivity.xmlutil.dom2
 
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom.PlatformNodeList
 
-public actual typealias NodeList = PlatformNodeList
+public actual interface NodeList : PlatformNodeList, Iterable<Node> {
+    actual override fun get(index: Int): Node?
+    actual override fun item(index: Int): Node?
+    actual override fun iterator(): Iterator<Node>
+}

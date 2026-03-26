@@ -18,17 +18,16 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.DOMVersion
-import nl.adaptivity.xmlutil.dom2.DocumentType
 import nl.adaptivity.xmlutil.dom2.SupportedFeatures
 import javax.xml.parsers.DocumentBuilderFactory
 
-internal object DOMImplementationImpl: DOMImplementation {
+internal object DOMImplementationImpl : DOMImplementation {
     val delegate: PlatformDOMImplementation =
         DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
@@ -44,7 +43,7 @@ internal object DOMImplementationImpl: DOMImplementation {
         return delegate.hasFeature(feature, version)
     }
 
-    public override fun hasFeature(feature: SupportedFeatures, version: DOMVersion?): Boolean {
+    override fun hasFeature(feature: SupportedFeatures, version: DOMVersion?): Boolean {
         return version == null || feature.isSupportedVersion(version)
     }
 
@@ -53,14 +52,11 @@ internal object DOMImplementationImpl: DOMImplementation {
         return delegate.getFeature(feature, version)
     }
 
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): DocumentImpl {
+    override fun createDocument(
+        namespace: String?,
+        qualifiedName: String?,
+        documentType: PlatformDocumentType?
+    ): DocumentImpl {
         return delegate.createDocument(namespace, qualifiedName, documentType?.unWrap()).wrap()
-    }
-
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): DocumentImpl {
-        return delegate.createDocument(
-            namespace,
-            qualifiedName,
-            documentType?.let { delegate.createDocumentType(it.name, it.publicId, it.systemId) }).wrap()
     }
 }

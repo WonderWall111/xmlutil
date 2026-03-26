@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -21,9 +21,11 @@
 package nl.adaptivity.xmlutil.dom2
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformElement
 
 @Serializable(ElementSerializer::class)
-public expect interface Element : Node {
+public expect interface Element : Node, PlatformElement {
 
     public fun getNamespaceURI(): String?
 
@@ -51,9 +53,9 @@ public expect interface Element : Node {
     public fun getAttributeNode(qualifiedName: String): Attr?
     public fun getAttributeNodeNS(namespace: String?, localName: String): Attr?
 
-    public fun setAttributeNode(attr: Attr): Attr?
-    public fun setAttributeNodeNS(attr: Attr): Attr?
-    public fun removeAttributeNode(attr: Attr): Attr
+    public fun setAttributeNode(attr: PlatformAttr): Attr?
+    public fun setAttributeNodeNS(attr: PlatformAttr): Attr?
+    public fun removeAttributeNode(attr: PlatformAttr): Attr
 
     public fun getElementsByTagName(qualifiedName: String): NodeList
     public fun getElementsByTagNameNS(namespace: String?, localName: String): NodeList

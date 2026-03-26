@@ -22,7 +22,7 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-import nl.adaptivity.xmlutil.core.impl.dom.wrap
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.wrap
 import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
@@ -31,8 +31,8 @@ public actual interface Document : Node, PlatformDocument {
     public actual override fun getDoctype(): DocumentType?
     public actual override fun getDocumentElement(): Element?
     public actual override fun getInputEncoding(): String?
-    public actual fun importNode(node: Node, deep: Boolean): Node
-    public actual fun adoptNode(node: Node): Node
+    public actual override fun importNode(node: PlatformNode, deep: Boolean): Node
+    public actual override fun adoptNode(node: PlatformNode): Node
     public actual override fun createAttribute(localName: String): Attr
     public actual override fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
     public actual override fun createElement(localName: String): Element

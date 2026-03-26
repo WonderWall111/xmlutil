@@ -22,15 +22,18 @@
 
 package nl.adaptivity.xmlutil.dom2
 
+import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+
 public fun DOMImplementation.createDocument(namespace: String? = null, qualifiedName: String? = null, documentType: DocumentType? = null): Document {
     return createDocument(namespace, qualifiedName, documentType)
 }
 
-public expect interface DOMImplementation {
+public expect interface DOMImplementation : PlatformDOMImplementation {
     public val supportsWhitespaceAtToplevel: Boolean
 
     public fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentType
-    public fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): Document
+    public fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): Document
 
     public fun getFeature(feature: String, version: String): Any?
 

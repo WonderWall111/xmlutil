@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -23,9 +23,28 @@
 
 package nl.adaptivity.xmlutil.dom2
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
-public actual typealias Node = PlatformNode
+@Serializable(NodeSerializer::class)
+public actual interface Node : PlatformNode {
+    actual override fun getFirstChild(): Node?
+    actual override fun getParentNode(): Node?
+    actual override fun getLastChild(): Node?
+    actual override fun getPreviousSibling(): Node?
+    actual override fun getNextSibling(): Node?
+    actual override fun getOwnerDocument(): Document
+    actual override fun getParentElement(): Element?
+
+    @IgnorableReturnValue
+    public actual override fun appendChild(node: PlatformNode): Node
+
+    @IgnorableReturnValue
+    public actual override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
+
+    @IgnorableReturnValue
+    public actual override fun removeChild(node: PlatformNode): Node
+}
 
 @IgnorableReturnValue
 public actual fun Node.appendChild(node: PlatformNode): Node {

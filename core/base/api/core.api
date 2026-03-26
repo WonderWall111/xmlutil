@@ -936,7 +936,6 @@ public final class nl/adaptivity/xmlutil/dom/NodeConsts {
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Attr {
-	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun appendChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
 	public fun getAttributes ()Ljava/lang/Void;
 	public synthetic fun getAttributes ()Lorg/w3c/dom/NamedNodeMap;
@@ -950,9 +949,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/
 	public abstract fun getParentNode ()Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun getPrefix ()Ljava/lang/String;
 	public abstract fun getValue ()Ljava/lang/String;
-	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun removeChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
-	public abstract fun replaceChild (Lnl/adaptivity/xmlutil/dom2/Node;Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun replaceChild (Lorg/w3c/dom/Node;Lorg/w3c/dom/Node;)Ljava/lang/Void;
 	public abstract fun setValue (Ljava/lang/String;)V
 }
@@ -971,7 +968,6 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/CDATASection : nl/ada
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/CharacterData : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/CharacterData {
-	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun appendChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
 	public abstract fun appendData (Ljava/lang/String;)V
 	public abstract fun deleteData (II)V
@@ -979,9 +975,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/CharacterData : nl/ad
 	public abstract fun getFirstChild ()Ljava/lang/Void;
 	public abstract fun getLastChild ()Ljava/lang/Void;
 	public abstract fun insertData (ILjava/lang/String;)V
-	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun removeChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
-	public abstract fun replaceChild (Lnl/adaptivity/xmlutil/dom2/Node;Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun replaceChild (Lorg/w3c/dom/Node;Lorg/w3c/dom/Node;)Ljava/lang/Void;
 	public abstract fun replaceData (IILjava/lang/String;)V
 	public abstract fun setData (Ljava/lang/String;)V
@@ -997,7 +991,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Comment : nl/adaptivi
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/DOMImplementation : org/w3c/dom/DOMImplementation {
-	public abstract fun createDocument (Ljava/lang/String;Ljava/lang/String;Lnl/adaptivity/xmlutil/dom2/DocumentType;)Lnl/adaptivity/xmlutil/dom2/Document;
+	public abstract fun createDocument (Ljava/lang/String;Ljava/lang/String;Lorg/w3c/dom/DocumentType;)Lnl/adaptivity/xmlutil/dom2/Document;
 	public abstract fun createDocumentType (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/DocumentType;
 	public abstract fun getFeature (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;
 	public abstract fun getSupportsWhitespaceAtToplevel ()Z
@@ -1021,7 +1015,7 @@ public final class nl/adaptivity/xmlutil/dom2/DOMVersion : java/lang/Enum {
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/Document : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Document {
-	public abstract fun adoptNode (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
+	public abstract fun adoptNode (Lorg/w3c/dom/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun createAttribute (Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun createAttributeNS (Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun createCDATASection (Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/CDATASection;
@@ -1035,7 +1029,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Document : nl/adaptiv
 	public abstract fun getDocumentElement ()Lnl/adaptivity/xmlutil/dom2/Element;
 	public abstract fun getImplementation ()Lnl/adaptivity/xmlutil/dom2/DOMImplementation;
 	public abstract fun getInputEncoding ()Ljava/lang/String;
-	public abstract fun importNode (Lnl/adaptivity/xmlutil/dom2/Node;Z)Lnl/adaptivity/xmlutil/dom2/Node;
+	public abstract fun importNode (Lorg/w3c/dom/Node;Z)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentFragment : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/DocumentFragment {
@@ -1048,19 +1042,19 @@ public final class nl/adaptivity/xmlutil/dom2/DocumentKt {
 	public static final fun getDocumentElement (Lnl/adaptivity/xmlutil/dom2/Document;)Lnl/adaptivity/xmlutil/dom2/Element;
 	public static final fun getImplementation (Lnl/adaptivity/xmlutil/dom2/Document;)Lnl/adaptivity/xmlutil/dom2/DOMImplementation;
 	public static final fun getInputEncoding (Lnl/adaptivity/xmlutil/dom2/Document;)Ljava/lang/String;
-	public static final fun importNode (Lnl/adaptivity/xmlutil/dom2/Document;Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
+	public static final synthetic fun importNode (Lnl/adaptivity/xmlutil/dom2/Document;Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/DocumentType : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/DocumentType {
-	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
+	public abstract fun appendChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
 	public abstract fun getFirstChild ()Ljava/lang/Void;
 	public abstract fun getLastChild ()Ljava/lang/Void;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getOwnerDocument ()Lnl/adaptivity/xmlutil/dom2/Document;
 	public abstract fun getPublicId ()Ljava/lang/String;
 	public abstract fun getSystemId ()Ljava/lang/String;
-	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
-	public abstract fun replaceChild (Lnl/adaptivity/xmlutil/dom2/Node;Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
+	public abstract fun removeChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
+	public abstract fun replaceChild (Lorg/w3c/dom/Node;Lorg/w3c/dom/Node;)Ljava/lang/Void;
 }
 
 public final class nl/adaptivity/xmlutil/dom2/DocumentTypeKt {
@@ -1090,11 +1084,11 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Element : nl/adaptivi
 	public abstract fun hasAttributeNS (Ljava/lang/String;Ljava/lang/String;)Z
 	public abstract fun removeAttribute (Ljava/lang/String;)V
 	public abstract fun removeAttributeNS (Ljava/lang/String;Ljava/lang/String;)V
-	public abstract fun removeAttributeNode (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
+	public abstract fun removeAttributeNode (Lorg/w3c/dom/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun setAttribute (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun setAttributeNS (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public abstract fun setAttributeNode (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
-	public abstract fun setAttributeNodeNS (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
+	public abstract fun setAttributeNode (Lorg/w3c/dom/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
+	public abstract fun setAttributeNodeNS (Lorg/w3c/dom/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
 }
 
 public final class nl/adaptivity/xmlutil/dom2/Element$Companion {
@@ -1119,13 +1113,12 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/NamedNodeMap : java/l
 	public abstract fun iterator ()Ljava/util/Iterator;
 	public abstract fun removeNamedItem (Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
 	public abstract fun removeNamedItemNS (Ljava/lang/String;Ljava/lang/String;)Lnl/adaptivity/xmlutil/dom2/Attr;
-	public abstract fun setNamedItem (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
-	public abstract fun setNamedItemNS (Lnl/adaptivity/xmlutil/dom2/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
+	public abstract fun setNamedItem (Lorg/w3c/dom/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
+	public abstract fun setNamedItemNS (Lorg/w3c/dom/Attr;)Lnl/adaptivity/xmlutil/dom2/Attr;
 }
 
 public abstract interface class nl/adaptivity/xmlutil/dom2/Node : org/w3c/dom/Node {
 	public static final field Companion Lnl/adaptivity/xmlutil/dom2/Node$Companion;
-	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun appendChild (Lorg/w3c/dom/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun getChildNodes ()Lnl/adaptivity/xmlutil/dom2/NodeList;
 	public abstract fun getFirstChild ()Lnl/adaptivity/xmlutil/dom2/Node;
@@ -1140,9 +1133,7 @@ public abstract interface class nl/adaptivity/xmlutil/dom2/Node : org/w3c/dom/No
 	public abstract fun getTextContent ()Ljava/lang/String;
 	public abstract fun lookupNamespaceURI (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun lookupPrefix (Ljava/lang/String;)Ljava/lang/String;
-	public abstract fun removeChild (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun removeChild (Lorg/w3c/dom/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
-	public abstract fun replaceChild (Lnl/adaptivity/xmlutil/dom2/Node;Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun replaceChild (Lorg/w3c/dom/Node;Lorg/w3c/dom/Node;)Lnl/adaptivity/xmlutil/dom2/Node;
 	public abstract fun setTextContent (Ljava/lang/String;)V
 }

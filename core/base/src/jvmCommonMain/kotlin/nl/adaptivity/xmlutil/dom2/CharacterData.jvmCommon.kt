@@ -35,22 +35,13 @@ public actual interface CharacterData : Node, PlatformCharacterData {
     public actual override fun replaceData(offset: Int, count: Int, data: String)
 
     @IgnorableReturnValue
-    public actual override fun appendChild(node: Node): Nothing
+    public actual override fun appendChild(node: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    override fun appendChild(newChild: PlatformNode): Nothing
+    public actual override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    public actual override fun replaceChild(newChild: Node, oldChild: Node): Nothing
-
-    @IgnorableReturnValue
-    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
-
-    @IgnorableReturnValue
-    public actual override fun removeChild(node: Node): Nothing
-
-    @IgnorableReturnValue
-    override fun removeChild(oldChild: PlatformNode): Nothing
+    public actual override fun removeChild(node: PlatformNode): Nothing
 
     public actual override fun getFirstChild(): Nothing?
     public actual override fun getLastChild(): Nothing?

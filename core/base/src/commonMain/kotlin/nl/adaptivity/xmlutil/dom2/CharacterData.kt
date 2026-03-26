@@ -22,7 +22,10 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface CharacterData : Node {
+import nl.adaptivity.xmlutil.dom.PlatformCharacterData
+import nl.adaptivity.xmlutil.dom.PlatformNode
+
+public expect interface CharacterData : Node, PlatformCharacterData {
     public fun getData(): String
 
     public fun setData(data: String)
@@ -38,13 +41,13 @@ public expect interface CharacterData : Node {
     public fun replaceData(offset: Int, count: Int, data: String)
 
     @IgnorableReturnValue
-    override fun appendChild(node: Node): Nothing
+    override fun appendChild(node: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
 
     @IgnorableReturnValue
-    override fun removeChild(node: Node): Nothing
+    override fun removeChild(node: PlatformNode): Nothing
     override fun getFirstChild(): Nothing?
     override fun getLastChild(): Nothing?
 }

@@ -53,13 +53,13 @@ public actual interface Node : PlatformNode {
     public actual override fun lookupNamespaceURI(prefix: String): String?
 
     @IgnorableReturnValue
-    public actual fun appendChild(node: Node): Node
+    public actual fun appendChild(node: PlatformNode): Node
 
     @IgnorableReturnValue
-    public actual fun replaceChild(newChild: Node, oldChild: Node): Node
+    public actual fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Node
 
     @IgnorableReturnValue
-    public actual fun removeChild(node: Node): Node
+    public actual fun removeChild(node: PlatformNode): Node
 }
 
 @IgnorableReturnValue

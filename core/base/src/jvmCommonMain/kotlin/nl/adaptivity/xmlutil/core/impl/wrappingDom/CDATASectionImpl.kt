@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -18,8 +18,10 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.idom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
+import nl.adaptivity.xmlutil.dom.PlatformCDATASection
+import nl.adaptivity.xmlutil.dom2.CDATASection
 
-public interface IProcessingInstruction : INode, PlatformProcessingInstruction
+
+internal class CDATASectionImpl(delegate: PlatformCDATASection) : TextImpl(delegate), CDATASection

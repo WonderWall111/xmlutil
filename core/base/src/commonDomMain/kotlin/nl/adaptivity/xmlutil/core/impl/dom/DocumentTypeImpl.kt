@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,9 +20,9 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentType
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
 import nl.adaptivity.xmlutil.dom.DOMException
+import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.DocumentType
 import nl.adaptivity.xmlutil.dom2.NodeType
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType as DocumentType1
 
@@ -31,7 +31,7 @@ internal class DocumentTypeImpl(
     private val name: String,
     private val publicId: String,
     private val systemId: String
-) : NodeImpl(), IDocumentType {
+) : NodeImpl(), DocumentType {
     constructor(original: DocumentType1) : this(
         DocumentImpl.coerce(original.getOwnerDocument()),
         original.getName(),
@@ -55,11 +55,23 @@ internal class DocumentTypeImpl(
 
     override fun getNodeName(): String = getName()
 
-    override fun getChildNodes(): INodeList = EmptyNodeList
+    override fun getChildNodes(): INodeListImpl = EmptyNodeList
 
     override fun getFirstChild(): Nothing? = null
 
     override fun getLastChild(): Nothing? = null
+
+    override fun appendChild(node: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Cannot append child to a document type node")
+    }
+
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Document type nodes do not have children")
+    }
+
+    override fun removeChild(node: PlatformNode): Nothing {
+        throw UnsupportedOperationException("Document type nodes do not have children")
+    }
 
     override fun getTextContent(): String? = null
 

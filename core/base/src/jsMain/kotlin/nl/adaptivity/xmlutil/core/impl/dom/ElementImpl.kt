@@ -56,21 +56,10 @@ internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNode(attr: Attr2): Attr2? {
-        return delegate.setAttributeNode(attr.unWrap())?.wrap()
-    }
-
-    override fun setAttributeNodeNS(attr: DomAttr): Attr2? {
-        return delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
-    }
-
-    override fun setAttributeNodeNS(attr: Attr2): Attr2? =
+    override fun setAttributeNodeNS(attr: DomAttr): Attr2? =
         delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
 
     override fun removeAttributeNode(attr: DomAttr): Attr2 =
-        delegate.removeAttributeNode(attr.unWrap()).wrap()
-
-    override fun removeAttributeNode(attr: Attr2): Attr2 =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
     override fun getAttribute(qualifiedName: String): String? =

@@ -18,11 +18,11 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DocumentType
-import nl.adaptivity.xmlutil.dom2.Node
 
 internal class DocumentTypeImpl(delegate: PlatformDocumentType) : AbstractNodeImpl<PlatformDocumentType>(delegate), DocumentType {
     override fun getName(): String = delegate.name
@@ -45,12 +45,12 @@ internal class DocumentTypeImpl(delegate: PlatformDocumentType) : AbstractNodeIm
 
     override fun getLastChild(): Nothing? = null
 
-    override fun appendChild(node: Node): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in documenttype")
 
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in documenttype")
 
-    override fun removeChild(node: Node): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in documenttype")
 }

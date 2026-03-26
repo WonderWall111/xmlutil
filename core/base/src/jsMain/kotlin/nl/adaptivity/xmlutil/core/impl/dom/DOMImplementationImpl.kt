@@ -45,7 +45,7 @@ internal object DOMImplementationImpl : DOMImplementation2 {
     }
 
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): Document {
+    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): Document {
         val documentType1 = documentType?.unWrap() as? PlatformDocumentType
         return (delegate as PlatformDOMImplementation).createDocument(namespace, qualifiedName, documentType1)
             .wrap() as Document

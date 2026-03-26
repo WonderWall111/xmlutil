@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,11 +20,10 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IAttr
-import nl.adaptivity.xmlutil.core.impl.idom.IElement
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
 import nl.adaptivity.xmlutil.dom.DOMException
 import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.Attr
 import nl.adaptivity.xmlutil.dom2.NodeType
 
 internal class AttrImpl(
@@ -33,7 +32,7 @@ internal class AttrImpl(
     private val localName: String,
     private val prefix: String?,
     private var value: String
-) : NodeImpl(), IAttr {
+) : NodeImpl(), Attr {
 
     constructor(ownerDocument: DocumentImpl, original: PlatformAttr) : this(
         ownerDocument,
@@ -42,6 +41,29 @@ internal class AttrImpl(
         original.getPrefix(),
         original.getValue()
     )
+
+    override fun getFirstChild(): Nothing? {
+        TODO("not implemented")
+    }
+
+    override fun getLastChild(): Nothing? {
+        TODO("not implemented")
+    }
+
+    override fun appendChild(node: PlatformNode): Nothing {
+        TODO("not implemented")
+    }
+
+    override fun replaceChild(
+        newChild: PlatformNode,
+        oldChild: PlatformNode
+    ): Nothing {
+        TODO("not implemented")
+    }
+
+    override fun removeChild(node: PlatformNode): Nothing {
+        TODO("not implemented")
+    }
 
     override fun getOwnerDocument(): DocumentImpl = ownerDocument
 
@@ -73,12 +95,12 @@ internal class AttrImpl(
 
     override fun getNodeName(): String = getName()
 
-    override fun getChildNodes(): INodeList = EmptyNodeList
+    override fun getChildNodes(): INodeListImpl = EmptyNodeList
 
-    private var ownerElement: IElement? = null
+    private var ownerElement: ElementImpl? = null
 
-    override fun getOwnerElement(): IElement? = ownerElement
-    internal fun setOwnerElement(ownerElement: IElement?) {
+    override fun getOwnerElement(): ElementImpl? = ownerElement
+    internal fun setOwnerElement(ownerElement: ElementImpl?) {
         this.ownerElement = ownerElement
     }
 

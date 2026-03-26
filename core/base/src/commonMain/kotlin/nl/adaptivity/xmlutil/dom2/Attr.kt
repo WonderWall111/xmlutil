@@ -20,7 +20,10 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface Attr : Node {
+import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformNode
+
+public expect interface Attr : Node, PlatformAttr {
     public fun getNamespaceURI(): String?
 
     public fun getPrefix(): String?
@@ -35,9 +38,9 @@ public expect interface Attr : Node {
 
     public fun getOwnerElement(): Element?
 
-    public override fun appendChild(node: Node): Nothing
-    public override fun replaceChild(newChild: Node, oldChild: Node): Nothing
-    public override fun removeChild(node: Node): Nothing
+    public override fun appendChild(node: PlatformNode): Nothing
+    public override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
+    public override fun removeChild(node: PlatformNode): Nothing
     public override fun getFirstChild(): Nothing?
     public override fun getLastChild(): Nothing?
 

@@ -29,7 +29,6 @@ import nl.adaptivity.xmlutil.core.impl.toIndentSequence
 import nl.adaptivity.xmlutil.core.impl.toIndentString
 import nl.adaptivity.xmlutil.dom.NodeConsts
 import nl.adaptivity.xmlutil.dom.PlatformNode
-import nl.adaptivity.xmlutil.dom.adoptNode
 import nl.adaptivity.xmlutil.dom2.*
 import nl.adaptivity.xmlutil.util.impl.createDocument
 import nl.adaptivity.xmlutil.util.myLookupNamespaceURI

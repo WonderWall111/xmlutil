@@ -18,13 +18,23 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom.PlatformDocumentFragment
-import nl.adaptivity.xmlutil.dom2.DocumentFragment
+import nl.adaptivity.xmlutil.dom.PlatformNodeList
+import nl.adaptivity.xmlutil.dom2.Node
+import nl.adaptivity.xmlutil.dom2.NodeList
+import nl.adaptivity.xmlutil.dom2.NodeListIterator
 
-internal class DocumentFragmentImpl(delegate: PlatformDocumentFragment) :
-    AbstractNodeImpl<PlatformDocumentFragment>(delegate), DocumentFragment {
+internal class WrappingNodeList(val delegate: PlatformNodeList) : NodeList {
+    val size: Int get() = delegate.length
 
-    override fun getAttributes(): Nothing? = null
+    override fun iterator(): Iterator<Node> {
+        return NodeListIterator(this)
+    }
+
+    override fun item(index: Int): AbstractNodeImpl<*> = delegate.item(index).wrap()
+    override fun get(index: Int): AbstractNodeImpl<*> = item(index)
+
+    @Deprecated("Use size", replaceWith = ReplaceWith("size"))
+    override fun getLength(): Int = delegate.length
 }

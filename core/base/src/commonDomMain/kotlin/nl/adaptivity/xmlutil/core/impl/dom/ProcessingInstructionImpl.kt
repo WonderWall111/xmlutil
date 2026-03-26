@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,15 +20,15 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IProcessingInstruction
 import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
 import nl.adaptivity.xmlutil.dom2.NodeType
+import nl.adaptivity.xmlutil.dom2.ProcessingInstruction
 
 internal class ProcessingInstructionImpl(
     ownerDocument: DocumentImpl,
     private val target: String,
     data: String
-) : CharacterDataImpl(ownerDocument, data), IProcessingInstruction {
+) : CharacterDataImpl(ownerDocument, data), ProcessingInstruction {
     constructor(ownerDocument: DocumentImpl, original: PlatformProcessingInstruction) :
             this(ownerDocument, original.getNodeName(), original.getData())
 

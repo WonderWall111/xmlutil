@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -24,14 +24,14 @@ package nl.adaptivity.xmlutil.dom
 
 import nl.adaptivity.xmlutil.dom2.Node
 
-public actual interface PlatformNodeList: Iterable<Node> {
+public actual interface PlatformNodeList {
     public fun item(index: Int): PlatformNode?
     public val size: Int
     public fun getLength(): Int
 
     public operator fun get(index: Int): PlatformNode?
 
-    public override fun iterator(): Iterator<PlatformNode>
+    public operator fun iterator(): Iterator<PlatformNode>
 }
 
 

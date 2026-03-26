@@ -21,6 +21,7 @@
 package nl.adaptivity.xmlutil.dom2
 
 import nl.adaptivity.xmlutil.core.impl.dom.unWrap
+import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformNamedNodeMap
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
@@ -39,12 +40,12 @@ public actual interface NamedNodeMap : Iterable<Attr>, PlatformNamedNodeMap {
     public actual override fun getNamedItemNS(namespace: String?, localName: String): Attr?
 
     override fun setNamedItem(attr: PlatformNode): Attr? = setNamedItem(attr.unWrap() as Attr)
-    public actual fun setNamedItem(attr: Attr): Attr?
+    public actual fun setNamedItem(attr: PlatformAttr): Attr?
 
     override fun setNamedItemNS(attr: PlatformNode): Attr? =
         setNamedItemNS(attr.unWrap() as Attr)
 
-    public actual fun setNamedItemNS(attr: Attr): Attr?
+    public actual fun setNamedItemNS(attr: PlatformAttr): Attr?
     public actual override fun removeNamedItem(qualifiedName: String): Attr?
     public actual override fun removeNamedItemNS(namespace: String?, localName: String): Attr?
     public actual override operator fun iterator(): Iterator<Attr>

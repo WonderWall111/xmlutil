@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -28,7 +28,7 @@ import nl.adaptivity.xmlutil.dom2.ElementSerializer
 import nl.adaptivity.xmlutil.dom2.NamedNodeMap
 import nl.adaptivity.xmlutil.dom2.NodeList
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = ElementSerializer::class)
 public actual interface PlatformElement : PlatformNode {
     public fun getNamespaceURI(): String?

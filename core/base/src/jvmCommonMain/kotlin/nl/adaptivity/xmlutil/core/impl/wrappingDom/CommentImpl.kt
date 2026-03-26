@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -18,8 +18,12 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.idom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
-import nl.adaptivity.xmlutil.dom.PlatformDocumentFragment
+import nl.adaptivity.xmlutil.dom.PlatformComment
+import nl.adaptivity.xmlutil.dom2.Comment
 
-public interface IDocumentFragment : INode, PlatformDocumentFragment
+internal class CommentImpl(delegate: PlatformComment) : CharacterDataImpl<PlatformComment>(delegate), Comment {
+
+    override fun getAttributes(): Nothing? = null
+}

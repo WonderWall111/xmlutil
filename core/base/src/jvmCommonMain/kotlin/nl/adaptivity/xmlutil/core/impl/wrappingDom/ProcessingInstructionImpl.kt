@@ -17,10 +17,10 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom.PlatformProcessingInstruction
-import nl.adaptivity.xmlutil.dom2.Node
 import nl.adaptivity.xmlutil.dom2.ProcessingInstruction
 import org.w3c.dom.NamedNodeMap
 
@@ -34,15 +34,15 @@ internal class ProcessingInstructionImpl(delegate: PlatformProcessingInstruction
         delegate.data = data
     }
 
-    override fun appendChild(node: Node): Nothing {
+    override fun appendChild(node: PlatformNode): Nothing {
         throw UnsupportedOperationException("No children in processing instruction")
     }
 
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing {
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing {
         throw UnsupportedOperationException("No children in processing instruction")
     }
 
-    override fun removeChild(node: Node): Nothing {
+    override fun removeChild(node: PlatformNode): Nothing {
         throw UnsupportedOperationException("No children in processing instruction")
     }
 

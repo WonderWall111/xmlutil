@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -23,11 +23,12 @@
 package nl.adaptivity.xmlutil.core.impl.dom
 
 import nl.adaptivity.xmlutil.XMLConstants
-import nl.adaptivity.xmlutil.core.impl.idom.*
 import nl.adaptivity.xmlutil.dom.DOMException
 import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformElement
 import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.Element
+import nl.adaptivity.xmlutil.dom2.NamedNodeMap
 import nl.adaptivity.xmlutil.dom2.NodeType
 import nl.adaptivity.xmlutil.dom2.parentNode
 
@@ -36,7 +37,7 @@ internal class ElementImpl(
     private val namespaceURI: String?,
     private val localName: String,
     private val prefix: String?
-) : NodeImpl(), IElement {
+) : NodeImpl(), Element {
     constructor(ownerDocument: DocumentImpl, original: PlatformElement) : this(
         ownerDocument,
         original.getNamespaceURI(),
@@ -70,15 +71,15 @@ internal class ElementImpl(
 
     private val _childNodes: NodeListImpl = NodeListImpl()
 
-    override fun getChildNodes(): INodeList = _childNodes
+    override fun getChildNodes(): INodeListImpl = _childNodes
 
     private val _attributes: MutableList<AttrImpl> = mutableListOf()
 
-    override fun getAttributes(): INamedNodeMap = AttrMap()
+    override fun getAttributes(): AttrMap = AttrMap()
 
-    override fun getFirstChild(): INode? = _childNodes.elements.firstOrNull()
+    override fun getFirstChild(): NodeImpl? = _childNodes.elements.firstOrNull()
 
-    override fun getLastChild(): INode? = _childNodes.elements.lastOrNull()
+    override fun getLastChild(): NodeImpl? = _childNodes.elements.lastOrNull()
 
     override fun getTextContent(): String = buildString {
         for (n in getChildNodes()) {
@@ -91,7 +92,7 @@ internal class ElementImpl(
         appendChild(getOwnerDocument().createTextNode(value))
     }
 
-    override fun getElementsByTagName(qualifiedName: String): INodeList {
+    override fun getElementsByTagName(qualifiedName: String): INodeListImpl {
         val matchAll = qualifiedName == "*"
         val elems = mutableListOf<NodeImpl>()
 
@@ -109,7 +110,7 @@ internal class ElementImpl(
         return NodeListImpl(elems)
     }
 
-    override fun getElementsByTagNameNS(namespace: String?, localName: String): INodeList {
+    override fun getElementsByTagNameNS(namespace: String?, localName: String): INodeListImpl {
         val _namespace = namespace ?: ""
 
         val matchAllNs = namespace == "*"
@@ -132,7 +133,7 @@ internal class ElementImpl(
     }
 
     @IgnorableReturnValue
-    override fun appendChild(node: PlatformNode): INode {
+    override fun appendChild(node: PlatformNode): NodeImpl {
         val n = checkNode(node)
         when (n) {
             is DocumentFragmentImpl -> {
@@ -155,7 +156,7 @@ internal class ElementImpl(
     }
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): INode {
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): NodeImpl {
         val old = checkNode(oldChild)
         if (newChild == oldChild) return old
         val newNode = checkNode(newChild)
@@ -170,14 +171,14 @@ internal class ElementImpl(
 
         _childNodes.elements[idx] = newNode
 
-        check(oldChild.parentNode == null)
-        check(newChild.parentNode == this)
+        check(oldChild.getParentNode() == null)
+        check(newChild.getParentNode() == this)
 
         return old
     }
 
     @IgnorableReturnValue
-    override fun removeChild(node: PlatformNode): INode {
+    override fun removeChild(node: PlatformNode): NodeImpl {
         val n = checkNode(node)
 
         if (!_childNodes.elements.remove(n)) throw DOMException.notFoundErr("Node to remove not found")
@@ -287,23 +288,23 @@ internal class ElementImpl(
         return getAttrIdxNS(namespace, localName) >= 0
     }
 
-    override fun getAttributeNode(qualifiedName: String): IAttr? {
+    override fun getAttributeNode(qualifiedName: String): AttrImpl? {
         return getAttributes().getNamedItem(qualifiedName)
     }
 
-    override fun getAttributeNodeNS(namespace: String?, localName: String): IAttr? {
+    override fun getAttributeNodeNS(namespace: String?, localName: String): AttrImpl? {
         return getAttributes().getNamedItemNS(namespace, localName)
     }
 
-    override fun setAttributeNode(attr: PlatformAttr): IAttr? {
+    override fun setAttributeNode(attr: PlatformAttr): AttrImpl? {
         return getAttributes().setNamedItem(attr)
     }
 
-    override fun setAttributeNodeNS(attr: PlatformAttr): IAttr? {
+    override fun setAttributeNodeNS(attr: PlatformAttr): AttrImpl? {
         return getAttributes().setNamedItemNS(attr)
     }
 
-    override fun removeAttributeNode(attr: PlatformAttr): IAttr {
+    override fun removeAttributeNode(attr: PlatformAttr): AttrImpl {
         val a = checkNode(attr) as AttrImpl
         if (!_attributes.remove(a)) {
             throw DOMException.notFoundErr("Missing attribute for removal")
@@ -339,7 +340,7 @@ internal class ElementImpl(
         }
 
         // Cast is needed as we don't want to match Document/DocumentFragment (infinite recursion)
-        return (getParentNode() as? IElement)?.lookupNamespaceURI(prefix)
+        return (getParentNode() as? ElementImpl)?.lookupNamespaceURI(prefix)
     }
 
     override fun toString(): String {
@@ -365,54 +366,57 @@ internal class ElementImpl(
         }
     }
 
-    inner class AttrMap : INamedNodeMap {
+    inner class AttrMap : NamedNodeMap {
         override val size: Int get() = _attributes.size
+        override fun getLength(): Int = size
 
-        override fun item(index: Int): IAttr? = when (index) {
+        override fun get(index: Int): AttrImpl? = item(index)
+
+        override fun item(index: Int): AttrImpl? = when (index) {
             in 0 until _attributes.size -> _attributes[index]
             else -> null
         }
 
-        override fun iterator(): Iterator<IAttr> = AttrIterator()
+        override fun iterator(): Iterator<AttrImpl> = AttrIterator()
 
-        override fun getNamedItem(qualifiedName: String): IAttr? = _attributes.firstOrNull {
+        override fun getNamedItem(qualifiedName: String): AttrImpl? = _attributes.firstOrNull {
             it.getName() == qualifiedName
         }
 
-        override fun getNamedItemNS(namespace: String?, localName: String): IAttr? = _attributes.firstOrNull {
+        override fun getNamedItemNS(namespace: String?, localName: String): AttrImpl? = _attributes.firstOrNull {
             (it.getNamespaceURI() ?: "") == (namespace ?: "") && it.getLocalName() == localName
         }
 
         @IgnorableReturnValue
-        override fun setNamedItem(attr: PlatformAttr): IAttr? {
+        override fun setNamedItem(attr: PlatformAttr): AttrImpl? {
             val a = checkNode(attr) as AttrImpl
 
             return setAttrAt(getAttrIdx(a.getName()), a)
         }
 
         @IgnorableReturnValue
-        override fun setNamedItemNS(attr: PlatformAttr): IAttr? {
+        override fun setNamedItemNS(attr: PlatformAttr): AttrImpl? {
             val a = checkNode(attr) as AttrImpl
 
             return setAttrAt(getAttrIdxNS(a.getNamespaceURI(), a.getLocalName()), a)
         }
 
         @IgnorableReturnValue
-        override fun removeNamedItem(qualifiedName: String): IAttr? {
+        override fun removeNamedItem(qualifiedName: String): AttrImpl? {
             return removeAttrAt(getAttrIdx(qualifiedName))
         }
 
         @IgnorableReturnValue
-        override fun removeNamedItemNS(namespace: String?, localName: String): IAttr? {
+        override fun removeNamedItemNS(namespace: String?, localName: String): AttrImpl? {
             return removeAttrAt(getAttrIdxNS(getNamespaceURI(), localName))
         }
     }
 
-    inner class AttrIterator : Iterator<IAttr> {
+    inner class AttrIterator : Iterator<AttrImpl> {
         private var pos = 0
 
         override fun hasNext(): Boolean = pos < _attributes.size
 
-        override fun next(): IAttr = _attributes[pos++]
+        override fun next(): AttrImpl = _attributes[pos++]
     }
 }

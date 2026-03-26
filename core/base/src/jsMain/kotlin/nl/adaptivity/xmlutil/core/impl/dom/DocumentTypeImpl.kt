@@ -20,8 +20,8 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.Element
-import nl.adaptivity.xmlutil.dom2.Node
 import nl.adaptivity.xmlutil.dom2.DocumentType as DocumentType2
 import org.w3c.dom.DocumentType as DOMDocumentType
 
@@ -35,13 +35,13 @@ internal class DocumentTypeImpl(delegate: DOMDocumentType) : NodeImpl<DOMDocumen
 
     override fun getSystemId(): String = delegate.systemId
 
-    override fun appendChild(node: Node): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in document type")
 
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+    override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in document type")
 
-    override fun removeChild(node: Node): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in document type")
 
     public override fun getFirstChild(): Nothing? = null

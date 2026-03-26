@@ -22,7 +22,6 @@ package nl.adaptivity.xmlutil.core.impl.dom
 
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
-import nl.adaptivity.xmlutil.dom2.Node
 import nl.adaptivity.xmlutil.dom2.Document as Document2
 import org.w3c.dom.Document as DomDocument
 import org.w3c.dom.Node as DomNode
@@ -67,12 +66,6 @@ internal class DocumentImpl(delegate: DomDocument) : NodeImpl<DomDocument>(deleg
 
     override fun adoptNode(node: PlatformNode): NodeImpl<DomNode> =
         delegate.adoptNode(node.unWrap()).wrap()
-
-    override fun adoptNode(node: Node): NodeImpl<DomNode> =
-        delegate.adoptNode(node.unWrap()).wrap()
-
-    override fun importNode(node: Node, deep: Boolean): NodeImpl<DomNode> =
-        delegate.importNode(node.unWrap(), deep).wrap()
 
     override fun importNode(node: PlatformNode, deep: Boolean): NodeImpl<DomNode> =
         delegate.importNode(node.unWrap(), deep).wrap()

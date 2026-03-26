@@ -18,12 +18,11 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.Attr
-import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.TypeInfo
 
 internal class AttrImpl(delegate: PlatformAttr) : AbstractNodeImpl<PlatformAttr>(delegate), Attr {
@@ -49,7 +48,7 @@ internal class AttrImpl(delegate: PlatformAttr) : AbstractNodeImpl<PlatformAttr>
     override fun isId(): Boolean = delegate.isId
 
     @IgnorableReturnValue
-    override fun appendChild(newChild: PlatformNode): Nothing =
+    override fun appendChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
     @IgnorableReturnValue
@@ -57,16 +56,7 @@ internal class AttrImpl(delegate: PlatformAttr) : AbstractNodeImpl<PlatformAttr>
         throw UnsupportedOperationException("No children in attributes")
 
     @IgnorableReturnValue
-    override fun removeChild(oldChild: PlatformNode): Nothing =
-        throw UnsupportedOperationException("No children in attributes")
-
-    override fun appendChild(node: Node): Nothing =
-        throw UnsupportedOperationException("No children in attributes")
-
-    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
-        throw UnsupportedOperationException("No children in attributes")
-
-    override fun removeChild(node: Node): Nothing =
+    override fun removeChild(node: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
 }

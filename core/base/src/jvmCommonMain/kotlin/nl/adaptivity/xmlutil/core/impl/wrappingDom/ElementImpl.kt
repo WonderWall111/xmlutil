@@ -20,11 +20,10 @@
 
 @file:MustUseReturnValues
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformElement
-import nl.adaptivity.xmlutil.dom2.Attr
 import nl.adaptivity.xmlutil.dom2.Element
 import org.w3c.dom.TypeInfo
 
@@ -57,21 +56,11 @@ internal class ElementImpl(delegate: PlatformElement) : AbstractNodeImpl<Platfor
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNode(attr: Attr): AttrImpl? {
-        return delegate.setAttributeNode(attr.unWrap())?.wrap()
-    }
-
     override fun setAttributeNodeNS(attr: PlatformAttr): AttrImpl? {
         return delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNodeNS(attr: Attr): AttrImpl? =
-        delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
-
     override fun removeAttributeNode(attr: PlatformAttr): AttrImpl =
-        delegate.removeAttributeNode(attr.unWrap()).wrap()
-
-    override fun removeAttributeNode(attr: Attr): AttrImpl =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
     override fun getAttribute(qualifiedName: String): String? =

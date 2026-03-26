@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -23,7 +23,38 @@ package nl.adaptivity.xmlutil.dom2
 import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 
-public actual typealias Document = PlatformDocument
+public actual interface Document : Node, PlatformDocument {
+    actual override fun getImplementation(): DOMImplementation
+
+    actual override fun getDoctype(): DocumentType?
+
+    actual override fun getDocumentElement(): Element?
+
+    actual override fun createElement(localName: String): Element
+
+    actual override fun createElementNS(namespaceURI: String, qualifiedName: String): Element
+
+    actual override fun createDocumentFragment(): DocumentFragment
+
+    actual override fun createTextNode(data: String): Text
+
+    actual override fun createCDATASection(data: String): CDATASection
+
+    actual override fun createComment(data: String): Comment
+
+    actual override fun createProcessingInstruction(
+        target: String,
+        data: String
+    ): ProcessingInstruction
+
+    actual override fun importNode(node: PlatformNode, deep: Boolean): Node
+
+    actual override fun adoptNode(node: PlatformNode): Node
+
+    actual override fun createAttribute(localName: String): Attr
+
+    actual override fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
+}
 
 public actual fun Document.importNode(node: PlatformNode, deep: Boolean): Node {
     return importNode(node, deep)

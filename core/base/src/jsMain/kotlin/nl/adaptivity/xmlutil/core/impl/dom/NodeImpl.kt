@@ -109,14 +109,14 @@ internal abstract class NodeImpl<out N : DomNode>(delegate: N) : Node {
         return delegate.isEqualNode(arg.unWrap())
     }
 
-    override fun appendChild(node: Node): Node = appendChild(node.unWrap())
+    override fun appendChild(node: Node1): Node = appendChild(node.unWrap())
 
 
     fun appendChild(newChild: DomNode): Node {
         return delegate.appendChild(newChild.unWrap()).wrap()
     }
 
-    override fun replaceChild(newChild: Node, oldChild: Node): Node {
+    override fun replaceChild(newChild: Node1, oldChild: Node1): Node {
         return delegate.replaceChild(oldChild.unWrap(), newChild.unWrap()).wrap()
     }
 
@@ -124,7 +124,7 @@ internal abstract class NodeImpl<out N : DomNode>(delegate: N) : Node {
         return delegate.replaceChild(oldChild.unWrap(), newChild.unWrap()).wrap()
     }
 
-    override fun removeChild(node: Node): Node = removeChild(node.unWrap())
+    override fun removeChild(node: Node1): Node = removeChild(node.unWrap())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -20,14 +20,17 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface DocumentType : Node {
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom.PlatformNode
+
+public expect interface DocumentType : Node, PlatformDocumentType {
     public fun getName(): String
     public fun getPublicId(): String
     public fun getSystemId(): String
 
-    public override fun appendChild(node: Node): Nothing
-    public override fun replaceChild(newChild: Node, oldChild: Node): Nothing
-    public override fun removeChild(node: Node): Nothing
+    public override fun appendChild(node: PlatformNode): Nothing
+    public override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing
+    public override fun removeChild(node: PlatformNode): Nothing
     override fun getFirstChild(): Nothing?
     override fun getLastChild(): Nothing?
 }

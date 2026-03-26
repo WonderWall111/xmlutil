@@ -20,16 +20,16 @@
 
 package nl.adaptivity.xmlutil.dom2
 
-public expect interface NodeList : Iterable<Node> {
+import nl.adaptivity.xmlutil.dom.PlatformNodeList
+
+public expect interface NodeList : PlatformNodeList, Iterable<Node> {
     public fun getLength(): Int
 
     public fun item(index: Int): Node?
 
     public operator fun get(index: Int): Node?// = item(index)
 
-    public override operator fun iterator(): Iterator<Node> /*{
-        return NodeListIterator(this)
-    }*/
+    public override operator fun iterator(): Iterator<Node>
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")

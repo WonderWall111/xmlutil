@@ -18,12 +18,11 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xmlutil.core.impl.dom
+package nl.adaptivity.xmlutil.core.impl.wrappingDom
 
 import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.Document
-import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.DOMConfiguration
 import org.w3c.dom.EntityReference
 import org.w3c.dom.NodeList
@@ -117,11 +116,6 @@ internal class DocumentImpl(delegate: PlatformDocument) : AbstractNodeImpl<Platf
 
     override fun adoptNode(node: PlatformNode): AbstractNodeImpl<*> = delegate.adoptNode(node.unWrap()).wrap()
 
-    override fun adoptNode(node: Node): AbstractNodeImpl<*> = delegate.adoptNode(node.unWrap()).wrap()
-
     override fun importNode(node: PlatformNode, deep: Boolean): AbstractNodeImpl<*> =
-        delegate.importNode(node.unWrap(), deep).wrap()
-
-    override fun importNode(node: Node, deep: Boolean): AbstractNodeImpl<*> =
         delegate.importNode(node.unWrap(), deep).wrap()
 }
