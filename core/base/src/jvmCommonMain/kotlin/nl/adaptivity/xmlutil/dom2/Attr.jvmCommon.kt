@@ -34,6 +34,8 @@ public actual interface Attr : Node, PlatformAttr {
     public actual override fun setValue(value: String)
     public actual override fun getOwnerElement(): Element?
 
+    override fun getAttributes(): Nothing? = null
+
     override fun getParentNode(): Node?
 
     override fun getParentElement(): Element?

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,22 +20,22 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.*
 import nl.adaptivity.xmlutil.dom.PlatformDocument
 import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.Document
 import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.DOMConfiguration
 import org.w3c.dom.EntityReference
 import org.w3c.dom.NodeList
 
-internal class DocumentImpl(delegate: PlatformDocument) : NodeImpl<PlatformDocument>(delegate), IDocument {
+internal class DocumentImpl(delegate: PlatformDocument) : AbstractNodeImpl<PlatformDocument>(delegate), Document {
     override fun getInputEncoding(): String? = delegate.inputEncoding
 
-    override fun getImplementation(): IDOMImplementation = DOMImplementationImpl
+    override fun getImplementation(): DOMImplementationImpl = DOMImplementationImpl
 
-    override fun getDoctype(): IDocumentType? = delegate.doctype?.let(::DocumentTypeImpl)
+    override fun getDoctype(): DocumentTypeImpl? = delegate.doctype?.let(::DocumentTypeImpl)
 
-    override fun getDocumentElement(): IElement? = delegate.documentElement?.wrap()
+    override fun getDocumentElement(): ElementImpl? = delegate.documentElement?.wrap()
 
     override fun getXmlEncoding(): String = delegate.xmlEncoding
 
@@ -67,7 +67,9 @@ internal class DocumentImpl(delegate: PlatformDocument) : NodeImpl<PlatformDocum
         return delegate.domConfig
     }
 
-    override fun getElementsByTagName(tagname: String): INodeList {
+    override fun getAttributes(): Nothing? = null
+
+    override fun getElementsByTagName(tagname: String): WrappingNodeList {
         return WrappingNodeList(delegate.getElementsByTagName(tagname))
     }
 
@@ -75,31 +77,31 @@ internal class DocumentImpl(delegate: PlatformDocument) : NodeImpl<PlatformDocum
         return WrappingNodeList(delegate.getElementsByTagNameNS(namespaceURI, localName))
     }
 
-    override fun getElementById(elementId: String): IElement = delegate.getElementById(elementId).wrap()
+    override fun getElementById(elementId: String): ElementImpl = delegate.getElementById(elementId).wrap()
 
-    override fun createElement(localName: String): IElement =
+    override fun createElement(localName: String): ElementImpl =
         ElementImpl(delegate.createElement(localName))
 
-    override fun createDocumentFragment(): IDocumentFragment =
+    override fun createDocumentFragment(): DocumentFragmentImpl =
         DocumentFragmentImpl(delegate.createDocumentFragment())
 
-    override fun createTextNode(data: String): IText = TextImpl(delegate.createTextNode(data))
+    override fun createTextNode(data: String): TextImpl = TextImpl(delegate.createTextNode(data))
 
-    override fun createCDATASection(data: String): ICDATASection {
+    override fun createCDATASection(data: String): CDATASectionImpl {
         return CDATASectionImpl(delegate.createCDATASection(data))
     }
 
-    override fun createComment(data: String): IComment = CommentImpl(delegate.createComment(data))
+    override fun createComment(data: String): CommentImpl = CommentImpl(delegate.createComment(data))
 
-    override fun createProcessingInstruction(target: String, data: String): IProcessingInstruction =
+    override fun createProcessingInstruction(target: String, data: String): ProcessingInstructionImpl =
         ProcessingInstructionImpl(delegate.createProcessingInstruction(target, data))
 
-    override fun createAttribute(localName: String): IAttr = AttrImpl(delegate.createAttribute(localName))
+    override fun createAttribute(localName: String): AttrImpl = AttrImpl(delegate.createAttribute(localName))
 
-    override fun createAttributeNS(namespace: String?, qualifiedName: String): IAttr =
+    override fun createAttributeNS(namespace: String?, qualifiedName: String): AttrImpl =
         AttrImpl(delegate.createAttributeNS(namespace, qualifiedName))
 
-    override fun createElementNS(namespaceURI: String, qualifiedName: String): IElement =
+    override fun createElementNS(namespaceURI: String, qualifiedName: String): ElementImpl =
         ElementImpl(delegate.createElementNS(namespaceURI, qualifiedName))
 
     override fun createEntityReference(name: String?): EntityReference {
@@ -110,16 +112,16 @@ internal class DocumentImpl(delegate: PlatformDocument) : NodeImpl<PlatformDocum
         return delegate.normalizeDocument()
     }
 
-    override fun renameNode(n: PlatformNode, namespaceURI: String?, qualifiedName: String): INode =
+    override fun renameNode(n: PlatformNode, namespaceURI: String?, qualifiedName: String): AbstractNodeImpl<*> =
         delegate.renameNode(n.unWrap(), namespaceURI, qualifiedName).wrap()
 
-    override fun adoptNode(node: PlatformNode): INode = delegate.adoptNode(node.unWrap()).wrap()
+    override fun adoptNode(node: PlatformNode): AbstractNodeImpl<*> = delegate.adoptNode(node.unWrap()).wrap()
 
-    override fun adoptNode(node: Node): INode = delegate.adoptNode(node.unWrap()).wrap()
+    override fun adoptNode(node: Node): AbstractNodeImpl<*> = delegate.adoptNode(node.unWrap()).wrap()
 
-    override fun importNode(node: PlatformNode, deep: Boolean): INode =
+    override fun importNode(node: PlatformNode, deep: Boolean): AbstractNodeImpl<*> =
         delegate.importNode(node.unWrap(), deep).wrap()
 
-    override fun importNode(node: Node, deep: Boolean): INode =
+    override fun importNode(node: Node, deep: Boolean): AbstractNodeImpl<*> =
         delegate.importNode(node.unWrap(), deep).wrap()
 }

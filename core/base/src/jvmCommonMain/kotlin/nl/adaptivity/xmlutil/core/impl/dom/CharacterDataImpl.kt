@@ -22,16 +22,16 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.ICharacterData
-import nl.adaptivity.xmlutil.core.impl.idom.INode
+import nl.adaptivity.xmlutil.dom.PlatformCharacterData
 import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.CharacterData
 import nl.adaptivity.xmlutil.dom2.Node
-import org.w3c.dom.CharacterData
 
-internal abstract class CharacterDataImpl<N : CharacterData>(delegate: N) : NodeImpl<N>(delegate), ICharacterData {
+internal abstract class CharacterDataImpl<N : PlatformCharacterData>(delegate: N) : AbstractNodeImpl<N>(delegate),
+    CharacterData {
     override fun getData(): String = delegate.data
 
-    override fun setData(data: String?) {
+    final override fun setData(data: String) {
         delegate.data = data
     }
 
@@ -65,7 +65,7 @@ internal abstract class CharacterDataImpl<N : CharacterData>(delegate: N) : Node
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
-    override fun appendChild(node: INode): Nothing =
+    override fun appendChild(node: AbstractNodeImpl<*>): Nothing =
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
@@ -77,19 +77,11 @@ internal abstract class CharacterDataImpl<N : CharacterData>(delegate: N) : Node
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
-    override fun replaceChild(newChild: INode, oldChild: INode): Nothing =
-        throw UnsupportedOperationException("No children in character data")
-
-    @IgnorableReturnValue
     override fun replaceChild(newChild: PlatformNode, oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue
     override fun removeChild(node: Node): Nothing =
-        throw UnsupportedOperationException("No children in character data")
-
-    @IgnorableReturnValue
-    override fun removeChild(node: INode): Nothing =
         throw UnsupportedOperationException("No children in character data")
 
     @IgnorableReturnValue

@@ -20,21 +20,19 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IAttr
-import nl.adaptivity.xmlutil.core.impl.idom.IElement
+import nl.adaptivity.xmlutil.dom.PlatformAttr
 import nl.adaptivity.xmlutil.dom.PlatformNode
+import nl.adaptivity.xmlutil.dom2.Attr
+import nl.adaptivity.xmlutil.dom2.Node
 import org.w3c.dom.TypeInfo
-import org.w3c.dom.Attr as DomAttr
 
-internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), IAttr {
+internal class AttrImpl(delegate: PlatformAttr) : AbstractNodeImpl<PlatformAttr>(delegate), Attr {
     override fun getLocalName(): String? = delegate.localName
     override fun getFirstChild(): Nothing? = null
 
     override fun getLastChild(): Nothing? = null
 
-    override fun getOwnerElement(): IElement? = delegate.ownerElement?.wrap()
-
-    override fun getParentElement(): IElement? = delegate.parentNode as? IElement
+    override fun getOwnerElement(): ElementImpl? = delegate.ownerElement?.wrap()
 
     override fun getName(): String = delegate.name
 
@@ -42,7 +40,7 @@ internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), IAttr 
 
     override fun getValue(): String = delegate.value
 
-    override fun setValue(value: String?) {
+    override fun setValue(value: String) {
         delegate.value = value
     }
 
@@ -62,8 +60,17 @@ internal class AttrImpl(delegate: DomAttr) : NodeImpl<DomAttr>(delegate), IAttr 
     override fun removeChild(oldChild: PlatformNode): Nothing =
         throw UnsupportedOperationException("No children in attributes")
 
+    override fun appendChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
+    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
+    override fun removeChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in attributes")
+
 }
 
-internal fun PlatformNode.wrapAttr(): IAttr {
-    return (this as DomAttr).wrap()
+internal fun PlatformNode.wrapAttr(): AttrImpl {
+    return (this as PlatformAttr).wrap()
 }

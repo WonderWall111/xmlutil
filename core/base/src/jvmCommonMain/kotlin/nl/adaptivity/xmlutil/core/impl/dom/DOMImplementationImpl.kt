@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,28 +20,24 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IDOMImplementation
-import nl.adaptivity.xmlutil.core.impl.idom.IDocument
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentType
+import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.DOMVersion
+import nl.adaptivity.xmlutil.dom2.DocumentType
 import nl.adaptivity.xmlutil.dom2.SupportedFeatures
-import org.w3c.dom.DOMImplementation
 import javax.xml.parsers.DocumentBuilderFactory
 
-internal object DOMImplementationImpl: IDOMImplementation {
-    val delegate: DOMImplementation =
+internal object DOMImplementationImpl: DOMImplementation {
+    val delegate: PlatformDOMImplementation =
         DocumentBuilderFactory.newInstance().apply {
             isNamespaceAware = true
         }.newDocumentBuilder().domImplementation
 
     override val supportsWhitespaceAtToplevel: Boolean get() = true
 
-    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): IDocumentType {
+    override fun createDocumentType(qualifiedName: String, publicId: String, systemId: String): DocumentTypeImpl {
         return delegate.createDocumentType(qualifiedName, publicId, systemId).wrap()
-    }
-
-    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: IDocumentType?): IDocument {
-        return delegate.createDocument(namespace, qualifiedName, documentType).wrap()
     }
 
     override fun hasFeature(feature: String, version: String?): Boolean {
@@ -55,5 +51,16 @@ internal object DOMImplementationImpl: IDOMImplementation {
 
     override fun getFeature(feature: String, version: String): Any? {
         return delegate.getFeature(feature, version)
+    }
+
+    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: PlatformDocumentType?): DocumentImpl {
+        return delegate.createDocument(namespace, qualifiedName, documentType?.unWrap()).wrap()
+    }
+
+    override fun createDocument(namespace: String?, qualifiedName: String?, documentType: DocumentType?): DocumentImpl {
+        return delegate.createDocument(
+            namespace,
+            qualifiedName,
+            documentType?.let { delegate.createDocumentType(it.name, it.publicId, it.systemId) }).wrap()
     }
 }

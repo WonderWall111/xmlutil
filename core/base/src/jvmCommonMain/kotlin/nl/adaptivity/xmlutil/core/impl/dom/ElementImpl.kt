@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -22,65 +22,62 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IAttr
-import nl.adaptivity.xmlutil.core.impl.idom.IElement
-import nl.adaptivity.xmlutil.core.impl.idom.INamedNodeMap
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
+import nl.adaptivity.xmlutil.dom.PlatformAttr
+import nl.adaptivity.xmlutil.dom.PlatformElement
+import nl.adaptivity.xmlutil.dom2.Attr
+import nl.adaptivity.xmlutil.dom2.Element
 import org.w3c.dom.TypeInfo
-import nl.adaptivity.xmlutil.dom.PlatformAttr as DomAttr
-import nl.adaptivity.xmlutil.dom2.Attr as Attr2
-import org.w3c.dom.Element as DomElement
 
-internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate), IElement {
+internal class ElementImpl(delegate: PlatformElement) : AbstractNodeImpl<PlatformElement>(delegate), Element {
     override fun getLocalName(): String = delegate.localName ?: delegate.tagName
 
     override fun getTagName(): String = delegate.tagName
 
-    override fun getElementsByTagName(qualifiedName: String): INodeList {
+    override fun getElementsByTagName(qualifiedName: String): WrappingNodeList {
         return WrappingNodeList(delegate.getElementsByTagName(qualifiedName))
     }
 
-    override fun getElementsByTagNameNS(namespace: String?, localName: String): INodeList {
+    override fun getElementsByTagNameNS(namespace: String?, localName: String): WrappingNodeList {
         return WrappingNodeList(delegate.getElementsByTagNameNS(namespace, localName))
     }
 
     override fun getSchemaTypeInfo(): TypeInfo = delegate.schemaTypeInfo
 
-    override fun getAttributes(): INamedNodeMap = WrappingNamedNodeMap(delegate.attributes)
+    override fun getAttributes(): WrappingNamedNodeMap = WrappingNamedNodeMap(delegate.attributes)
 
-    override fun getAttributeNode(qualifiedName: String): IAttr? {
+    override fun getAttributeNode(qualifiedName: String): AttrImpl? {
         return delegate.getAttributeNode(qualifiedName)?.wrapAttr()
     }
 
-    override fun getAttributeNodeNS(namespace: String?, localName: String): IAttr? {
+    override fun getAttributeNodeNS(namespace: String?, localName: String): AttrImpl? {
         return delegate.getAttributeNodeNS(namespace, localName)?.wrapAttr()
     }
 
-    override fun setAttributeNode(attr: DomAttr): IAttr? {
+    override fun setAttributeNode(attr: PlatformAttr): AttrImpl? {
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNode(attr: Attr2): IAttr? {
+    override fun setAttributeNode(attr: Attr): AttrImpl? {
         return delegate.setAttributeNode(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNodeNS(attr: DomAttr): IAttr? {
+    override fun setAttributeNodeNS(attr: PlatformAttr): AttrImpl? {
         return delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
     }
 
-    override fun setAttributeNodeNS(attr: Attr2): IAttr? =
+    override fun setAttributeNodeNS(attr: Attr): AttrImpl? =
         delegate.setAttributeNodeNS(attr.unWrap())?.wrap()
 
-    override fun removeAttributeNode(attr: DomAttr): IAttr =
+    override fun removeAttributeNode(attr: PlatformAttr): AttrImpl =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
-    override fun removeAttributeNode(attr: Attr2): IAttr =
+    override fun removeAttributeNode(attr: Attr): AttrImpl =
         delegate.removeAttributeNode(attr.unWrap()).wrap()
 
     override fun getAttribute(qualifiedName: String): String? =
         delegate.getAttribute(qualifiedName)
 
-    override fun setAttribute(qualifiedName: String, value: String?) =
+    override fun setAttribute(qualifiedName: String, value: String) =
         delegate.setAttribute(qualifiedName, value)
 
     override fun removeAttribute(qualifiedName: String) = delegate.removeAttribute(qualifiedName)
@@ -107,7 +104,7 @@ internal class ElementImpl(delegate: DomElement) : NodeImpl<DomElement>(delegate
         delegate.setIdAttributeNS(namespaceURI, localName, isId)
     }
 
-    override fun setIdAttributeNode(idAttr: DomAttr?, isId: Boolean) {
+    override fun setIdAttributeNode(idAttr: PlatformAttr?, isId: Boolean) {
         delegate.setIdAttributeNode(idAttr, isId)
     }
 }

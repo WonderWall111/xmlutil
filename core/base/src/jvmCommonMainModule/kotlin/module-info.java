@@ -7,8 +7,6 @@ module net.devrieze.xmlutil.core {
     exports nl.adaptivity.xmlutil.core;
     exports nl.adaptivity.xmlutil.core.impl to
             net.devrieze.xmlutil.core.jdk, net.devrieze.xmlutil.serialization;
-    exports nl.adaptivity.xmlutil.core.impl.idom to
-            net.devrieze.xmlutil.serialization;
     exports nl.adaptivity.xmlutil.core.impl.multiplatform to
             io.github.pdvrieze.testutil, net.devrieze.xmlutil.serialization,
             io.github.pdvrieze.xmlutil.xmlschema, net.devrieze.xmlutil.xmlserializable,

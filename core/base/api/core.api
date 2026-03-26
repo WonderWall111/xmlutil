@@ -938,6 +938,8 @@ public final class nl/adaptivity/xmlutil/dom/NodeConsts {
 public abstract interface class nl/adaptivity/xmlutil/dom2/Attr : nl/adaptivity/xmlutil/dom2/Node, org/w3c/dom/Attr {
 	public abstract fun appendChild (Lnl/adaptivity/xmlutil/dom2/Node;)Ljava/lang/Void;
 	public abstract fun appendChild (Lorg/w3c/dom/Node;)Ljava/lang/Void;
+	public fun getAttributes ()Ljava/lang/Void;
+	public synthetic fun getAttributes ()Lorg/w3c/dom/NamedNodeMap;
 	public abstract fun getFirstChild ()Ljava/lang/Void;
 	public abstract fun getLastChild ()Ljava/lang/Void;
 	public abstract fun getLocalName ()Ljava/lang/String;

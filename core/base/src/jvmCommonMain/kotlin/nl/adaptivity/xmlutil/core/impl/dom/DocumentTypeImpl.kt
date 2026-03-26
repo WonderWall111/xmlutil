@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,18 +20,20 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IDocumentType
-import nl.adaptivity.xmlutil.core.impl.idom.INamedNodeMap
-import org.w3c.dom.DocumentType
+import nl.adaptivity.xmlutil.dom.PlatformDocumentType
+import nl.adaptivity.xmlutil.dom2.DocumentType
+import nl.adaptivity.xmlutil.dom2.Node
 
-internal class DocumentTypeImpl(delegate: DocumentType) : NodeImpl<DocumentType>(delegate), IDocumentType {
+internal class DocumentTypeImpl(delegate: PlatformDocumentType) : AbstractNodeImpl<PlatformDocumentType>(delegate), DocumentType {
     override fun getName(): String = delegate.name
 
-    override fun getEntities(): INamedNodeMap = WrappingNamedNodeMap(delegate.entities)
+    override fun getEntities(): WrappingNamedNodeMap = WrappingNamedNodeMap(delegate.entities)
 
-    override fun getNotations(): INamedNodeMap {
+    override fun getNotations(): WrappingNamedNodeMap {
         return WrappingNamedNodeMap(delegate.notations)
     }
+
+    override fun getAttributes(): Nothing? = null
 
     override fun getPublicId(): String = delegate.publicId
 
@@ -42,4 +44,13 @@ internal class DocumentTypeImpl(delegate: DocumentType) : NodeImpl<DocumentType>
     override fun getFirstChild(): Nothing? = null
 
     override fun getLastChild(): Nothing? = null
+
+    override fun appendChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in documenttype")
+
+    override fun replaceChild(newChild: Node, oldChild: Node): Nothing =
+        throw UnsupportedOperationException("No children in documenttype")
+
+    override fun removeChild(node: Node): Nothing =
+        throw UnsupportedOperationException("No children in documenttype")
 }

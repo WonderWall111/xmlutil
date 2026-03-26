@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,16 +20,20 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.INode
-import nl.adaptivity.xmlutil.core.impl.idom.INodeList
-import org.w3c.dom.NodeList as DomNodeList
+import nl.adaptivity.xmlutil.dom.PlatformNodeList
+import nl.adaptivity.xmlutil.dom2.Node
+import nl.adaptivity.xmlutil.dom2.NodeList
+import nl.adaptivity.xmlutil.dom2.NodeListIterator
 
-internal class WrappingNodeList(val delegate: DomNodeList) : INodeList {
-    override val size: Int
-        get() = delegate.length
+internal class WrappingNodeList(val delegate: PlatformNodeList) : NodeList {
+    val size: Int get() = delegate.length
 
-    override fun item(index: Int): INode = delegate.item(index).wrap()
-    override fun get(index: Int): INode = item(index)
+    override fun iterator(): Iterator<Node> {
+        return NodeListIterator(this)
+    }
+
+    override fun item(index: Int): AbstractNodeImpl<*> = delegate.item(index).wrap()
+    override fun get(index: Int): AbstractNodeImpl<*> = item(index)
 
     @Deprecated("Use size", replaceWith = ReplaceWith("size"))
     override fun getLength(): Int = delegate.length

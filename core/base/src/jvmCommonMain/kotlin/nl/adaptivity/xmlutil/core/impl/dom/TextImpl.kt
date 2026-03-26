@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,18 +20,25 @@
 
 package nl.adaptivity.xmlutil.core.impl.dom
 
-import nl.adaptivity.xmlutil.core.impl.idom.IText
-import org.w3c.dom.Text
+import nl.adaptivity.xmlutil.dom.PlatformElement
+import nl.adaptivity.xmlutil.dom.PlatformText
+import nl.adaptivity.xmlutil.dom2.Text
 
-internal open class TextImpl(delegate: Text) : CharacterDataImpl<Text>(delegate), IText {
+internal open class TextImpl(delegate: PlatformText) : CharacterDataImpl<PlatformText>(delegate), Text {
 
-    override fun splitText(offset: Int): IText = delegate.splitText(offset).wrap()
+    override fun splitText(offset: Int): TextImpl = delegate.splitText(offset).wrap()
 
     override fun isElementContentWhitespace(): Boolean = delegate.isElementContentWhitespace
 
     override fun getWholeText(): String = delegate.wholeText
 
-    override fun replaceWholeText(content: String): IText =
+    override fun getParentElement(): ElementImpl? {
+        return (delegate.parentNode as PlatformElement).wrap()
+    }
+
+    override fun getAttributes(): Nothing? = null
+
+    override fun replaceWholeText(content: String): TextImpl =
         delegate.replaceWholeText(content).wrap()
 
     override fun toString(): String {
