@@ -157,10 +157,10 @@ kotlin {
         val jvmCommonTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation(libs.junit5.api)
+                implementation(libs.junit.api)
                 implementation(projects.coreJdk)
 
-                runtimeOnly(libs.junit5.engine)
+                runtimeOnly(libs.junit.engine)
                 runtimeOnly(libs.woodstox)
             }
         }

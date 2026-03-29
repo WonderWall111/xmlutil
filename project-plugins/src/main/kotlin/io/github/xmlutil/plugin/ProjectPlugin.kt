@@ -46,7 +46,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.dokka.gradle.DokkaPlugin
 import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.TEST_COMPILATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
@@ -122,6 +122,8 @@ class ProjectPlugin @Inject constructor(
             createAndroidCompatComponent.convention(false)
             generateJavaModules.convention(true)
             allWarningsAsErrors.convention(true)
+            generalJvmTarget.convention(JvmTarget.JVM_1_8)
+            testJvmTarget.convention(JvmTarget.JVM_17)
             optIns.convention(
                 listOf(
                     "nl.adaptivity.xmlutil.ExperimentalXmlUtilApi",
@@ -200,7 +202,6 @@ class ProjectPlugin @Inject constructor(
                     project.afterEvaluate {
                         project.extensions.configure<KotlinJvmProjectExtension> {
                             compilerOptions {
-                                jvmTarget = JvmTarget.JVM_1_8
                                 apiVersion = projectConfiguration.kotlinApiVersion
                                 project.logger.info("Setting kotlin compilation options for JVM project ${project.name}")
                                 configureCompilerOptions(project, "project ${project.name}", projectConfiguration)
@@ -211,7 +212,7 @@ class ProjectPlugin @Inject constructor(
                                     attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, project.envJvm)
                                     attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
                                 }
-                                compilations.named(KotlinCompilation.TEST_COMPILATION_NAME) {
+                                compilations.named(TEST_COMPILATION_NAME) {
                                     project.logger.debug(
                                         "Compilation {}:{} to be set to default Kotlin API: {}",
                                         project.name,
@@ -220,6 +221,9 @@ class ProjectPlugin @Inject constructor(
                                     )
                                     compileTaskProvider.configure {
                                         compilerOptions {
+                                            (this as? KotlinJvmCompilerOptions)?.run {
+                                                jvmTarget = JvmTarget.DEFAULT
+                                            }
                                             languageVersion = projectConfiguration.kotlinTestVersion
                                             apiVersion = projectConfiguration.kotlinTestVersion
                                         }
@@ -246,7 +250,7 @@ class ProjectPlugin @Inject constructor(
                         targets.configureEach {
                             val isJvm = this is KotlinJvmTarget
                             this.compilations.configureEach {
-                                val isTest = name == KotlinCompilation.TEST_COMPILATION_NAME
+                                val isTest = name == TEST_COMPILATION_NAME
                                 compileTaskProvider.configure {
                                     compilerOptions {
                                         when {
@@ -277,10 +281,15 @@ class ProjectPlugin @Inject constructor(
 
                         targets.withType<KotlinJvmTarget> {
                             compilations.configureEach {
+                                val target = when {
+                                    name == TEST_COMPILATION_NAME -> projectConfiguration.testJvmTarget
+                                    else -> projectConfiguration.generalJvmTarget
+                                }
                                 compileTaskProvider.configure {
                                     compilerOptions {
                                         project.logger.info("Setting kotlin compilation options JVM compile task provider ${project.name}")
-                                        configureJvmCompilerOptions(project, "${project.name}:$name")
+
+                                        configureJvmCompilerOptions(project, "${project.name}:$name", target)
                                     }
                                 }
                             }
@@ -320,10 +329,14 @@ class ProjectPlugin @Inject constructor(
         }
     }
 
-    private fun KotlinCommonCompilerOptions.configureCompilerOptions(project: Project, name: String, projectConfiguration: ProjectConfigurationExtension) {
+    private fun KotlinCommonCompilerOptions.configureCompilerOptions(
+        project: Project,
+        name: String,
+        projectConfiguration: ProjectConfigurationExtension,
+    ) {
         configureCommonCompilerOptions(project, name, projectConfiguration)
         if (this is KotlinJvmCompilerOptions) {
-            configureJvmCompilerOptions(project, name)
+            configureJvmCompilerOptions(project, name, projectConfiguration.generalJvmTarget)
         }
     }
 
@@ -343,23 +356,23 @@ class ProjectPlugin @Inject constructor(
             }
         }
         freeCompilerArgs.add("-Xreturn-value-checker=full")
-        if (this is KotlinJvmCompilerOptions) {
-            configureJvmCompilerOptions(project, name)
-        }
     }
 
     private fun KotlinJvmCompilerOptions.configureJvmCompilerOptions(
         project: Project,
         name: String,
+        target: Property<JvmTarget>
     ) {
         project.logger.info("Setting jvm compilation options for $name")
-        this.jvmTarget = JvmTarget.JVM_1_8
+        this.jvmTarget = target
         this.jvmDefault = JvmDefaultMode.NO_COMPATIBILITY
     }
 
 }
 
 abstract class ProjectConfigurationExtension {
+    abstract val generalJvmTarget: Property<JvmTarget>
+    abstract val testJvmTarget: Property<JvmTarget>
     abstract val dokkaModuleName: Property<String>
     abstract val dokkaVersion: Property<String>
     abstract val dokkaOverrideTarget: Property<String>

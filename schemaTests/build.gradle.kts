@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025.
+ * Copyright (c) 2025-2026.
  *
  * This file is part of xmlutil.
  *
@@ -19,6 +19,7 @@
  */
 
 import net.devrieze.gradle.ext.addNativeTargets
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 /*
  * Copyright (c) 2024.
@@ -56,6 +57,7 @@ val autoModuleName = "net.devrieze.xmlutil.schema.tests"
 
 config {
     generateJavaModules = false // test code, not published
+    generalJvmTarget = JvmTarget.JVM_17
 }
 
 kotlin {
