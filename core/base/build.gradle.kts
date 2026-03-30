@@ -71,17 +71,17 @@ kotlin {
     val testTask = tasks.register("test") {
         group = "verification"
     }
-    val cleanTestTask = tasks.register("cleanTest") {
-        group = "verification"
-    }
+
 
     jvm("jvmCommon") {
         compilations.all {
             val targetTestTask = tasks.named<Test>("${target.name}Test")
             testTask.configure { dependsOn(targetTestTask) }
+	    /*
             cleanTestTask.configure {
                 dependsOn(tasks.named("clean${target.name[0].uppercaseChar()}${target.name.substring(1)}Test"))
             }
+	    */
         }
         tasks.withType<Jar>().named(artifactsTaskName) {
             from(project.file("src/r8-workaround.pro")) {
@@ -172,6 +172,14 @@ kotlin {
         }
     }
 
+}
+
+val cleanTestTask = tasks.register("cleanTest") {
+    group = "verification"
+
+    dependsOn(tasks.withType<Delete>().matching {
+        it.name.startsWith("clean") && it.name.endsWith("Test")
+    })
 }
 
 addNativeTargets()
