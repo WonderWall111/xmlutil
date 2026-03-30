@@ -43,13 +43,12 @@ enum class NativeState {
     ALL{
         override val hasWasm: Boolean get() = true
     },
-    HOST_WASM {
-        override val hasWasm: Boolean get() = true
-    },
     SINGLE {
         override val hasWasm: Boolean get() = true
     },
-    HOST,
+    HOST {
+        override val hasWasm: Boolean get() = true
+    },
     DISABLED;
 
     open val hasWasm: Boolean get() = false
@@ -64,7 +63,7 @@ fun KotlinMultiplatformExtension.applyDefaultXmlUtilHierarchyTemplate() {
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
-private val defaultXmlUtilHierarchyTemplate  = KotlinHierarchyTemplate {
+private val defaultXmlUtilHierarchyTemplate = KotlinHierarchyTemplate {
     withSourceSetTree(KotlinSourceSetTree.main, KotlinSourceSetTree.test)
 
     common {
