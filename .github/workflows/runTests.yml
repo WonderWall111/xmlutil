@@ -5,7 +5,8 @@ on:
             - 'dependabot/gradle/dev/*'
     workflow_dispatch:
 jobs:
-    build-and-publish:
+    doVerify:
+        name: Run verification
         runs-on: linux-latest
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
