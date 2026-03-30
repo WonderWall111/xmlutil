@@ -1,0 +1,43 @@
+name: Verify
+on:
+    push:
+        branches:
+            - 'dependabot/gradle/dev/*'
+    workflow_dispatch:
+jobs:
+    build-and-publish:
+        runs-on: linux-latest
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GPG_PRIV_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+            GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v6.0.2
+            -   name: Cached konan
+                uses: actions/cache@v5.0.4
+                with:
+                    path: ~/.konan
+                    key: ${{ runner.os }}-konan-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+                    restore-keys: ${{ runner.os }}-konan-
+            -   name: Set up JDK 25
+                uses: actions/setup-java@v5.2.0
+                with:
+                    java-version: '25'
+                    distribution: 'temurin'
+            -   id: cache-gradle-windows
+                name: Set up gradle
+                uses: gradle/actions/setup-gradle@v6.0.1
+            -   name: Yarn lock upgrade
+                run: ./gradlew -PexcludeSchema kotlinUpgradeYarnLock
+            -   name: Check
+                run: ./gradlew -Pnative.deploy=host -PexcludeSchema nativeTest jvmTest jvmCommonTest jsBrowserTest jsNodeTest WasmNodeTest WasmBrowserTest dokkaGenerateHtml --stacktrace
+                shell: bash
+            -   name: Store reports
+                if: failure()
+                uses: actions/upload-artifact@v7
+                with:
+                    name: reports
+                    path: |
+                        **/build/reports/
+                        **/build/test-results/
