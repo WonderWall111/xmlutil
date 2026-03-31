@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -56,17 +56,31 @@ public fun isXmlWhitespace(data: CharSequence): Boolean = data.all { isXmlWhites
  * - Shortening all resulting sequences of whitespace to a single space
  */
 public fun xmlCollapseWhitespace(original: String): String = buildString(original.length) {
-    var last = ' ' // Start with space, to trim start of symbol
-    for (c in original) {
-        if (c == '\t' || c == '\n' || c == '\r' || c == ' ') {
-            if (last != ' ') append(' ')
-            last = ' '
-        } else {
-            last = c
-            append(c)
+    var i = 0
+    while (i < original.length) {
+        when (original[i]) {
+            '\t', '\n', '\r' -> break
+            ' ' if (i == 0 || original[i - 1] == ' ') -> break
         }
+        i += 1
     }
-    if (last == ' ' && isNotEmpty()) this.deleteAt(this.length - 1) // make sure to trim
+    if (i == original.length) return original
+
+    return buildString(original.length) {
+        append(original, 0,  i)
+        var last = ' ' // Start with space, to trim start of symbol
+        for (idx in i until original.length) {
+            val c = original[idx]
+            if (c == '\t' || c == '\n' || c == '\r' || c == ' ') {
+                if (last != ' ') append(' ')
+                last = ' '
+            } else {
+                last = c
+                append(c)
+            }
+        }
+        if (last == ' ' && isNotEmpty()) this.deleteAt(this.length - 1) // make sure to trim
+    }
 }
 
 /**
