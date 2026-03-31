@@ -55,6 +55,9 @@ internal actual object XmlStreaming : IXmlStreaming {
 
     actual override fun newWriter(dest: Node): DomWriter = DomWriter(dest)
 
+    @ExperimentalXmlUtilApi
+    actual override fun newWriter(dest: PlatformNode): DomWriter = DomWriter(dest)
+
     actual override fun newReader(input: CharSequence, expandEntities: Boolean): XmlReader {
         // fall back to generic reader for contexts without DOM (Node etc.)
         if (jsTypeOf(js("DOMParser")) == "undefined") return newGenericReader(input, expandEntities)

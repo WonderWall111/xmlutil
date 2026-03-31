@@ -24,6 +24,7 @@ import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.Node
 
@@ -97,6 +98,14 @@ public interface IXmlStreaming {
      */
     @ExperimentalXmlUtilApi
     public fun newWriter(dest: Node): DomWriter
+
+    /**
+     * Create a new [DomWriter] that results in writing to DOM with [dest] as the receiver node.
+     * @param dest Destination node that will be the root
+     * @return The [DomWriter]
+     */
+    @ExperimentalXmlUtilApi
+    public fun newWriter(dest: PlatformNode): DomWriter
 
     /**
      * Get a DOM implementation that may be platform specific (where available)

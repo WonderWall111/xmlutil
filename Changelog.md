@@ -39,6 +39,7 @@ Changes:
   for strings already in memory.
 - Per the XML standard processing instructions are actually allowed in the XML
   body. Allow them here.
+- Add a newWriter implementation that targets platform nodes.
 
 Fixes:
 - Make ElementSerializer work better in an existing document context by

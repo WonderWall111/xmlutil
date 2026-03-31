@@ -27,6 +27,7 @@ import nl.adaptivity.xmlutil.core.impl.dom.SimpleDOMImplementation
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Reader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.Node
 
@@ -56,6 +57,9 @@ internal actual object XmlStreaming : IXmlStreaming {
     actual override fun newWriter(): DomWriter = DomWriter()
 
     actual override fun newWriter(dest: Node): DomWriter = DomWriter(current = dest)
+
+    @ExperimentalXmlUtilApi
+    actual override fun newWriter(dest: PlatformNode): DomWriter = DomWriter(current = dest)
 
     fun newWriter(
         output: Appendable,

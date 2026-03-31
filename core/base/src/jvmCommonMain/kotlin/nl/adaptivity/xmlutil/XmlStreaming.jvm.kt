@@ -25,10 +25,11 @@ package nl.adaptivity.xmlutil
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.KtXmlWriter
 import nl.adaptivity.xmlutil.core.XmlVersion
-import nl.adaptivity.xmlutil.core.impl.wrappingDom.DOMImplementationImpl
 import nl.adaptivity.xmlutil.core.impl.multiplatform.Writer
+import nl.adaptivity.xmlutil.core.impl.wrappingDom.DOMImplementationImpl
 import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
+import nl.adaptivity.xmlutil.dom.PlatformNode
 import nl.adaptivity.xmlutil.dom2.DOMImplementation
 import nl.adaptivity.xmlutil.dom2.Node
 import java.io.*
@@ -100,6 +101,9 @@ internal actual object XmlStreaming : IXmlStreaming {
     actual override fun newWriter(): DomWriter = DomWriter()
 
     actual override fun newWriter(dest: Node): DomWriter = DomWriter(dest)
+
+    @ExperimentalXmlUtilApi
+    actual override fun newWriter(dest: PlatformNode): DomWriter = DomWriter(dest)
 
     fun newWriter(
         writer: MPWriter,
