@@ -40,12 +40,13 @@ import org.w3c.dom.Node as DomNode
 public actual interface XmlStreamingFactory
 
 internal actual object XmlStreaming : IXmlStreaming {
+    @Deprecated("Platform nodes are supertypes", level = DeprecationLevel.HIDDEN)
     @ExperimentalXmlUtilApi
     actual override fun newReader(source: Node): XmlReader {
-        return DomReader(source, false)
+        return DomReader(source, true)
     }
 
-    fun newReader(source: PlatformNode): XmlReader {
+    actual override fun newReader(source: PlatformNode): XmlReader {
         return DomReader(source)
     }
 

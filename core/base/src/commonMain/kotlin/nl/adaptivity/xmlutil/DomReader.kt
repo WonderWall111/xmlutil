@@ -24,7 +24,6 @@ package nl.adaptivity.xmlutil
 
 import nl.adaptivity.xmlutil.dom.NodeConsts
 import nl.adaptivity.xmlutil.dom.PlatformNode
-import nl.adaptivity.xmlutil.dom.adoptNode
 import nl.adaptivity.xmlutil.dom2.*
 import nl.adaptivity.xmlutil.util.filterTyped
 import nl.adaptivity.xmlutil.util.impl.createDocument
@@ -39,7 +38,7 @@ internal class DomReader(val delegate: Node, val expandEntities: Boolean) : XmlR
 
     @Suppress("DEPRECATION")
     constructor(delegate: PlatformNode) :
-            this((delegate as? Node) ?: createDocument(QName("XX")).adoptNode(delegate), false)
+            this((delegate as? Node) ?: createDocument().adoptNode(delegate), true)
 
     private var current: Node? = null
 

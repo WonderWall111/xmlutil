@@ -69,7 +69,8 @@ public abstract interface class nl/adaptivity/xmlutil/IXmlStreaming {
 	public static synthetic fun newGenericReader$default (Lnl/adaptivity/xmlutil/IXmlStreaming;Ljava/lang/CharSequence;ZILjava/lang/Object;)Lnl/adaptivity/xmlutil/XmlReader;
 	public abstract fun newReader (Ljava/io/Reader;Z)Lnl/adaptivity/xmlutil/XmlReader;
 	public abstract fun newReader (Ljava/lang/CharSequence;Z)Lnl/adaptivity/xmlutil/XmlReader;
-	public abstract fun newReader (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/XmlReader;
+	public synthetic fun newReader (Lnl/adaptivity/xmlutil/dom2/Node;)Lnl/adaptivity/xmlutil/XmlReader;
+	public abstract fun newReader (Lorg/w3c/dom/Node;)Lnl/adaptivity/xmlutil/XmlReader;
 	public static synthetic fun newReader$default (Lnl/adaptivity/xmlutil/IXmlStreaming;Ljava/io/Reader;ZILjava/lang/Object;)Lnl/adaptivity/xmlutil/XmlReader;
 	public static synthetic fun newReader$default (Lnl/adaptivity/xmlutil/IXmlStreaming;Ljava/lang/CharSequence;ZILjava/lang/Object;)Lnl/adaptivity/xmlutil/XmlReader;
 	public abstract fun newWriter ()Lnl/adaptivity/xmlutil/DomWriter;

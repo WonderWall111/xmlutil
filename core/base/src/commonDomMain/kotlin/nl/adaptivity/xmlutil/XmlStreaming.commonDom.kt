@@ -49,9 +49,15 @@ internal actual object XmlStreaming : IXmlStreaming {
     actual override fun newGenericReader(reader: Reader, expandEntities: Boolean): XmlReader =
         KtXmlReader(reader, expandEntities = expandEntities)
 
+    @Deprecated("Platform nodes are supertypes", level = DeprecationLevel.HIDDEN)
     @ExperimentalXmlUtilApi
     actual override fun newReader(source: Node): XmlReader {
-        return DomReader(source, false)
+        return DomReader(source, true)
+    }
+
+    @ExperimentalXmlUtilApi
+    actual override fun newReader(source: PlatformNode): XmlReader {
+        return DomReader(source)
     }
 
     actual override fun newWriter(): DomWriter = DomWriter()
