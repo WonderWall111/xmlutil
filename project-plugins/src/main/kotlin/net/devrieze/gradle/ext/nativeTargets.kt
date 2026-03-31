@@ -143,6 +143,11 @@ fun Project.addNativeTargets(includeWasm: Boolean = true, includeWasi: Boolean =
         "hostWasm" -> NativeState.HOST
         "disabled" -> NativeState.DISABLED
         "single" -> NativeState.SINGLE
+        else if gradle.startParameter.taskRequests.any { it.args.any { "updateKotlinAbi" in it} } -> {
+            logger.lifecycle("No native.deploy property set, and abi update task found.\n" +
+                    "  -- Defaulting to all mode")
+            NativeState.ALL
+        }
         else -> {
             logger.lifecycle("set the native.deploy=[all|host|hostWasm|disabled|single] property to specify the native mode.\n" +
                     "  -- Defaulting to single mode")
