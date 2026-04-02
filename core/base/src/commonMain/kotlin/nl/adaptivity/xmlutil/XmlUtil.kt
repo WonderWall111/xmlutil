@@ -58,25 +58,35 @@ public fun isXmlWhitespace(data: CharSequence): Boolean = data.all { isXmlWhites
 public fun xmlCollapseWhitespace(original: String): String {
     if (original.isEmpty()) return original
 
-    var i = 0
-    while (i < original.length) {
-        when (original[i]) {
+    var endOfInitial = 0
+    while (endOfInitial < original.length) {
+        when (original[endOfInitial]) {
             '\t', '\n', '\r' -> break
-            ' ' if (i == 0 || original[i - 1] == ' ') -> break
+            ' ' if (endOfInitial == 0 || original[endOfInitial - 1] == ' ') -> break
         }
-        i += 1
+        endOfInitial += 1
     }
-    if (i == original.length) {
+    if (endOfInitial == original.length) {
         return when (original.last()) {
             ' ' -> original.substring(0, original.length - 1)
             else -> original
         }
     }
+    var nextNonWS = endOfInitial + 1
+    while (nextNonWS < original.length) {
+        when (original[nextNonWS]) {
+            '\t', '\n', '\r', ' ' -> nextNonWS +=1
+            else -> break
+        }
+    }
+    if (nextNonWS == original.length) return original.substring(0, endOfInitial)
 
     return buildString(original.length) {
-        append(original, 0, i)
+        append(original, 0, endOfInitial)
+
+        append(' ') // we are not at the end of string, so
         var last = ' ' // Start with space, to trim start of symbol
-        for (idx in i until original.length) {
+        for (idx in nextNonWS until original.length) {
             val c = original[idx]
             if (c == '\t' || c == '\n' || c == '\r' || c == ' ') {
                 if (last != ' ') append(' ')
