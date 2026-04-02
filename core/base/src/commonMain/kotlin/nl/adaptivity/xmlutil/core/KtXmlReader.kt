@@ -204,8 +204,13 @@ public class KtXmlReader(
     //endregion Parse state accessors
 
     //region Location info
-    override var startLocationInfo: XmlReader.LocationInfo = inOutBuffer.locationInfo
-        private set
+    override val startLocationInfo: XmlReader.LocationInfo
+        get() = XmlReader.ExtLocationInfo(_startLocationColumn, _startLocationOffset, _startLocationLine)
+
+    private var _startLocationOffset: Int = inOutBuffer.offset
+    private var _startLocationLine: Int = inOutBuffer.line
+    private var _startLocationColumn: Int = inOutBuffer.column
+
 
     override val extLocationInfo: XmlReader.LocationInfo
         get() = inOutBuffer.locationInfo
@@ -1109,7 +1114,9 @@ public class KtXmlReader(
     }
 
     override fun next(): EventType {
-        startLocationInfo = inOutBuffer.locationInfo
+        _startLocationOffset = inOutBuffer.offset
+        _startLocationLine = inOutBuffer.line
+        _startLocationColumn = inOutBuffer.column
 
         _isWhitespace = true
 
