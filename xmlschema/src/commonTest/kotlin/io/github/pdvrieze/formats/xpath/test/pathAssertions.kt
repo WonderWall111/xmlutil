@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2026.
+ * Copyright (c) 2026.
  *
  * This file is part of xmlutil.
  *
@@ -34,7 +34,7 @@ annotation class PathTestDsl
 
 fun testPath(path: String, vararg namespaces: Pair<String, String>, test: TestContext.() -> Unit) {
     val nsContext = SimpleNamespaceContext(namespaces.map { (p, ns) -> XmlEvent.NamespaceImpl(p, ns) })
-    val expr = XPathExpression(path, nsContext)
+    val expr = XPathExpression.Serializer(path, nsContext)
     TestContextImpl(path, expr).apply(test)
 }
 
@@ -201,6 +201,7 @@ internal fun TestContext.assertNumber(value: Double) {
 internal fun TestContext.assertFunctionCall(name: String) {
     assertFunctionCall(QName(name))
 }
+
 @OptIn(XPathInternal::class)
 internal fun TestContext.assertFunctionCall(name: QName) {
     val f = assertIs<FunctionCall>(expr)

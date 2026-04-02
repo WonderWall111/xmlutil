@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2026.
+ * Copyright (c) 2026.
  *
  * This file is part of xmlutil.
  *
@@ -24,20 +24,14 @@ import io.github.pdvrieze.formats.xpath.XPathExpression
 import io.github.pdvrieze.formats.xpath.impl.*
 import io.github.pdvrieze.xmlutil.testutil.assertQNameEquivalent
 import nl.adaptivity.xmlutil.QName
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
+import kotlin.test.*
 
 @OptIn(XPathInternal::class)
 class XPathTest {
 
     @Test
     fun testMissingSelector() {
-        val e = assertThrows<IllegalArgumentException> { val _ = XPathExpression("child::") }
+        val e = assertFailsWith<IllegalArgumentException> { val _ = XPathExpression.Serializer("child::") }
 
         assertContains(e.message ?: "", "Missing node test in step")
 
@@ -173,7 +167,7 @@ class XPathTest {
 
     @Test
     fun testChapterParaDescendants() {
-        val expr = XPathExpression("chapter//para")
+        val expr = XPathExpression.Serializer("chapter//para")
         testPath("chapter//para") {
             assertPath {
                 assertStep("chapter")
@@ -196,7 +190,7 @@ class XPathTest {
 
     @Test
     fun testAnyOlistItem() {
-        val expr = XPathExpression("//olist/item")
+        val expr = XPathExpression.Serializer("//olist/item")
         assertEquals("//olist/item", expr.xmlString)
         testPath("//olist/item") {
             assertPath {

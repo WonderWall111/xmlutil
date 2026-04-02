@@ -21,14 +21,16 @@
 package nl.adaptivity.xmlutil.serialization
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSSchema
+import io.github.pdvrieze.formats.xmlschemaTests.getResource
+import io.github.pdvrieze.formats.xmlschemaTests.openStream
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import kotlin.test.Test
 
 class TestParseSchema {
     @Test
     fun testParseSchema() {
-        val file = this::class.java.getResourceAsStream("/xsts/msData/additional/test73722.xsd")!!
-        val reader = KtXmlReader(file)
+        val r = getResource("/xsts/msData/additional/test73722.xsd")
+        val reader = KtXmlReader(r.openStream())
         val _ = XML.v1.decodeFromReader<XSSchema>(reader)
     }
 }
