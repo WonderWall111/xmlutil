@@ -244,8 +244,12 @@ class TestXSTestSuite {
 //                .filter { it.href.contains("sunMeta/suntest") }
 //                .filter { it.href.contains("msMeta/Additional") }
 //                .filter { (it.href.contains("nistMeta/") /*&& it.href.contains("CType")*/) }
-                .filter { arrayOf("sunMeta/", "nistMeta/", "boeingMeta/", "msMeta/",
-                    "wgMeta").any { m -> it.href.contains(m) } }
+                .filter {
+                    arrayOf(
+                        "sunMeta/", "nistMeta/", "boeingMeta/", "msMeta/",
+                        "wgMeta"
+                    ).any { m -> it.href.contains(m) }
+                }
 //                .filter { arrayOf("msMeta/Notation", "msMeta/Schema", "msMeta/SimpleType",
 //                    "msMeta/Wildcards").any { m -> it.href.contains(m) } }
 //                .filter { (it.href.contains("msMeta/")) }
@@ -253,7 +257,8 @@ class TestXSTestSuite {
                 .map { setRef ->
 
                     val testSetResource = getResource("/xsts/${setRef.href}")
-                    val testSet = override.applyTo(testSetResource.withXmlReader { r -> xml.decodeFromReader<TSTestSet>(r) })
+                    val testSet =
+                        override.applyTo(testSetResource.withXmlReader { r -> xml.decodeFromReader<TSTestSet>(r) })
 
                     val folderName = setRef.href.substring(0, setRef.href.indexOf('/')).removeSuffix("Meta")
 

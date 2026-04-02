@@ -32,7 +32,7 @@ import platform.posix.stat
 
 @OptIn(ExperimentalForeignApi::class)
 class NativeResource(override val path: String) : Resource {
-    override fun <R> withXmlReader(body: (XmlReader) -> R): R {
+    override fun <R> withXmlReader(requireGeneric: Boolean, body: (XmlReader) -> R): R {
         memScoped {
             val byteBuffer = allocArray<ByteVar>(1024)
             val here = getcwd(byteBuffer, 1024u)!!.toKStringFromUtf8()

@@ -32,4 +32,31 @@ class TestOpenResource {
             assertEquals(EventType.START_DOCUMENT, it.next())
         }
     }
+
+    @Test
+    fun testParseResource() {
+        val r = getResource("/XMLSchema.xsd")
+        var eventCounts: MutableMap<EventType, Counter> = mutableMapOf()
+        for (i in 0 until 10) {
+            eventCounts = mutableMapOf<EventType, Counter>()
+            r.withXmlReader(true) {
+                while (it.hasNext()) {
+                    val event = it.next()
+                    eventCounts.getOrPut(event) { Counter(0) }.count++
+                }
+            }
+        }
+        assertEquals(1, eventCounts[EventType.START_DOCUMENT]?.count)
+        assertEquals(1, eventCounts[EventType.END_DOCUMENT]?.count)
+        assertEquals(null, eventCounts[EventType.PROCESSING_INSTRUCTION]?.count)
+        assertEquals(1, eventCounts[EventType.DOCDECL]?.count)
+        assertEquals(1027, eventCounts[EventType.START_ELEMENT]?.count, "Count of START_ELEMENT not expected")
+        assertEquals(1027, eventCounts[EventType.END_ELEMENT]?.count, "Count of END_ELEMENT not expected")
+        assertEquals(68, eventCounts[EventType.TEXT]?.count, "Count of TEXT not expected")
+        assertEquals(1567, eventCounts[EventType.IGNORABLE_WHITESPACE]?.count, "Count of IGNORABLE_WHITESPACE not expected")
+        assertEquals(null, eventCounts[EventType.CDSECT]?.count, "Count of CDSECT not expected")
+        assertEquals(1, eventCounts[EventType.COMMENT]?.count, "Count of COMMENT not expected")
+    }
+
+    data class Counter(var count: Int)
 }

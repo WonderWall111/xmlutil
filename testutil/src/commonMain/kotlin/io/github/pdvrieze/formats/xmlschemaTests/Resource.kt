@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.XmlReader
 
 interface Resource {
     val path: String
-    fun <R> withXmlReader(body: (XmlReader) -> R): R
+    fun <R> withXmlReader(requireGeneric: Boolean = false, body: (XmlReader) -> R): R
     fun resolve(path: String): Resource
 }
 

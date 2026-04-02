@@ -163,7 +163,7 @@ class SimpleResolver private constructor(internal val xml: XML, private val base
 
         fun <R> withXmlReader(body: (XmlReader) -> R): R {
             when (this) {
-                is Local -> return resource.withXmlReader(body)
+                is Local -> return resource.withXmlReader(body = body)
                 is Remote -> return uri.toURL().withXmlReader(body)
             }
         }

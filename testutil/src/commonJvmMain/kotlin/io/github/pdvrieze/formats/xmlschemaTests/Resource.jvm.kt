@@ -22,6 +22,7 @@ package io.github.pdvrieze.formats.xmlschemaTests
 
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStream
+import nl.adaptivity.xmlutil.newGenericReader
 import nl.adaptivity.xmlutil.newReader
 import nl.adaptivity.xmlutil.xmlStreaming
 import java.net.URL
@@ -29,9 +30,14 @@ import java.net.URL
 class JvmResource(val url: URL) : Resource {
     override val path: String get() = url.path
 
-    override fun <R> withXmlReader(body: (XmlReader) -> R): R {
+    override fun <R> withXmlReader(requireGeneric: Boolean, body: (XmlReader) -> R): R {
         return url.openStream().use { inStream ->
-            xmlStreaming.newReader(inStream, "UTF-8").use(body)
+            val newReader = when {
+                requireGeneric -> xmlStreaming.newGenericReader(inStream, "UTF-8")
+                else -> xmlStreaming.newReader(inStream, "UTF-8")
+            }
+
+            newReader.use(body)
         }
     }
 

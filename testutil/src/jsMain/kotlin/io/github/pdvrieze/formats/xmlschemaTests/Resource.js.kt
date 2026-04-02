@@ -28,7 +28,7 @@ import nl.adaptivity.xmlutil.xmlStreaming
 private val isNode: Boolean = js("typeof process !== 'undefined' && process.versions != null && process.versions.node != null") as Boolean
 
 class JsResource(override val path: String) : Resource {
-    override fun <R> withXmlReader(body: (XmlReader) -> R): R {
+    override fun <R> withXmlReader(requireGeneric: Boolean, body: (XmlReader) -> R): R {
         val content = if (isNode) {
             val fs = js("eval('require')('fs')")
             fs.readFileSync(path, "utf8") as String
@@ -43,7 +43,11 @@ class JsResource(override val path: String) : Resource {
 //            js("await p") as String
             TODO()
         }
-        return xmlStreaming.newReader(content).use(body)
+        val newReader = when {
+            requireGeneric -> xmlStreaming.newGenericReader(content)
+            else -> xmlStreaming.newReader(content)
+        }
+        return newReader.use(body)
     }
 
     override fun resolve(path: String): Resource {
