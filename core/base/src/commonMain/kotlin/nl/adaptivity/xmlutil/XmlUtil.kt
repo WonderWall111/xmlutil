@@ -58,33 +58,46 @@ public fun isXmlWhitespace(data: CharSequence): Boolean = data.all { isXmlWhites
 public fun xmlCollapseWhitespace(original: String): String {
     if (original.isEmpty()) return original
 
-    var endOfInitial = 0
+    var initialStart = 0
+    while (initialStart < original.length) {
+        when (original[initialStart]) {
+            '\t', '\n', '\r', ' ' -> initialStart += 1
+            else -> break
+        }
+    }
+    if (initialStart == original.length) return ""
+
+    var endOfInitial = initialStart + 1 // the first is not whitespace
     while (endOfInitial < original.length) {
         when (original[endOfInitial]) {
             '\t', '\n', '\r' -> break
-            ' ' if (endOfInitial == 0 || original[endOfInitial - 1] == ' ') -> break
+            ' ' if (original[endOfInitial - 1] == ' ') -> break
         }
         endOfInitial += 1
     }
     if (endOfInitial == original.length) {
         return when (original.last()) {
-            ' ' -> original.substring(0, original.length - 1)
-            else -> original
+            ' ', '\t', '\n', '\r' -> original.substring(initialStart, original.length - 1)
+            else if (initialStart ==0) -> original
+            else -> original.substring(initialStart)
         }
     }
-    var nextNonWS = endOfInitial + 1
+    var nextNonWS = endOfInitial
+    if (isXmlWhitespace(original[endOfInitial-1])) endOfInitial -=1
+
     while (nextNonWS < original.length) {
         when (original[nextNonWS]) {
             '\t', '\n', '\r', ' ' -> nextNonWS +=1
             else -> break
         }
     }
-    if (nextNonWS == original.length) return original.substring(0, endOfInitial)
+
+    if (nextNonWS == original.length) return original.substring(initialStart, endOfInitial)
 
     return buildString(original.length) {
-        append(original, 0, endOfInitial)
+        append(original, initialStart, endOfInitial)
 
-        append(' ') // we are not at the end of string, so
+        append(' ') // we are not at the end of string, so add a space here (we can't use the original as it doesn't have to be a space
         var last = ' ' // Start with space, to trim start of symbol
         for (idx in nextNonWS until original.length) {
             val c = original[idx]
