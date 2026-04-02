@@ -79,6 +79,10 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     private fun swapInputBuffer() {
+        // invalidate the copy sequence
+        delayedCopySequence.copiedStart = -3
+        delayedCopySequence.copiedEnd = -3
+
         if (copySequenceStart in 0..<BUF_SIZE) {
             // Store the "left" copy sequence into a buffer and start it at the beginning of the
             // right (new left) buffer
@@ -112,17 +116,25 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
         }
     }
 
-    private var copySequenceStart = -1
+    private var copySequenceStart = State.INACTIVE.value
     private var copyBuilder: StringBuilder? = null
+    private var preInitCopyBuilder: StringBuilder = StringBuilder(256)
 
     override val copySequenceState: State
         get() = when {
             copySequenceStart >= 0 -> State.ACTIVE
-            copySequenceStart == -1 -> State.INACTIVE
-            else -> State.PAUSED
+            copySequenceStart == State.INACTIVE.value -> State.INACTIVE
+            copySequenceStart == State.PAUSED.value -> State.PAUSED
+            else -> State.FINALIZED
         }
 
     override fun startCopySequence() {
+        // invalidate
+        delayedCopySequence.copiedStart = -3
+        delayedCopySequence.copiedEnd = -3
+
+        // no copy builder anymore
+        copyBuilder = null
 /*
         ifAssertions {
             assert(copySequenceStart < 0 && copyBuilder == null) { "Copy sequence already started" }
@@ -140,33 +152,27 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     override fun pauseCopySequence() {
-        check(copySequenceState == State.ACTIVE) { "Copy sequence not active (either not started or already suspended)" }
-        val b = copyBuilder ?: StringBuilder(offset - copySequenceStart).also { copyBuilder = it }
+        check(copySequenceStart >= State.ACTIVE.value) { "Copy sequence not active (either not started or already suspended)" }
+        val b = copyBuilder ?: preInitCopyBuilder.also { it.clear(); copyBuilder = it }
         b.appendRange(bufLeft, copySequenceStart, srcBufPos)
-        copySequenceStart = -2 // mark as paused
+        copySequenceStart = State.PAUSED.value // mark as paused
     }
 
     override fun resumeCopySequence() {
-        check(copySequenceState == State.PAUSED) { "Copy sequence is not paused" }
+        check(copySequenceStart == State.PAUSED.value) { "Copy sequence is not paused" }
         copySequenceStart = srcBufPos
     }
 
-    override fun finalizeCopySequence(): String {
+    override fun finalizeCopySequence(): CharSequence {
         val b = copyBuilder
         val start = copySequenceStart
-        copySequenceStart = -1
-        copyBuilder = null
+        if (b == null && start < 0) error("No copy sequence started")
 
-        when {
-            b == null && (start < 0) -> error("No copy sequence started")
+        copySequenceStart = State.FINALIZED.value
+        delayedCopySequence.copiedStart = start
+        delayedCopySequence.copiedEnd = srcBufPos
 
-            b == null -> return bufLeft.concatToString(start, srcBufPos)
-
-            start >= 0 ->
-                return b.appendRange(bufLeft, start, srcBufPos).toString()
-
-            else -> return b.toString()
-        }
+        return delayedCopySequence
     }
 
     override fun readToCopyBuffer() {
@@ -178,7 +184,7 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
      * added to ensure there is no reordering.
      */
     private fun ensureCopyBuilder(sizeHint: Int = 16): StringBuilder {
-        val b = copyBuilder ?: StringBuilder(sizeHint).also { copyBuilder = it }
+        val b = copyBuilder ?: preInitCopyBuilder.also { it.clear(); copyBuilder = it }
 
         if (copySequenceStart >= 0 && srcBufPos > copySequenceStart) { // active. Needs temporary pause
             b.appendRange(bufLeft, copySequenceStart, srcBufPos)
@@ -189,8 +195,8 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
 
     override fun addToCopySequence(char: Char) {
         this.ifAssertions {
-            assert(copySequenceState != State.INACTIVE) {
-                "Copy sequence not active (either not started or suspended)"
+            assert(copySequenceStart >= State.PAUSED.value) {
+                "Copy sequence not active (either not started or suspended): $copySequenceStart"
             }
         }
 
@@ -201,7 +207,7 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
 
     override fun addToCopySequence(seq: CharSequence) {
         this.ifAssertions {
-            assert(copySequenceStart >= 0 || copyBuilder != null) {
+            assert(copySequenceStart >= State.PAUSED.value || copyBuilder != null) {
                 "Copy sequence not active (either not started or suspended)"
             }
         }
@@ -215,20 +221,19 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
         val bufStart = start - offsetBase
         val bufEnd = end - offsetBase
         if (bufEnd >= srcBufCount) error("End of file in subrange")
-        return buildString {
-            when {
-                bufStart >= BUF_SIZE ->
-                    appendRange(bufRight, bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
+        return when {
+            bufStart >= BUF_SIZE ->
+                bufRight.concatToString(bufStart - BUF_SIZE, bufEnd - BUF_SIZE)
 
-                bufEnd <= BUF_SIZE ->
-                    appendRange(bufLeft, bufStart, bufEnd)
+            bufEnd <= BUF_SIZE -> bufLeft.concatToString(bufStart, bufEnd)
 
-                else -> {
-                    appendRange(bufLeft, bufStart, BUF_SIZE)
-                    appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
-                }
+
+            else -> buildString {
+                appendRange(bufLeft, bufStart, BUF_SIZE)
+                appendRange(bufRight, 0, (bufEnd - BUF_SIZE))
             }
         }
+
     }
 
     /** Try to read the next character without increasing the position  */
@@ -241,7 +246,7 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
     }
 
     private fun rawPeek(bufPos: Int):Int = when {
-        bufPos >= srcBufCount -> -1
+        bufPos >= srcBufCount -> State.INACTIVE.value
         bufPos >= BUF_SIZE -> bufRight[bufPos - BUF_SIZE].code
         else -> bufLeft[bufPos].code
     }
@@ -420,6 +425,59 @@ public class SwappedInOutBuffer(public val reader: Reader): InOutBuffer {
             }
         }
     }
+
+    private val delayedCopySequence = BufferView()
+
+    /**
+     * Class that presents a view of the copy sequence without actually creating a string, or even
+     * a new instance. This avoids allocations until a reader actually reads the content. This may
+     * not happen, for example with ignorable whitespace.
+     */
+    private inner class BufferView(var copiedStart: Int = -1, var copiedEnd: Int = -1) : CharSequence {
+        override fun get(index: Int): Char {
+            val b = copyBuilder
+            var idx = index
+            if (b != null) {
+                if (index < b.length) return b[index]
+                idx -= b.length
+            }
+            if (idx > srcBufCount) error("Index out of bounds")
+            if (idx <BUF_SIZE) return bufLeft[idx]
+            return bufRight[idx - BUF_SIZE]
+        }
+
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
+            throw UnsupportedOperationException("Subsequences are not optimal for this implementation.")
+        }
+
+        override val length: Int
+            get() {
+                val b = copyBuilder
+                return when {
+                    b == null -> copiedEnd - copiedStart
+                    copiedStart >= 0 -> copiedEnd - copiedStart + b.length
+                    else -> b.length
+                }
+            }
+
+        override fun toString(): String {
+            val b = copyBuilder
+            val start = copiedStart
+
+            when {
+                b == null && (start < 0) -> error("No copy sequence started")
+
+                b == null -> return bufLeft.concatToString(start, copiedEnd)
+
+                start >= 0 ->
+                    return b.appendRange(bufLeft, start, copiedEnd).toString()
+
+                else -> return b.toString()
+            }
+
+        }
+    }
+
 
     private typealias State = InOutBuffer.State
 }

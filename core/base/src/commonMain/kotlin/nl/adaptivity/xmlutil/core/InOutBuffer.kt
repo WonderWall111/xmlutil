@@ -243,8 +243,8 @@ public interface InOutBuffer {
      */
     public fun readToCopyBuffer()
 
-    public enum class State {
-        INACTIVE, PAUSED, ACTIVE
+    public enum class State(internal val value: Int) {
+        FINALIZED(-3), INACTIVE(-2), PAUSED(-1), ACTIVE(0)
     }
 }
 

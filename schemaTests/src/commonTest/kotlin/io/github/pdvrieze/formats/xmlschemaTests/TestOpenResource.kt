@@ -37,7 +37,7 @@ class TestOpenResource {
     fun testParseResource() {
         val r = getResource("/XMLSchema.xsd")
         var eventCounts: MutableMap<EventType, Counter> = mutableMapOf()
-        for (i in 0 until 10) {
+        for (i in 0 until 100) {
             eventCounts = mutableMapOf<EventType, Counter>()
             r.withXmlReader(true) {
                 while (it.hasNext()) {
