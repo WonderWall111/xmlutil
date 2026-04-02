@@ -55,7 +55,9 @@ public fun isXmlWhitespace(data: CharSequence): Boolean = data.all { isXmlWhites
  * - Replacing all whitespace to space
  * - Shortening all resulting sequences of whitespace to a single space
  */
-public fun xmlCollapseWhitespace(original: String): String = buildString(original.length) {
+public fun xmlCollapseWhitespace(original: String): String {
+    if (original.isEmpty()) return original
+
     var i = 0
     while (i < original.length) {
         when (original[i]) {
@@ -64,10 +66,15 @@ public fun xmlCollapseWhitespace(original: String): String = buildString(origina
         }
         i += 1
     }
-    if (i == original.length) return original
+    if (i == original.length) {
+        return when (original.last()) {
+            ' ' -> original.substring(0, original.length - 1)
+            else -> original
+        }
+    }
 
     return buildString(original.length) {
-        append(original, 0,  i)
+        append(original, 0, i)
         var last = ' ' // Start with space, to trim start of symbol
         for (idx in i until original.length) {
             val c = original[idx]
