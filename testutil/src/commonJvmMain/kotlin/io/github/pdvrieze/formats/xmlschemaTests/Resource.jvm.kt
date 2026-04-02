@@ -21,9 +21,9 @@
 package io.github.pdvrieze.formats.xmlschemaTests
 
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStream
 import nl.adaptivity.xmlutil.newReader
 import nl.adaptivity.xmlutil.xmlStreaming
-import java.net.URI
 import java.net.URL
 
 class JvmResource(val url: URL) : Resource {
@@ -35,12 +35,17 @@ class JvmResource(val url: URL) : Resource {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun resolve(path: String): Resource {
-        return JvmResource(URI.create(path).resolve(path).toURL())
+        return JvmResource(URL(url, path))
     }
 }
 
 actual fun getResource(path: String): Resource {
     val url = Resource::class.java.getResource(path) ?: throw IllegalArgumentException("Resource not found: $path")
     return JvmResource(url)
+}
+
+fun Resource.openStream(): InputStream {
+    return (this as JvmResource).url.openStream()
 }
