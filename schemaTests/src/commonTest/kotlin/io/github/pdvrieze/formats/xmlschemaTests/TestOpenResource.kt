@@ -21,6 +21,9 @@
 package io.github.pdvrieze.formats.xmlschemaTests
 
 import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.core.KtXmlReader
+import nl.adaptivity.xmlutil.core.impl.multiplatform.use
+import nl.adaptivity.xmlutil.core.internal.StringInOutBuffer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -34,14 +37,37 @@ class TestOpenResource {
     }
 
     @Test
+    fun testParseResourceAsText() {
+        val r = getResource("/XMLSchema.xsd")
+        val t = r.getText()
+
+        var eventCounts: MutableMap<EventType, Counter> = mutableMapOf()
+        repeat (100) {
+            eventCounts = mutableMapOf<EventType, Counter>()
+            KtXmlReader(StringInOutBuffer(t)).use {
+                while (it.hasNext()) {
+                    val event = it.next()
+                    if (event == EventType.TEXT) {
+                        val _ = it.text
+                    }
+                    eventCounts.getOrPut(event) { Counter(0) }.count++
+                }
+            }
+        }
+    }
+
+    @Test
     fun testParseResource() {
         val r = getResource("/XMLSchema.xsd")
         var eventCounts: MutableMap<EventType, Counter> = mutableMapOf()
-        for (i in 0 until 100) {
+        repeat (100) {
             eventCounts = mutableMapOf<EventType, Counter>()
             r.withXmlReader(true) {
                 while (it.hasNext()) {
                     val event = it.next()
+                    if (event == EventType.TEXT) {
+                        val _ = it.text
+                    }
                     eventCounts.getOrPut(event) { Counter(0) }.count++
                 }
             }

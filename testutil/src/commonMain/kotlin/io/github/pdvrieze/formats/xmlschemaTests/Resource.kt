@@ -26,6 +26,7 @@ interface Resource {
     val path: String
     fun <R> withXmlReader(requireGeneric: Boolean = false, body: (XmlReader) -> R): R
     fun resolve(path: String): Resource
+    fun getText(): String
 }
 
 expect fun getResource(path: String): Resource

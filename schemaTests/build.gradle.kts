@@ -50,7 +50,14 @@ kotlin {
                 }
             }
         }
-        nodejs()
+        nodejs {
+/*
+            testTask {
+                nodeJsArgs += "--heap-prof"
+                nodeJsArgs += "--heap-prof-dir=/tmp/profiler-output/"
+            }
+*/
+        }
     }
 
     jvm {

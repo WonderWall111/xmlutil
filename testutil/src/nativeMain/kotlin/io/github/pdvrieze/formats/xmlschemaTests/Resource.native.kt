@@ -20,24 +20,21 @@
 
 package io.github.pdvrieze.formats.xmlschemaTests
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.FileInputStream
 import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStreamReader
 import nl.adaptivity.xmlutil.xmlStreaming
 import platform.posix.S_IFMT
 import platform.posix.S_IFREG
-import platform.posix.getcwd
 import platform.posix.stat
 
 @OptIn(ExperimentalForeignApi::class)
 class NativeResource(override val path: String) : Resource {
     override fun <R> withXmlReader(requireGeneric: Boolean, body: (XmlReader) -> R): R {
-        memScoped {
-            val byteBuffer = allocArray<ByteVar>(1024)
-            val here = getcwd(byteBuffer, 1024u)!!.toKStringFromUtf8()
-            println("Current location: $here, file: $path")
-        }
         val inStream = FileInputStream(path)
         val reader = xmlStreaming.newReader(InputStreamReader(inStream))
         return body(reader)
@@ -45,6 +42,18 @@ class NativeResource(override val path: String) : Resource {
 
     override fun resolve(path: String): Resource {
         return NativeResource(path.substringBeforeLast('/',"/")+path)
+    }
+
+    override fun getText(): String {
+        val inStream = FileInputStream(path)
+        val reader = InputStreamReader(inStream)
+        val buffer = CharArray(4096)
+        return buildString {
+            do {
+                val cnt = reader.read(buffer, 0, buffer.size)
+                if (cnt > 0) appendRange(buffer, 0, cnt)
+            } while (cnt >= 0)
+        }
     }
 }
 

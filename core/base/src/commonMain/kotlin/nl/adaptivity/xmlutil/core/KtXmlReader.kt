@@ -35,6 +35,7 @@ import kotlin.jvm.JvmStatic
 
 @ExperimentalXmlUtilApi
 /**
+ * @constructor Create a new reader
  * @param inOutBuffer A helper buffer to handle parsing/chunking inputs and collating outputs
  *          while trying to avoid character copying. It also allows for string/utf8 based inputs.
  * @param encoding The encoding to record, note this doesn't impact the actual parsing (that is handled in the reader)
@@ -62,6 +63,8 @@ public class KtXmlReader(
     public constructor(reader: Reader, expandEntities: Boolean, relaxed: Boolean = false) :
             this(reader, null, relaxed, expandEntities)
 
+    public constructor(source: String, expandEntities: Boolean = false, relaxed: Boolean = false) :
+            this(StringInOutBuffer(source), expandEntities = expandEntities, relaxed = relaxed)
 
     private var inOutBuffer: InOutBuffer = inOutBuffer
         private set

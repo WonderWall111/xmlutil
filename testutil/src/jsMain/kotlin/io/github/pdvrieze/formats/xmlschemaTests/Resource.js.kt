@@ -20,7 +20,6 @@
 
 package io.github.pdvrieze.formats.xmlschemaTests
 
-import kotlinx.browser.window
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.core.impl.multiplatform.use
 import nl.adaptivity.xmlutil.xmlStreaming
@@ -29,20 +28,7 @@ private val isNode: Boolean = js("typeof process !== 'undefined' && process.vers
 
 class JsResource(override val path: String) : Resource {
     override fun <R> withXmlReader(requireGeneric: Boolean, body: (XmlReader) -> R): R {
-        val content = if (isNode) {
-            val fs = js("eval('require')('fs')")
-            fs.readFileSync(path, "utf8") as String
-        } else if (true){
-            val xhr = js("new XMLHttpRequest()")
-            xhr.open("GET", path, false)
-            xhr.send()
-            xhr.responseText as String
-        } else {
-            val response = window.fetch("/static/data.json")
-            val p = response.then { it.text() }
-//            js("await p") as String
-            TODO()
-        }
+        val content = getText()
         val newReader = when {
             requireGeneric -> xmlStreaming.newGenericReader(content)
             else -> xmlStreaming.newReader(content)
@@ -61,6 +47,18 @@ class JsResource(override val path: String) : Resource {
                 .replace("//+","/")
         }
         return JsResource(newPath)
+    }
+
+    override fun getText(): String {
+        return if (isNode) {
+            val fs = js("eval('require')('fs')")
+            fs.readFileSync(path, "utf8") as String
+        } else run {
+            val xhr = js("new XMLHttpRequest()")
+            xhr.open("GET", path, false)
+            xhr.send()
+            xhr.responseText as String
+        }
     }
 }
 

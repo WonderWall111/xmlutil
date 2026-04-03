@@ -45,6 +45,10 @@ class JvmResource(val url: URL) : Resource {
     override fun resolve(path: String): Resource {
         return JvmResource(URL(url, path))
     }
+
+    override fun getText(): String {
+        return url.readText()
+    }
 }
 
 actual fun getResource(path: String): Resource {
