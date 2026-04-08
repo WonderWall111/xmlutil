@@ -233,13 +233,14 @@ public fun Appendable.appendCodepoint(codepoint: Int): Appendable = when {
 
 @XmlUtilInternal
 public fun CharSequence.codepointAt(index: Int): Int = when (val c = this[index].code) {
-    in 0..0xd7ff -> c // not a surrogate
-    else -> { //assume high surrugate
+    in 0xd800..0xdbff -> { //assume high surrugate
         val lowSurrogate = this[index + 1]
         return ((c - 0xd800 shl 10)
                 + (lowSurrogate.code - 0xdc00)
                 + 0x10000)
     }
+    in 0xdc00..0xdfff -> throw IllegalStateException("Unexpected low surrogate at index $index:")
+    else -> c // not a surrogate
 }
 
 @XmlUtilInternal
