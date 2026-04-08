@@ -791,6 +791,7 @@ public final class nl/adaptivity/xmlutil/core/DoctypeParser {
 
 public final class nl/adaptivity/xmlutil/core/InOutBuffer$State : java/lang/Enum {
 	public static final field ACTIVE Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
+	public static final field FINALIZED Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
 	public static final field INACTIVE Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
 	public static final field PAUSED Lnl/adaptivity/xmlutil/core/InOutBuffer$State;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
@@ -806,6 +807,8 @@ public final class nl/adaptivity/xmlutil/core/KtXmlReader : nl/adaptivity/xmluti
 	public synthetic fun <init> (Ljava/io/Reader;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/io/Reader;ZZ)V
 	public synthetic fun <init> (Ljava/io/Reader;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Ljava/lang/String;ZZ)V
 	public synthetic fun <init> (Lnl/adaptivity/xmlutil/core/InOutBuffer;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
