@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025.
+ * Copyright (c) 2024-2026.
  *
  * This file is part of xmlutil.
  *
@@ -20,25 +20,31 @@
 
 @file:MustUseReturnValues
 
-package nl.adaptivity.xmlutil.serialization.impl
+package nl.adaptivity.xmlutil.core.internal
 
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.localPart
 import nl.adaptivity.xmlutil.namespaceURI
 
-internal class QNameMap<T : Any> private constructor(
+/**
+ * Special map type for namespace keys. It maintains a list of namespaces sorted by quantity
+ * and a hashmap map per namespace mapping the local names.
+ */
+@XmlUtilInternal
+public class QNameMap<T : Any> private constructor(
     private var namespaces: Array<String?>,
     private var maps: Array<HashMap<String, T>?>,
     private var namespaceCount: Int,
     size: Int,
 ) : MutableMap<QName, T> {
 
-    constructor() : this(arrayOfNulls(8), arrayOfNulls(8), 0, 0)
+    public constructor() : this(arrayOfNulls(8), arrayOfNulls(8), 0, 0)
 
     override var size: Int = size
         private set
 
-    override val entries = object : MutableSet<MutableMap.MutableEntry<QName, T>> {
+    override val entries: MutableSet<MutableMap.MutableEntry<QName, T>> = object : MutableSet<MutableMap.MutableEntry<QName, T>> {
         override val size: Int get() = this@QNameMap.size
 
         override fun isEmpty(): Boolean = this@QNameMap.isEmpty()
@@ -121,7 +127,7 @@ internal class QNameMap<T : Any> private constructor(
         }
     }
 
-    override val keys = object : MutableSet<QName> {
+    override val keys: MutableSet<QName> = object : MutableSet<QName> {
         @IgnorableReturnValue
         override fun add(element: QName): Nothing {
             throw UnsupportedOperationException()
@@ -179,7 +185,7 @@ internal class QNameMap<T : Any> private constructor(
         }
     }
 
-    override val values = object:  MutableCollection<T> {
+    override val values: MutableCollection<T> = object:  MutableCollection<T> {
         @IgnorableReturnValue
         override fun add(element: T): Nothing {
             throw UnsupportedOperationException()
@@ -231,7 +237,7 @@ internal class QNameMap<T : Any> private constructor(
         return containsKey(key.namespaceURI, key.localPart)
     }
 
-    fun containsKey(ns: String, localPart: String): Boolean {
+    public fun containsKey(ns: String, localPart: String): Boolean {
         for (i in 0 until size) {
             if (namespaces[i] == ns) {
                 return maps[i]!!.containsKey(localPart)
@@ -240,7 +246,7 @@ internal class QNameMap<T : Any> private constructor(
         return false
     }
 
-    fun containsNS(namespace: String): Boolean {
+    public fun containsNS(namespace: String): Boolean {
         val ns = namespace
         for (i in 0 until size) {
             if (namespaces[i] == ns) return true
@@ -259,7 +265,7 @@ internal class QNameMap<T : Any> private constructor(
         return get(key.namespaceURI, key.localPart)
     }
 
-    operator fun get(namespace: String, localPart: String): T? {
+    public operator fun get(namespace: String, localPart: String): T? {
         withNamespace(namespace) { ns ->
             maps[ns]!![localPart]?.let { return it }
         }
@@ -270,7 +276,7 @@ internal class QNameMap<T : Any> private constructor(
         return size == 0
     }
 
-    fun copyOf(): QNameMap<T> {
+    public fun copyOf(): QNameMap<T> {
         val newMaps = Array<HashMap<String, T>?>(maps.size) { maps[it]?.toMap(HashMap())}
         return QNameMap(namespaces.copyOf(), newMaps, namespaceCount, size)
     }
@@ -290,7 +296,7 @@ internal class QNameMap<T : Any> private constructor(
     }
 
     @IgnorableReturnValue
-    fun put(namespace: String, localPart: String, value: T): T? {
+    public fun put(namespace: String, localPart: String, value: T): T? {
         withNamespace(namespace) { idx ->
             val newMap = maps[idx]
             // Auto sort (mostly, it only moves one at a time)
@@ -330,7 +336,7 @@ internal class QNameMap<T : Any> private constructor(
     }
 
     @IgnorableReturnValue
-    fun remove(namespace: String, localPart: String): T? {
+    public fun remove(namespace: String, localPart: String): T? {
         for (i in 0 until namespaceCount) {
             if (namespaces[i] == namespace) {
                 val m = maps[i]

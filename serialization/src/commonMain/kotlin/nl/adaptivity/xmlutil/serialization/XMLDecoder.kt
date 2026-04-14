@@ -40,6 +40,7 @@ import nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI
 import nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI
 import nl.adaptivity.xmlutil.XMLConstants.XSI_NS_URI
 import nl.adaptivity.xmlutil.core.impl.multiplatform.assert
+import nl.adaptivity.xmlutil.core.internal.QNameMap
 import nl.adaptivity.xmlutil.serialization.impl.*
 import nl.adaptivity.xmlutil.serialization.structure.*
 import nl.adaptivity.xmlutil.util.CompactFragmentSerializer
