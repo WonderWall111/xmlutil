@@ -1133,6 +1133,7 @@ final class nl.adaptivity.xmlutil.core/DoctypeParser { // nl.adaptivity.xmlutil.
 }
 
 final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil/XmlReader { // nl.adaptivity.xmlutil.core/KtXmlReader|null[0]
+    constructor <init>(kotlin/String, kotlin/Boolean = ..., kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(kotlin.String;kotlin.Boolean;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core.impl.multiplatform/Reader, kotlin/Boolean, kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.impl.multiplatform.Reader;kotlin.Boolean;kotlin.Boolean){}[0]
     constructor <init>(nl.adaptivity.xmlutil.core/InOutBuffer, kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // nl.adaptivity.xmlutil.core/KtXmlReader.<init>|<init>(nl.adaptivity.xmlutil.core.InOutBuffer;kotlin.String?;kotlin.Boolean;kotlin.Boolean){}[0]
@@ -1165,6 +1166,8 @@ final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil/XmlRe
         final fun <get-prefix>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.prefix.<get-prefix>|<get-prefix>(){}[0]
     final val relaxed // nl.adaptivity.xmlutil.core/KtXmlReader.relaxed|{}relaxed[0]
         final fun <get-relaxed>(): kotlin/Boolean // nl.adaptivity.xmlutil.core/KtXmlReader.relaxed.<get-relaxed>|<get-relaxed>(){}[0]
+    final val startLocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo|{}startLocationInfo[0]
+        final fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
     final val text // nl.adaptivity.xmlutil.core/KtXmlReader.text|{}text[0]
         final fun <get-text>(): kotlin/String // nl.adaptivity.xmlutil.core/KtXmlReader.text.<get-text>|<get-text>(){}[0]
 
@@ -1180,8 +1183,6 @@ final class nl.adaptivity.xmlutil.core/KtXmlReader : nl.adaptivity.xmlutil/XmlRe
         final fun <get-encoding>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.encoding.<get-encoding>|<get-encoding>(){}[0]
     final var standalone // nl.adaptivity.xmlutil.core/KtXmlReader.standalone|{}standalone[0]
         final fun <get-standalone>(): kotlin/Boolean? // nl.adaptivity.xmlutil.core/KtXmlReader.standalone.<get-standalone>|<get-standalone>(){}[0]
-    final var startLocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo|{}startLocationInfo[0]
-        final fun <get-startLocationInfo>(): nl.adaptivity.xmlutil/XmlReader.LocationInfo // nl.adaptivity.xmlutil.core/KtXmlReader.startLocationInfo.<get-startLocationInfo>|<get-startLocationInfo>(){}[0]
     final var version // nl.adaptivity.xmlutil.core/KtXmlReader.version|{}version[0]
         final fun <get-version>(): kotlin/String? // nl.adaptivity.xmlutil.core/KtXmlReader.version.<get-version>|<get-version>(){}[0]
 
@@ -2057,8 +2058,11 @@ final fun (nl.adaptivity.xmlutil/XmlWriter).nl.adaptivity.xmlutil/writeSimpleEle
 final fun nl.adaptivity.xmlutil/isXmlWhitespace(kotlin/Char): kotlin/Boolean // nl.adaptivity.xmlutil/isXmlWhitespace|isXmlWhitespace(kotlin.Char){}[0]
 final fun nl.adaptivity.xmlutil/isXmlWhitespace(kotlin/CharArray): kotlin/Boolean // nl.adaptivity.xmlutil/isXmlWhitespace|isXmlWhitespace(kotlin.CharArray){}[0]
 final fun nl.adaptivity.xmlutil/isXmlWhitespace(kotlin/CharSequence): kotlin/Boolean // nl.adaptivity.xmlutil/isXmlWhitespace|isXmlWhitespace(kotlin.CharSequence){}[0]
+final fun nl.adaptivity.xmlutil/normalizeWhitespace(kotlin/CharSequence): kotlin/String // nl.adaptivity.xmlutil/normalizeWhitespace|normalizeWhitespace(kotlin.CharSequence){}[0]
 final fun nl.adaptivity.xmlutil/qname(kotlin/String?, kotlin/String, kotlin/String? = ...): nl.adaptivity.xmlutil/QName // nl.adaptivity.xmlutil/qname|qname(kotlin.String?;kotlin.String;kotlin.String?){}[0]
+final fun nl.adaptivity.xmlutil/xmlCollapseWhitespace(kotlin/CharSequence): kotlin/String // nl.adaptivity.xmlutil/xmlCollapseWhitespace|xmlCollapseWhitespace(kotlin.CharSequence){}[0]
 final fun nl.adaptivity.xmlutil/xmlCollapseWhitespace(kotlin/String): kotlin/String // nl.adaptivity.xmlutil/xmlCollapseWhitespace|xmlCollapseWhitespace(kotlin.String){}[0]
+final fun nl.adaptivity.xmlutil/xmlTrimWhitespace(kotlin/CharSequence): kotlin/String // nl.adaptivity.xmlutil/xmlTrimWhitespace|xmlTrimWhitespace(kotlin.CharSequence){}[0]
 final fun nl.adaptivity.xmlutil/xmlTrimWhitespace(kotlin/String): kotlin/String // nl.adaptivity.xmlutil/xmlTrimWhitespace|xmlTrimWhitespace(kotlin.String){}[0]
 final inline fun (nl.adaptivity.xmlutil/XmlWriter).nl.adaptivity.xmlutil/smartStartTag(kotlin/String?, kotlin/String, kotlin/String? = ..., kotlin/Function1<nl.adaptivity.xmlutil/XmlWriter, kotlin/Unit>) // nl.adaptivity.xmlutil/smartStartTag|smartStartTag@nl.adaptivity.xmlutil.XmlWriter(kotlin.String?;kotlin.String;kotlin.String?;kotlin.Function1<nl.adaptivity.xmlutil.XmlWriter,kotlin.Unit>){}[0]
 final inline fun (nl.adaptivity.xmlutil/XmlWriter).nl.adaptivity.xmlutil/smartStartTag(nl.adaptivity.xmlutil/QName, kotlin/Function1<nl.adaptivity.xmlutil/XmlWriter, kotlin/Unit>) // nl.adaptivity.xmlutil/smartStartTag|smartStartTag@nl.adaptivity.xmlutil.XmlWriter(nl.adaptivity.xmlutil.QName;kotlin.Function1<nl.adaptivity.xmlutil.XmlWriter,kotlin.Unit>){}[0]
