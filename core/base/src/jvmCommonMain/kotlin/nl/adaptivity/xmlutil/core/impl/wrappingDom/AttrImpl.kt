@@ -26,7 +26,10 @@ import nl.adaptivity.xmlutil.dom2.Attr
 import org.w3c.dom.TypeInfo
 
 internal class AttrImpl(delegate: PlatformAttr) : AbstractNodeImpl<PlatformAttr>(delegate), Attr {
-    override fun getLocalName(): String? = delegate.localName
+    override fun getLocalName(): String? = when {
+        delegate.namespaceURI.isNullOrEmpty() -> delegate.name
+        else -> delegate.localName
+    }
     override fun getFirstChild(): Nothing? = null
 
     override fun getLastChild(): Nothing? = null
