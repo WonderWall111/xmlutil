@@ -70,7 +70,6 @@ public class KtXmlReader(
         private set
 
     // must have different name than function.
-    @Suppress("PropertyName")
     private var _isWhitespace: Boolean = false
 
     override fun isWhitespace(): Boolean = when (eventType) {
@@ -208,7 +207,11 @@ public class KtXmlReader(
 
     //region Location info
     override val startLocationInfo: XmlReader.LocationInfo
-        get() = XmlReader.ExtLocationInfo(_startLocationColumn, _startLocationOffset, _startLocationLine)
+        get() = XmlReader.ExtLocationInfo(
+            col = _startLocationColumn,
+            line = _startLocationLine,
+            offset = _startLocationOffset
+        )
 
     private var _startLocationOffset: Int = inOutBuffer.offset
     private var _startLocationLine: Int = inOutBuffer.line

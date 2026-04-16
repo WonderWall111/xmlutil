@@ -121,14 +121,15 @@ internal open class XmlDecoderBase internal constructor(
     }
 
     private inline fun <R> handleParseError(body: () -> R): R {
+        val initLocationInfo = input.startLocationInfo ?: input.extLocationInfo
         try {
             return body()
         } catch (e: XmlSerialException) {
             throw e
         } catch (e: XmlException) {
-            throw XmlParsingException(e.locationInfo, e.rawMessage ?: "<unknown>", e)
+            throw XmlParsingException(e.locationInfo ?: initLocationInfo, e.rawMessage ?: "<unknown>", e)
         } catch (e: Exception) {
-            throw XmlParsingException(input.extLocationInfo, e.message ?: "<unknown>", e)
+            throw XmlParsingException(initLocationInfo ?: input.extLocationInfo, e.message ?: "<unknown>", e)
         }
     }
 
