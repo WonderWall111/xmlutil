@@ -45,17 +45,21 @@ public class InputStreamReader(public val inputStream: InputStream) : Reader() {
 
     private fun reloadBuffer() {
         if (!inputStream.eof) {
+            val loadOffset: Int
             if (inputBufferOffset < inputBufferEnd) {
                 inputBuffer.copyInto(inputBuffer, 0, inputBufferOffset, inputBufferEnd)
                 inputBufferEnd -= inputBufferOffset
-                inputBufferOffset = 0
+                loadOffset = inputBufferEnd - inputBufferOffset
+            } else {
+                loadOffset = 0
             }
+            inputBufferOffset = 0
             inputBufferEnd = inputBuffer.usePinned { b ->
                 inputStream.read(
-                    b.addressOf(inputBufferOffset),
+                    b.addressOf(loadOffset),
                     sizeT(1),
-                    sizeT((inputBuffer.size - inputBufferOffset))
-                ).toInt() + inputBufferOffset
+                    sizeT((inputBuffer.size - loadOffset))
+                ).toInt() + loadOffset
             }
         }
     }
