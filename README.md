@@ -7,8 +7,6 @@
 
 XmlUtil is a set of packages that supports multiplatform XML in Kotlin.
 
-test
-
 ### Introduction
 This project is a cross-platform XML serialization (wrapping) library compatible with kotlinx.serialization. 
 It supports all platforms although native is at beta quality.
