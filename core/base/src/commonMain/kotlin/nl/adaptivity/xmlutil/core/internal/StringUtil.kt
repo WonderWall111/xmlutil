@@ -243,6 +243,16 @@ public fun CharSequence.codepointAt(index: Int): Int = when (val c = this[index]
     else -> c // not a surrogate
 }
 
+/**
+ * Helper function that determines the position of the next code point in the sequence.
+ */
+@XmlUtilInternal
+public fun CharSequence.nextCodePointPos(pos: Int): Int = when {
+    get(pos).isHighSurrogate() -> pos + 2
+    else -> pos + 1
+}
+
+
 @XmlUtilInternal
 @IgnorableReturnValue
 public fun codepointToCharArray(codepoint: Int): CharArray = when {
