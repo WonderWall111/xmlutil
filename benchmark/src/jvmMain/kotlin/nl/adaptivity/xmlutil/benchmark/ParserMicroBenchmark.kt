@@ -43,7 +43,8 @@ open class ParserMicroBenchmark {
         val reader = KtXmlReader(StringReader(smallXml))
 
         while (reader.hasNext()) {
-            reader.next()
+            @Suppress("UNUSED_EXPRESSION")
+            val _ = reader.next()
         }
     }
     private val repeatedTags = buildString {
@@ -59,7 +60,8 @@ open class ParserMicroBenchmark {
         val reader = KtXmlReader(StringReader(repeatedTags))
 
         while (reader.hasNext()) {
-            reader.next()
+            @Suppress("UNUSED_EXPRESSION")
+            val _ = reader.next()
         }
     }
     private val largeTextXml = """
@@ -71,7 +73,8 @@ open class ParserMicroBenchmark {
         val reader = KtXmlReader(StringReader(largeTextXml))
 
         while (reader.hasNext()) {
-            reader.next()
+            @Suppress("UNUSED_EXPRESSION")
+            val _ = reader.next()
         }
     }
 }
