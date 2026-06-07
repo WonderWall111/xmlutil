@@ -1,5 +1,11 @@
 # 1.0.0-SNAPSHOT
+
+# 1.0.0-rc3 The full DOM
+*(Jun 6, 2026)<br />*
 Features:
+- There is now a common DOM implementation on all platforms that cooperates
+  with the platform's DOM implementation (except for native targets that have
+  none).
 - Add a getOrCreatePrefix function that can be used to get an appropriate
   prefix for a given namespace. If there is no existing prefix, one will be
   created and added to the tag. If a prefixHint is given, this will be
@@ -13,7 +19,26 @@ Features:
   of injecting entity parsing results into the parser (i.e. defining
   entities containing tags).
 
+Incompatible API:
+- There are a few incompatible changes in the DOM API. In particular: some return
+  values have been made nullable (as they are defined as such explicitly by the
+  DOM specification); NamedNodeList is made generic with Node as the base type
+  (rather than Attr) -  Note that for the attributes of an element, the generic type
+  is still Attr; Some methods on platform only is 
+
 Changes:
+- Move the native DOM implementation to the common module and make it available
+  to all platforms (making it also available on nodejs). The implementation has
+  also been extended to implement most DOM 3 features. Note that much of this
+  is still experimental, and has partial tests.
+- Note that the JavaScript implementation has some additional code that declares properties
+  that match the native DOM api (it does not yet have isInstance compatibility)
+- As a result of DOM work some signatures have been made nullable as that is
+  required per the DOM specification (and semantics).
+- Add new context element to xml exception that should allow for more detailed
+  context to be provided in exceptions. This generally covers element names. This
+  helps in cases of attributes where the location information is insufficient 
+  (it is positioned at the start or end of the containing tag).
 - Parsing of single characters now allows for xml Whitespace and will collapse the
   whitespace if there are more than 2 characters. It should be noted that to parse
   a single space character this must not be surrounded by whitespace (collapsing
@@ -43,8 +68,12 @@ Changes:
   consume platform nodes
 
 Fixes:
+- Various small fixes in core (mainly DOM) as a result of asking copilot to
+  find bugs.
 - Make ElementSerializer work better in an existing document context by
   extracting the document from the decoder if possible.
+- Fix serialization of contextual properties as attributes where preceded by
+  elements (#364). 
 
 # 1.0.0-rc2
 *(Jan 18, 2026)<br />*

@@ -19,9 +19,7 @@
  */
 
 import net.devrieze.gradle.ext.addNativeTargets
-import net.devrieze.gradle.ext.applyDefaultXmlUtilHierarchyTemplate
 import net.devrieze.gradle.ext.doPublish
-import net.devrieze.gradle.ext.isKlibValidationEnabled
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.HasConfigurableKotlinCompilerOptions
@@ -41,20 +39,22 @@ plugins {
 }
 
 config {
-    applyLayout = false
+    applyLayout = true
+    allWarningsAsErrors = false
 }
 
 kotlin {
-    applyDefaultXmlUtilHierarchyTemplate()
     explicitApi()
 
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation {
-        enabled = true
+//        enabled = true
 
+/*
         klib {
             enabled = isKlibValidationEnabled()
         }
+*/
 
         filters {
             exclude {
@@ -73,15 +73,10 @@ kotlin {
     }
 
 
-    jvm("jvmCommon") {
+    jvm {
         compilations.all {
             val targetTestTask = tasks.named<Test>("${target.name}Test")
             testTask.configure { dependsOn(targetTestTask) }
-	    /*
-            cleanTestTask.configure {
-                dependsOn(tasks.named("clean${target.name[0].uppercaseChar()}${target.name.substring(1)}Test"))
-            }
-	    */
         }
         tasks.withType<Jar>().named(artifactsTaskName) {
             from(project.file("src/r8-workaround.pro")) {
@@ -126,7 +121,7 @@ kotlin {
 
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
-        freeCompilerArgs.add("-Xcontext-parameters")
+        optIn.add("kotlin.js.ExperimentalJsNoRuntime")
     }
 
     targets.all {
@@ -154,7 +149,7 @@ kotlin {
             }
         }
 
-        val jvmCommonTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.junit.api)

@@ -20,6 +20,7 @@
 
 package nl.adaptivity.xmlutil.serialization
 
+import kotlinx.serialization.ContextualSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.builtins.serializer
@@ -386,11 +387,11 @@ internal open class XmlEncoderBase internal constructor(
             OutputKind.Attribute -> {
                 val valueType = xmlDescriptor.getElementDescriptor(1)
                 if (!valueType.effectiveOutputKind.isTextual) {
-                    throw XmlSerialException("Values of an attribute map must be textual or a qname")
+                    throw XmlSerialException("Values of an attribute map must be textual or a qname", xmlDescriptor.friendlyChildName(elementIndex))
                 }
                 val keyType = xmlDescriptor.getElementDescriptor(0)
                 if (!keyType.effectiveOutputKind.isTextual) {
-                    throw XmlSerialException("The keys of an attribute map must be string or qname")
+                    throw XmlSerialException("The keys of an attribute map must be string or qname", xmlDescriptor.friendlyChildName(elementIndex))
                 }
                 AttributeMapEncoder(xmlDescriptor)
             }
@@ -617,7 +618,19 @@ internal open class XmlEncoderBase internal constructor(
 
             val effectiveSerializer = elementDescriptor.effectiveSerializationStrategy(serializer)
 
-            defer(index, effectiveSerializer.safeDeferredWrite(encoder, value, isValueChild(index)))
+            if (elementDescriptor !is XmlContextualDescriptor) {
+                defer(index, effectiveSerializer.safeDeferredWrite(encoder, value, isValueChild(index)))
+            } else if (effectiveSerializer is ContextualSerializer<*>) {
+                // Let the contextual serializer do the resolution and defer with the concrete serializer.
+                effectiveSerializer.serializeSafe(encoder, value, isValueChild(index))
+            } else { // should be handled by the encoder, but if not, this will also work
+                val actualDescriptor = elementDescriptor.resolve(this, effectiveSerializer.descriptor)
+                defer(
+                    index,
+                    actualDescriptor,
+                    effectiveSerializer.safeDeferredWrite(encoder, value, isValueChild(index))
+                )
+            }
         }
 
         @ExperimentalSerializationApi
@@ -909,7 +922,10 @@ internal open class XmlEncoderBase internal constructor(
                             }
 
                             OutputKind.Text ->
-                                throw XmlSerialException("the type for a polymorphic child cannot be a text")
+                                throw XmlSerialException(
+                                    "the type for a polymorphic child cannot be a text",
+                                    xmlDescriptor.friendlyChildName(index)
+                                )
                         }
                     } // else if (index == 0) { } // do nothing
                 }

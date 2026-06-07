@@ -18,10 +18,10 @@
  * permissions and limitations under the License.
  */
 
+@file:Suppress("OPT_IN_USAGE")
+
 import net.devrieze.gradle.ext.addNativeTargets
-import net.devrieze.gradle.ext.applyDefaultXmlUtilHierarchyTemplate
 import net.devrieze.gradle.ext.doPublish
-import net.devrieze.gradle.ext.isKlibValidationEnabled
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
@@ -46,16 +46,15 @@ config {
 val autoModuleName = "net.devrieze.xmlutil.core.kxio"
 
 kotlin {
+    applyDefaultHierarchyTemplate {
+        group("web") {
+            withWasmWasi()
+        }
+    }
     explicitApi()
-    applyDefaultXmlUtilHierarchyTemplate()
 
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation {
-        enabled = true
-
-        klib {
-            enabled = isKlibValidationEnabled()
-        }
 
         filters {
             exclude {

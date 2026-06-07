@@ -22,7 +22,6 @@
 
 import net.devrieze.gradle.ext.addNativeTargets
 import net.devrieze.gradle.ext.doPublish
-import net.devrieze.gradle.ext.isKlibValidationEnabled
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
@@ -41,11 +40,13 @@ plugins {
 }
 
 base {
-    archivesName = "xmltestutil"
+    group = "io.github.pdvrieze"
+    archivesName = "testutil"
 }
 
 config {
     kotlinApiVersion = KotlinVersion.DEFAULT
+    applyLayout = true
 }
 
 val moduleName = "io.github.pdvrieze.testutil"
@@ -54,11 +55,12 @@ kotlin {
 
     @OptIn(ExperimentalAbiValidation::class)
     abiValidation {
-        enabled = true
 
+/*
         klib {
-            enabled = isKlibValidationEnabled()
+            enabled = false // isKlibValidationEnabled()
         }
+*/
 
         filters {
             exclude {
@@ -106,15 +108,8 @@ kotlin {
 
 addNativeTargets()
 
-doPublish()
+doPublish("testutil")
 
 config {
     dokkaModuleName = "testutil"
-}
-
-
-idea {
-    module {
-        name = "xmlutil-testutil"
-    }
 }
