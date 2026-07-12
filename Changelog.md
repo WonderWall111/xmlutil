@@ -1,4 +1,44 @@
-# 1.0.0-SNAPSHOT
+# 1.0.1-SNAPSHOT
+Fixes:
+- Fix LRU cache so that it properly evicts and maintains its size (#372).
+- Fix reading larger from kotlinx.io sources (#373)
+- Fix close in PseudoBufferedReader (#374), this is probably never called,
+  but still incorrect. Thanks to @m-sasha for reporting many smaller bugs #374 - #382
+- Fix serialization of negative values for XmlFloat/XmlDouble and related
+  serializers (#375).
+- Fix escaping of 0x1f in KtXmlWriter (#376).
+- Allow writing of BOM in CData content, but disallow the sentinal character (0xffff)
+  per the XML standards. Also tidy the error messages (#377).
+- Fix DomWriter.getPrefixes that was incorrectly handling checks for already
+  declared prefixes (#379).
+- Fix writing namespace attributes through XmlEvent.Attribute (#380). Note
+  that the parsing code does not generate Attribute events, so most use cases
+  are not hit by this bug.
+- Fix getPrefix in StartElementEvent (#381). It used a property rather
+  than parameter in the fallback.
+- Fix reading unicode characters in kotlinx.io.Source reading as well
+  as native InputStreamReader (some of the code is common, and was buggy in both).
+Changes:
+- Add support to specify the cache size of the underlying cache for LayeredCache 
+  and `defaultSharedFormatCache()`
+- Add support for a `PerSerializationFormatCache` that allows for caching within
+  individual invocations to a format. 
+- Snapshot releases no longer include javadoc/source artifacts, nor deprecated
+  native targets. This should reduce the overall publication size/burden.
+
+# 1.0.0 To infinity and beyond
+*(Jun 28, 2026)<br />*
+Fixes:
+- Remove usages of removeLast() to avoid issues on Android below 
+  API-level 35. Fixes #367.
+- Fix Attr in the common DOM implementation not having its owner set/tracked
+  appropriately.
+- Ensure that the module structure matches the old structure from
+  1.0.0-rc2 and before. 
+
+Changes:
+- The core-compat module is no longer published. Use core/core-jvm, and if integration with
+  the native parser is needed, add the core-jdk or core-android modules. 
 
 # 1.0.0-rc3 The full DOM
 *(Jun 6, 2026)<br />*

@@ -18,25 +18,10 @@
  * permissions and limitations under the License.
  */
 
-package nl.adaptivity.xml.serialization
+package io.github.pdvrieze.formats.xmlschema.resolved.flattened
 
 import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.dom.PlatformDOMImplementation
-import nl.adaptivity.xmlutil.dom2.Document
-import org.xml.sax.InputSource
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
-import nl.adaptivity.xmlutil.util.impl.createDocument
 
-actual fun PlatformDOMImplementation.parse(input: String): Document {
-    return DocumentBuilderFactory
-        .newInstance()
-        .apply { this.isNamespaceAware = true }
-        .newDocumentBuilder()
-        .parse(InputSource(StringReader(input)))
-        .let {
-            createDocument(QName("XX")).also { document ->
-                document.replaceChild(document.importNode(it.documentElement, true), document.getDocumentElement()!!)
-            }
-        }
+fun interface SiblingContextProvider {
+    fun isSibling(particleName: QName): Boolean
 }
