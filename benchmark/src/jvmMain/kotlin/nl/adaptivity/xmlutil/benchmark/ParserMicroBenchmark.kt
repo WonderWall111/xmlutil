@@ -19,62 +19,130 @@
  */
 
 package nl.adaptivity.xmlutil.benchmark
+
 import nl.adaptivity.xmlutil.core.KtXmlReader
-import org.openjdk.jmh.annotations.*
 import java.io.StringReader
 import java.util.concurrent.TimeUnit
+import kotlinx.benchmark.*
+import nl.adaptivity.xmlutil.EventType
+import org.openjdk.jmh.annotations.Fork
+import java.io.ByteArrayInputStream
 
 @BenchmarkMode(Mode.AverageTime)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@State(Scope.Thread)
-@Fork(2)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@State(Scope.Benchmark)
 @Warmup(iterations = 5)
 @Measurement(iterations = 10)
 open class ParserMicroBenchmark {
 
-    private val smallXml = """
-        <book>
-            <title>XML Guide</title>
-        </book>
-    """.trimIndent()
-
     @Benchmark
-    fun parseSmallXml() {
-        val reader = KtXmlReader(StringReader(smallXml))
-
-        while (reader.hasNext()) {
-            @Suppress("UNUSED_EXPRESSION")
-            val _ = reader.next()
+    fun parseSmallXml(
+        state: SmallXmlState,
+        bh: Blackhole
+    ) {
+        KtXmlReader(StringReader(state.xml)).use { reader ->
+            consumeReader(reader, bh)
         }
-    }
-    private val repeatedTags = buildString {
-        append("<items>")
-        repeat(100) {
-            append("<item>value</item>")
-        }
-        append("</items>")
     }
 
     @Benchmark
-    fun parseRepeatedTags() {
-        val reader = KtXmlReader(StringReader(repeatedTags))
-
-        while (reader.hasNext()) {
-            @Suppress("UNUSED_EXPRESSION")
-            val _ = reader.next()
+    fun parseSmallXmlInputStream(
+        state: SmallXmlBytesState,
+        bh: Blackhole
+    ) {
+        KtXmlReader(ByteArrayInputStream(state.bytes)).use { reader ->
+            consumeReader(reader, bh)
         }
     }
-    private val largeTextXml = """
-    <description>${"x".repeat(5000)}</description>
-""".trimIndent()
+
+    private fun consumeReader(
+        reader: KtXmlReader,
+        bh: Blackhole
+    ) {
+        while (reader.hasNext()) {
+            val event = reader.next()
+            bh.consume(event)
+
+            when (event) {
+                EventType.START_ELEMENT,
+                EventType.END_ELEMENT -> {
+                    bh.consume(reader.localName)
+                    bh.consume(reader.prefix)
+                    bh.consume(reader.namespaceURI)
+                }
+
+                EventType.TEXT -> {
+                    bh.consume(reader.text)
+                }
+
+                else -> Unit
+            }
+        }
+    }
 
     @Benchmark
-    fun parseLargeText() {
-        val reader = KtXmlReader(StringReader(largeTextXml))
+    fun parseRepeatedTags(
+        state: RepeatedTagsState,
+        bh: Blackhole
+    ) {
+        KtXmlReader(StringReader(state.xml)).use {
+            consumeReader(it, bh)
+        }
+    }
 
-        while (reader.hasNext()) {
-            @Suppress("UNUSED_EXPRESSION")
-            val _ = reader.next()
+    @Benchmark
+    fun parseRepeatedTagsInputStream(
+        state: RepeatedTagsBytesState,
+        bh: Blackhole
+    ) {
+        KtXmlReader(ByteArrayInputStream(state.bytes)).use {
+            consumeReader(it, bh)
+        }
+    }
+
+    @Benchmark
+    fun parseLargeText(state: LargeTextState, bh: Blackhole) {
+        KtXmlReader(StringReader(state.xml)).use { reader ->
+            while (reader.hasNext()) {
+                val event = reader.next()
+                bh.consume(event)
+
+                if (event == EventType.TEXT) {
+                    bh.consume(reader.text)
+                }
+            }
+        }
+    }
+
+    @Benchmark
+    fun parseAttributes(state: AttributeState, bh: Blackhole) {
+        KtXmlReader(StringReader(state.xml)).use { reader ->
+            while (reader.hasNext()) {
+                val event = reader.next()
+                bh.consume(event)
+
+                if (event == EventType.START_ELEMENT) {
+                    for (i in 0 until reader.attributeCount) {
+                        bh.consume(reader.getAttributeValue(i))
+                    }
+                }
+            }
+        }
+    }
+
+    @Benchmark
+    fun parseNamespaces(state: NamespaceState, bh: Blackhole) {
+        KtXmlReader(StringReader(state.xml)).use { reader ->
+            while (reader.hasNext()) {
+                val event = reader.next()
+                bh.consume(event)
+
+                if (event == EventType.START_ELEMENT) {
+                    bh.consume(reader.localName)
+                    bh.consume(reader.prefix)
+                    bh.consume(reader.namespaceURI)
+                }
+            }
         }
     }
 }

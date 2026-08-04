@@ -77,6 +77,9 @@ benchmark {
         register("jvm")
     }
     configurations {
+        create("micro") {
+            include("nl.adaptivity.xmlutil.benchmark.ParserMicroBenchmark")
+        }
         create("parsing") {
             include("nl.adaptivity.xmlutil.benchmark.Parsing")
         }
@@ -89,6 +92,48 @@ benchmark {
         }
         create("serialization") {
             include("nl.adaptivity.xmlutil.benchmark.Serialization")
+        }
+        create("smallXml") {
+            include(
+                "nl.adaptivity.xmlutil.benchmark.ParserMicroBenchmark.parseSmallXml.*"
+            )
+        }
+        create("repeatedTags") {
+            include(
+                "nl\\.adaptivity\\.xmlutil\\.benchmark\\.ParserMicroBenchmark\\.parseRepeatedTags$"
+            )
+            include(
+                "nl\\.adaptivity\\.xmlutil\\.benchmark\\.ParserMicroBenchmark\\.parseRepeatedTagsInputStream$"
+            )
+            advanced("jvmForks", 2)
+        }
+        create("repeatedTagsVerify") {
+            include(
+                "nl\\.adaptivity\\.xmlutil\\.benchmark\\" +
+                        ".ParserMicroBenchmark\\.parseRepeatedTags$"
+            )
+
+            param("count", "100", "5000")
+
+            warmups = 5
+            iterations = 10
+            advanced("jvmForks", 3)
+        }
+        create("repeatedTags5000Verify") {
+            include(
+                "nl\\.adaptivity\\.xmlutil\\.benchmark\\." +
+                        "ParserMicroBenchmark\\.parseRepeatedTags$"
+            )
+            include(
+                "nl\\.adaptivity\\.xmlutil\\.benchmark\\." +
+                        "ParserMicroBenchmark\\.parseRepeatedTagsInputStream$"
+            )
+
+            param("count", "5000")
+
+            warmups = 5
+            iterations = 10
+            advanced("jvmForks", 3)
         }
     }
 }
