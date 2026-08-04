@@ -1,4 +1,11 @@
-# 1.0.1-SNAPSHOT
+# 1.0.2-SNAPSHOT
+Fixes:
+- Fix adding documentType instances to a document. Document types no longer
+  have an initial owning document and having no owning document, the owning
+  document will be set.
+
+# 1.0.1 Cache it well
+*(Jul 8, 2026)<br />*
 Fixes:
 - Fix LRU cache so that it properly evicts and maintains its size (#372).
 - Fix reading larger from kotlinx.io sources (#373)
@@ -25,6 +32,8 @@ Changes:
   individual invocations to a format. 
 - Snapshot releases no longer include javadoc/source artifacts, nor deprecated
   native targets. This should reduce the overall publication size/burden.
+- Make InputStreamReader and SourceUnicodeReader have dedicated single character
+  read implementations rather than reading into an array of length 1.
 
 # 1.0.0 To infinity and beyond
 *(Jun 28, 2026)<br />*
